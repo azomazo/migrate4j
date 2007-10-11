@@ -1,0 +1,24 @@
+
+README for migrate4j
+
+Migrate4j is a database migration package for Java.  While 
+migrate4j will never have the intuitiveness of the db:migrate 
+rake task in rails, this is an attempt to come as close as 
+possible.
+
+Migrate4j allows upgrading and reverting your database schema.
+In order to mimic rails, convention is used to minimize the
+amount of set up.  If you follow the convention, all you need
+to do is create classes that inherit from the Migration interface,
+naming each one with the pattern "Migration_X" where X is the 
+sequential order of the migration.  For example, you would 
+create Migration_1.java, Migration_2.java, and so on.  Most
+(or all) of the convention can be overwritten by modifying the
+migrate4j.properties file.
+
+Prerequisites:  Java 1.4 or higher, a JDBC driver for your
+database and JUnit 3 or higher.  If your database is not 
+currently supported, you are free to add support.
+
+Installation:  Migrate4j uses a properties file to determine
+where your migration files reside and what work to do.

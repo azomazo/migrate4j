@@ -1,0 +1,57 @@
+<project name="migrate4j" default="run_tests" basedir=".">
+	
+	<property name="main.src.dir" value="${basedir}/src" />
+	<property name="main.test.dir" value="${basedir}/test" />
+	<property name="build.dir" value="${basedir}/build" />
+	<property name="build.classes.dir" value="${build.dir}/classes" />
+	<property name="build.test.dir" value="${build.dir}/test" />
+	<property name="test.result.dir" value="${build.test.dir}/results" />
+	
+	<path id="lib.classpath">
+		<fileset dir="lib">
+			<include name="**/*.jar" />
+		</fileset>
+	</path>
+
+	<path id="test.classpath">
+		<pathelement location="${build.classes.dir}"/>
+		<pathelement location="${build.test.dir}"/>
+		<path refid="lib.classpath"/>
+	</path>
+	
+	<target name="compile">
+		<antcall target="compile.classes" />
+		<antcall target="compile.tests" />
+	</target>
+
+	<target name="compile.classes">
+		<delete dir="${build.classes.dir}" />
+		<mkdir dir="${build.classes.dir}" />
+		<javac srcdir="${main.src.dir}" destdir="${build.classes.dir}" classpathref="lib.classpath"/>
+	</target>
+	
+	<target name="compile.tests">
+		<delete dir="${build.test.dir}" />
+		<mkdir dir="${build.test.dir}" />
+		<mkdir dir="${test.result.dir}" />
+		<javac srcdir="${main.test.dir}" destdir="${build.test.dir}" classpathref="test.classpath"/>
+	</target>
+
+	<target name="run_tests" depends="compile">
+		<copy todir="${build.test.dir}">
+			<fileset dir="${main.test.dir}">
+				<include name="**/*.properties" />
+			</fileset>
+		</copy>
+		<junit description="Unit tests">
+			<formatter type="brief" usefile="false"/>
+			<formatter type="xml"/>
+			<classpath refid="test.classpath"/>
+			<batchtest todir="${test.result.dir}">
+				<fileset dir="${build.test.dir}">
+					<include name="**/*Test.class" />
+				</fileset>
+			</batchtest>
+		</junit>
+	</target>
+</project>
