@@ -22,3 +22,7 @@ currently supported, you are free to add support.
 
 Installation:  Migrate4j uses a properties file to determine
 where your migration files reside and what work to do.
+
+To run the ant script from Eclipse, be sure you add junit.jar
+to the Ant runtime.  To do this, select Window -> Preferences -> 
+Ant -> Runtime -> Global Entries and add a link to junit.jar.
