@@ -1,4 +1,4 @@
-package com.eroi.migrate;
+package com.eroi.migrate.engine;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -32,4 +32,5 @@ public class Closer {
 			}
 		}
 	}
+	
 }

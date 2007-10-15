@@ -1,13 +1,11 @@
 package com.eroi.migrate.generators;
 
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.eroi.migrate.SchemaBuilder;
-import com.eroi.migrate.SchemaElement;
 
 import junit.framework.TestCase;
+
+import com.eroi.migrate.Define;
+import com.eroi.migrate.schema.Column;
 
 public class GeneratorHelperTest extends TestCase {
 
@@ -47,22 +45,16 @@ public class GeneratorHelperTest extends TestCase {
 	}
 	
 	public void testCountPrimaryKeyColumns() {
-		List columns = new ArrayList();
+		Column[] columns = new Column[3];
+		columns[0] = Define.column("primary1", Types.INTEGER, -1, true, false, null, true);
+		columns[1] = Define.column("column1", Types.INTEGER);
+		columns[2] = Define.column("column2", Types.INTEGER);
 		
-		columns.add(SchemaBuilder.createPrimaryKeyColumn("primary1", Types.INTEGER, true));
-		columns.add(SchemaBuilder.createColumn("column1", Types.INTEGER));
-		columns.add(SchemaBuilder.createColumn("column2", Types.INTEGER));
+		assertEquals(1, GeneratorHelper.countPrimaryKeyColumns(columns));
 		
-		SchemaElement.Column[] columnArray = 
-			(SchemaElement.Column[])columns.toArray(new SchemaElement.Column[columns.size()]);
+		columns[2] = Define.column("primary2", Types.INTEGER, -1, true, true, "NA", false);
 		
-		assertEquals(1, GeneratorHelper.countPrimaryKeyColumns(columnArray));
+		assertEquals(2, GeneratorHelper.countPrimaryKeyColumns(columns));
 		
-		columns.add(SchemaBuilder.createPrimaryKeyColumn("primary2", Types.INTEGER, false));
-		
-		columnArray = 
-			(SchemaElement.Column[])columns.toArray(new SchemaElement.Column[columns.size()]);
-		
-		assertEquals(2, GeneratorHelper.countPrimaryKeyColumns(columnArray));
 	}
 }

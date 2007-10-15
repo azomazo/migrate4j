@@ -1,4 +1,4 @@
-package com.eroi.migrate;
+package com.eroi.migrate.engine;
 
 public class SchemaMigrationException extends RuntimeException {
 

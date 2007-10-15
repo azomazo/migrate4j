@@ -28,7 +28,6 @@ migration.package.name=com.sample.migrations
 #migration.classname.prefix=Migration
 #migration.separator=_
 #migration.start.index=1
-#migration.init.classname=Setup
 
 #database.version.table=version
 

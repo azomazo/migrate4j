@@ -43,7 +43,7 @@
 				<include name="**/*.properties" />
 			</fileset>
 		</copy>
-		<junit description="Unit tests">
+		<junit description="Unit tests" haltonfailure="true" >
 			<formatter type="brief" usefile="false"/>
 			<formatter type="xml"/>
 			<classpath refid="test.classpath"/>

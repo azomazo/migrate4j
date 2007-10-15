@@ -26,3 +26,8 @@ where your migration files reside and what work to do.
 To run the ant script from Eclipse, be sure you add junit.jar
 to the Ant runtime.  To do this, select Window -> Preferences -> 
 Ant -> Runtime -> Global Entries and add a link to junit.jar.
+
+To run the junit tests in Eclipse directly, add the jars in
+the lib directory to the project build path.  To do this, select
+Project -> Properties -> Java Build Path.  Click the "Add Jar" 
+button and select everything inside migrate4j/lib.

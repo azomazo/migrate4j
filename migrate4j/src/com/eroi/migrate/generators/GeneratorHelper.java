@@ -3,11 +3,10 @@ package com.eroi.migrate.generators;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.eroi.migrate.SchemaElement;
+import com.eroi.migrate.schema.Column;
 
 /**
  * Provides basic logic for most Generators.
@@ -57,14 +56,18 @@ public class GeneratorHelper {
 		return needsQuotes.contains(new Integer(type));
 	}
 	
-	public static int countPrimaryKeyColumns(SchemaElement[] columns) {
+	public static int countPrimaryKeyColumns(Column[] columns) {
 		int retVal = 0;
 		
 		for (int x = 0 ; x < columns.length ; x++) {
+			
 			try {
-				SchemaElement.PrimaryKeyColumn column = 
-					(SchemaElement.PrimaryKeyColumn)columns[x];
-				retVal++;
+				Column column = columns[x];
+				
+				if (column != null && column.isPrimaryKey()) {
+					retVal++;
+				}
+				
 			} catch (ClassCastException ignored) {
 			}
 		}

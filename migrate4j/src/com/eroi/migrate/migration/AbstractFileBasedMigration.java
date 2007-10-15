@@ -1,4 +1,4 @@
-package com.eroi.migrate;
+package com.eroi.migrate.migration;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -11,8 +11,11 @@ import java.sql.SQLException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+import com.eroi.migrate.Execute;
+import com.eroi.migrate.Migration;
+
 /**
- * Applies SQL scripts.  Script paths
+ * Applies generic SQL scripts.  Script paths
  * are passed into the constructor and must
  * be loadable at runtime.
  * 
@@ -39,16 +42,17 @@ public abstract class AbstractFileBasedMigration implements Migration {
 		return description;
 	}
 
-	public SchemaElement up(Connection connection) throws SQLException {
+	public void up(Connection connection) throws SQLException {
 		String script = getFileContents(upScriptPath); 
 		
-		return new SchemaElement.Procedure(upScriptPath, script, null);
+		Execute.statement(script);
+		
 	}
 	
-	public SchemaElement down(Connection connection) throws SQLException {
+	public void down(Connection connection) throws SQLException {
 		String script = getFileContents(downScriptPath); 
 		
-		return new SchemaElement.Procedure(upScriptPath, script, null);
+		Execute.statement(script);
 	}
 
 	private String getFileContents(String scriptPath) {

@@ -1,13 +1,78 @@
 package com.eroi.migrate.generators;
 
-import com.eroi.migrate.DDLGenerator;
-import com.eroi.migrate.SchemaElement;
-import com.eroi.migrate.SchemaMigrationException;
-import com.eroi.migrate.SchemaElement.Table;
+import java.sql.Statement;
 
-public class H2Generator implements DDLGenerator {
+import com.eroi.migrate.engine.SchemaMigrationException;
+import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Table;
 
-	public String getCreateTableStatement(Table table) {
+public class H2Generator implements Generator {
+
+	public String createTableStatement(Table table) {
+		
+		StringBuffer retVal = new StringBuffer();
+		
+		Column[] columns = table.getColumns();
+		
+		if (columns == null || columns.length == 0) {
+			throw new SchemaMigrationException("Table must include at least one column");
+		}
+		
+		int numberOfKeyColumns = GeneratorHelper.countPrimaryKeyColumns(columns);
+		if (numberOfKeyColumns != 1) {
+			throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
+		}
+		
+		retVal.append("create table \"")
+			  .append(table.getTableName())
+			  .append("\" (");
+		
+		try {
+			for (int x = 0 ; x < columns.length ; x++ ){
+				Column column = (Column)columns[x];
+				
+				if (x > 0) {
+					retVal.append(", ");
+				}
+				
+				retVal.append(makeColumnString(column));
+				
+			}
+		} catch (ClassCastException e) {
+			throw new SchemaMigrationException("A table column couldn't be cast to a column: " + e.getMessage());
+		}
+		
+		return retVal.toString().trim() + ");";
+	}
+
+	public String addColumnStatement(Column column, Table table, String afterColumn) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+
+	public String dropTableStatement(Table table) {
+		if (table == null) {
+			throw new SchemaMigrationException("Table must not be null");
+		}
+		
+		StringBuffer retVal = new StringBuffer();
+		retVal.append("DROP TABLE \"")
+			  .append(table.getTableName())
+			  .append("\"");
+	
+		return retVal.toString();
+	}
+
+
+
+	public String getStatement(Statement statement) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+/*	public String getTableStatement(Tabl table) {
 		StringBuffer retVal = new StringBuffer();
 		
 		SchemaElement.Column[] columns = table.getColumns();
@@ -27,10 +92,10 @@ public class H2Generator implements DDLGenerator {
 		
 		try {
 			for (int x = 0 ; x < columns.length ; x++ ){
-				SchemaElement.Column column = (SchemaElement.Column)columns[x];
+				SchemaElement.Column column = (com.eroi.migrate.schema.Column)columns[x];
 				
 				if (column instanceof SchemaElement.PrimaryKeyColumn) {
-					retVal.append(makePrimaryKeyColumnString((SchemaElement.PrimaryKeyColumn)column));
+					retVal.append(makePrimaryKeyColumnString((com.eroi.migrate.schema.PrimaryKeyColumn)column));
 				} else {
 					retVal.append(makeColumnString(column));
 				}
@@ -54,9 +119,9 @@ public class H2Generator implements DDLGenerator {
 			  .append("\"");
 		
 		return retVal.toString();
-	}
+	}*/
 	
-	private String makeColumnString(SchemaElement.Column column) {
+	protected String makeColumnString(Column column) {
 		StringBuffer retVal = new StringBuffer();
 		
 		retVal.append("\"")
@@ -73,11 +138,20 @@ public class H2Generator implements DDLGenerator {
 				  .append(")");
 			
 		}
+		retVal.append(" ");
 		
 		if (!column.isNullable()) {
-			retVal.append(" NOT");;
+			retVal.append("NOT ");;
 		}
-		retVal.append(" NULL ");
+		retVal.append("NULL ");
+		
+		if (column.isAutoincrement()) {
+			retVal.append("AUTO_INCREMENT ");
+		}
+		
+		if (column.isPrimaryKey()) {
+			retVal.append("PRIMARY KEY ");
+		}
 		
 		if (column.getDefaultValue() != null) {
 			retVal.append("DEFAULT '")
@@ -85,27 +159,7 @@ public class H2Generator implements DDLGenerator {
 				  .append("' ");
 		}
 		
-		retVal.append(",");
-		
-		return retVal.toString();
-	}
-	
-	private String makePrimaryKeyColumnString(SchemaElement.PrimaryKeyColumn primaryKeyColumn) {
-		StringBuffer retVal = new StringBuffer();
-		
-		retVal.append(makeColumnString(primaryKeyColumn).trim());
-		
-		//remove the comma
-		retVal.delete(retVal.length() - 1, retVal.length());
-		
-		if (primaryKeyColumn.isAutoincrement()) {
-			retVal.append("AUTO_INCREMENT ");
-		}
-		retVal.append("PRIMARY KEY");
-				
-		retVal.append(",");
-		
-		return retVal.toString();
+		return retVal.toString().trim();
 	}
 
 }

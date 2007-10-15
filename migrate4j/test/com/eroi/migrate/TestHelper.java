@@ -5,29 +5,32 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.eroi.migrate.engine.Closer;
 import com.sample.migrations.Migration_1;
 
 public class TestHelper {
 
-	public static MigrationRunner getSampleDbMigrationRunner() {
-		return new MigrationRunner("jdbc:h2:~/migrate4j",
-				   "org.h2.Driver",
-				   "sa",
-				   "",
-				   "com.sample.migrations");
+	public static void configureSampleDb() {
+		Configure.configure("jdbc:h2:~/migrate4j",
+				   			"org.h2.Driver",
+							"sa",
+							"",
+							"com.sample.migrations");
 	}
 	
 	public static void ensureH2DatabaseIsInstalled() throws SQLException {
-		MigrationRunner runner = getSampleDbMigrationRunner();
+	
+		configureSampleDb();
+		
 		Connection connection = null;
 		Statement statement = null;
 		ResultSet resultSet = null;
 		try {
-			connection = runner.getConnection();
+			connection = Configure.getConnection();
 			statement = connection.createStatement();
 			
 			//This will throw an SQL exception if the table is not there
-			resultSet = statement.executeQuery("select " + MigrationRunner.VERSION_FIELD_NAME + " from " + runner.getVersionTable());
+			resultSet = statement.executeQuery("select " + Configure.VERSION_FIELD_NAME + " from " + Configure.getVersionTable());
 			
 		} finally {
 			Closer.close(resultSet);
@@ -41,9 +44,10 @@ public class TestHelper {
 	}
 	
 	public static void prepareH2Database() throws SQLException {
-		MigrationRunner runner = getSampleDbMigrationRunner();
-		String tableName = runner.getVersionTable();
-		String fieldName = MigrationRunner.VERSION_FIELD_NAME;
+		configureSampleDb();
+		
+		String tableName = Configure.getVersionTable();
+		String fieldName = Configure.VERSION_FIELD_NAME;
 		String sampleTableName = "\"" + Migration_1.TABLE_NAME + "\"";
 		
 		
@@ -83,7 +87,7 @@ public class TestHelper {
 		ResultSet resultSet = null;
 					
 		try {
-			connection = runner.getConnection();
+			connection = Configure.getConnection();
 			
 			statement = connection.createStatement();
 			

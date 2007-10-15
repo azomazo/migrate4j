@@ -1,5 +1,6 @@
 package com.eroi.migrate;
 
+
 /**
  * Represents changes to a database schema.
  * Migrations are applied in the order of their
@@ -27,13 +28,13 @@ public interface Migration {
 	 * Work to perform when upgrading the database
 	 * schema
 	 */
-	public SchemaElement up();
+	public void up();
 	
 	
 	/**
 	 * Work to perform when reverting the database
 	 * schema to a previous version
 	 */
-	public SchemaElement down();
+	public void down();
 	
 }

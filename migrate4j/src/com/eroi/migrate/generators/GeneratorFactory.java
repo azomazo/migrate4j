@@ -3,12 +3,11 @@ package com.eroi.migrate.generators;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import com.eroi.migrate.DDLGenerator;
-import com.eroi.migrate.SchemaMigrationException;
+import com.eroi.migrate.engine.SchemaMigrationException;
 
 public class GeneratorFactory {
 
-	public static DDLGenerator getGenerator(Connection connection) throws SQLException {
+	public static Generator getGenerator(Connection connection) throws SQLException {
 		String dbName = connection.getMetaData().getDatabaseProductName();
 		
 		if ("H2".equalsIgnoreCase(dbName)) {

@@ -7,9 +7,10 @@ import java.sql.Statement;
 
 import junit.framework.TestCase;
 
+import com.eroi.migrate.engine.Closer;
 import com.sample.migrations.Migration_1;
 
-public class SchemaBuilderTest extends TestCase {
+public class SampleMigrationTest extends TestCase {
 	
 	protected void setUp() throws Exception {
 		super.setUp();
@@ -24,26 +25,22 @@ public class SchemaBuilderTest extends TestCase {
 	}
 	
 	public void testBuildSchemaElement() throws Exception {
-		MigrationRunner runner = TestHelper.getSampleDbMigrationRunner();
+		TestHelper.configureSampleDb();
 		
 		Connection connection = null;
 		
 		try {
 			
-			connection = runner.getConnection();
+			connection = Configure.getConnection();
 			
 			assertFalse(tableExists(connection));
 			
-			SchemaBuilder builder = new SchemaBuilder();
 			Migration_1 migration = new Migration_1();
-			SchemaElement table = migration.up();
-			
-			builder.buildSchemaElement(connection, table);
+			migration.up();
 			
 			assertTrue(tableExists(connection));
 			
-			SchemaElement drop = SchemaBuilder.drop(table);
-			builder.buildSchemaElement(connection, drop);
+			migration.down();
 			
 			assertFalse(tableExists(connection));			
 		

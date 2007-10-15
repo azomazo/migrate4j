@@ -1,13 +1,12 @@
 package com.eroi.migrate.generators;
 
 import java.sql.Types;
-import java.util.ArrayList;
-import java.util.List;
-
-import com.eroi.migrate.SchemaBuilder;
-import com.eroi.migrate.SchemaElement;
 
 import junit.framework.TestCase;
+
+import com.eroi.migrate.Define;
+import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Table;
 
 public class H2GeneratorTest extends TestCase {
 
@@ -19,21 +18,66 @@ public class H2GeneratorTest extends TestCase {
 		generator = new H2Generator();
 	}
 	
-	public void testGetCreateTableStatement() {
+	public void testMakeColumnString_SimpleColumn() {
+		Column column = Define.column("basic", Types.INTEGER);
+		
+		String columnString = generator.makeColumnString(column);
+		
+		assertEquals("\"basic\" INT NULL", columnString);
+	}
+	
+	public void testMakeColumnString_PrimaryKeyNonIncrementing() {
+		Column column = Define.column("basic", Types.INTEGER, -1, true, false, null, false);
+		
+		String columnString = generator.makeColumnString(column);
+		
+		assertEquals("\"basic\" INT NOT NULL PRIMARY KEY", columnString);
+	}
+	
+	public void testMakeColumnString_PrimaryKeyIncrementing() {
+		Column column = Define.column("basic", Types.INTEGER, -1, true, false, null, true);
+		
+		String columnString = generator.makeColumnString(column);
+		
+		assertEquals("\"basic\" INT NOT NULL AUTO_INCREMENT PRIMARY KEY", columnString);
+	}
+	
+	public void testMakeColumnString_VarcharWithDefault() {
+		Column column = Define.column("basic", Types.VARCHAR, 50, false, false, "NA", false);
+		
+		String columnString = generator.makeColumnString(column);
+		
+		assertEquals("\"basic\" VARCHAR(50) NOT NULL DEFAULT 'NA'", columnString);
+	}
+	
+	public void testCreateTableStatement() {
+		String expected = "create table \"sample\" (\"id\" INT NOT NULL PRIMARY KEY, \"desc\" VARCHAR(50) NOT NULL);";
+		
+		Column[] columns = new Column[2];
+		columns[0] = Define.column("id", Types.INTEGER, -1, true, false, null, false);
+		columns[1] = Define.column("desc", Types.VARCHAR, 50, false, false, null, false);
+	
+		Table table = Define.table("sample", columns);
+		
+		String tableString = generator.createTableStatement(table);
+		
+		assertEquals(expected, tableString);
+	}
+	/*public void testGetCreateTableStatement() {
 		
 		String expected = "create table \"sample\" (\"id\" INT NOT NULL PRIMARY KEY,\"desc\" VARCHAR(50) NOT NULL);";
 		
 		List columns = new ArrayList();
-		columns.add(SchemaBuilder.createPrimaryKeyColumn("id", Types.INTEGER, false));
-		columns.add(SchemaBuilder.createColumn("desc", Types.VARCHAR, 50, false, null, null));
+		columns.add(Define.createPrimaryKeyColumn("id", Types.INTEGER, false));
+		columns.add(Define.createColumn("desc", Types.VARCHAR, 50, false, null, null));
 		
 		SchemaElement.Column[] columnArray = 
 			(SchemaElement.Column[])columns.toArray(new SchemaElement.Column[columns.size()]);
 		
 		SchemaElement.Table table = 
-			(SchemaElement.Table)SchemaBuilder.createTable("sample", columnArray);
+			(com.eroi.migrate.schema.Table)Define.createTable("sample", columnArray);
 
-		String statement = generator.getCreateTableStatement(table);
+		String statement = generator.getTableStatement(table);
 		assertEquals(statement, expected);
 	}
 	
@@ -42,16 +86,16 @@ public class H2GeneratorTest extends TestCase {
 		String expected = "create table \"sample\" (\"id\" INT NOT NULL AUTO_INCREMENT PRIMARY KEY,\"desc\" VARCHAR(50) NOT NULL);";
 		
 		List columns = new ArrayList();
-		columns.add(SchemaBuilder.createPrimaryKeyColumn("id", Types.INTEGER, true));
-		columns.add(SchemaBuilder.createColumn("desc", Types.VARCHAR, 50, false, null, null));
+		columns.add(Define.createPrimaryKeyColumn("id", Types.INTEGER, true));
+		columns.add(Define.createColumn("desc", Types.VARCHAR, 50, false, null, null));
 		
 		SchemaElement.Column[] columnArray = 
 			(SchemaElement.Column[])columns.toArray(new SchemaElement.Column[columns.size()]);
 		
 		SchemaElement.Table table = 
-			(SchemaElement.Table)SchemaBuilder.createTable("sample", columnArray);
+			(com.eroi.migrate.schema.Table)Define.createTable("sample", columnArray);
 
-		String statement = generator.getCreateTableStatement(table);
+		String statement = generator.getTableStatement(table);
 		assertEquals(statement, expected);
-	}
+	}*/
 }

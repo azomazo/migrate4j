@@ -5,20 +5,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.eroi.migrate.engine.Closer;
 import com.sample.migrations.Migration_1;
 
 import junit.framework.TestCase;
 
 public class EndToEndTest extends TestCase {
 
-	private MigrationRunner runner;
-	
 	protected void setUp() throws Exception {
 		super.setUp();
 		
 		TestHelper.prepareH2Database();
 		
-		runner = TestHelper.getSampleDbMigrationRunner();
 	}
 
 	protected void tearDown() throws Exception {
@@ -31,14 +29,16 @@ public class EndToEndTest extends TestCase {
 		Connection connection = null;
 		
 		try {
-			connection = runner.getConnection();
+			connection = Configure.getConnection();
 			
 			assertFalse(hasMigration_1Executed(connection));
-			assertEquals(0, runner.getCurrentVersion());
+			assertEquals(0, Engine.getCurrentVersion(connection));
 			
-			runner.migrate();
+			Engine.migrate();
 			
 			assertTrue(hasMigration_1Executed(connection));
+			//assertEquals(1, Engine.getCurrentVersion(connection));
+			
 			
 		} finally {
 			Closer.close(connection);
@@ -53,7 +53,7 @@ public class EndToEndTest extends TestCase {
 		ResultSet resultSet = null;
 		
 		try {
-			connection = runner.getConnection();
+			connection = Configure.getConnection();
 			statement = connection.createStatement();
 			resultSet = statement.executeQuery("select * from \"" + Migration_1.TABLE_NAME + "\"");
 			
