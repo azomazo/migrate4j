@@ -1,4 +1,4 @@
-package com.eroi.migrate.engine;
+package com.eroi.migrate.misc;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

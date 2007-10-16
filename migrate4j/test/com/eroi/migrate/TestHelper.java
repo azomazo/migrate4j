@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.eroi.migrate.engine.Closer;
+import com.eroi.migrate.misc.Closer;
 import com.sample.migrations.Migration_1;
 
 public class TestHelper {

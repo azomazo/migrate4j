@@ -2,7 +2,7 @@ package com.eroi.migrate.generators;
 
 import java.sql.Statement;
 
-import com.eroi.migrate.engine.SchemaMigrationException;
+import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.Table;
 

@@ -7,7 +7,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import com.eroi.migrate.engine.Closer;
+import com.eroi.migrate.misc.Closer;
 
 public class Configure {
 

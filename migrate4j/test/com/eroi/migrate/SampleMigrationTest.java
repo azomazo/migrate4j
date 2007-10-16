@@ -7,7 +7,7 @@ import java.sql.Statement;
 
 import junit.framework.TestCase;
 
-import com.eroi.migrate.engine.Closer;
+import com.eroi.migrate.misc.Closer;
 import com.sample.migrations.Migration_1;
 
 public class SampleMigrationTest extends TestCase {

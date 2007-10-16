@@ -10,8 +10,8 @@ import java.util.List;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.eroi.migrate.engine.Closer;
-import com.eroi.migrate.engine.SchemaMigrationException;
+import com.eroi.migrate.misc.Closer;
+import com.eroi.migrate.misc.SchemaMigrationException;
 
 public class Engine {
 

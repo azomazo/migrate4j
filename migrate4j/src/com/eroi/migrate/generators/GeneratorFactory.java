@@ -3,7 +3,7 @@ package com.eroi.migrate.generators;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import com.eroi.migrate.engine.SchemaMigrationException;
+import com.eroi.migrate.misc.SchemaMigrationException;
 
 public class GeneratorFactory {
 
