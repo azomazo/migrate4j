@@ -31,14 +31,18 @@ public class EndToEndTest extends TestCase {
 		try {
 			connection = Configure.getConnection();
 			
-			assertFalse(hasMigration_1Executed(connection));
+			assertFalse(doesMigratedTableExist(connection));
 			assertEquals(0, Engine.getCurrentVersion(connection));
 			
 			Engine.migrate();
 			
-			assertTrue(hasMigration_1Executed(connection));
-			//assertEquals(1, Engine.getCurrentVersion(connection));
+			assertTrue(doesMigratedTableExist(connection));
+			assertEquals(1, Engine.getCurrentVersion(connection));
 			
+			Engine.migrate(0);
+			
+			assertFalse(doesMigratedTableExist(connection));
+			assertEquals(0, Engine.getCurrentVersion(connection));
 			
 		} finally {
 			Closer.close(connection);
@@ -47,7 +51,7 @@ public class EndToEndTest extends TestCase {
 	
 	/* --------------- Helper Methods --------------*/
 	
-	private boolean hasMigration_1Executed(Connection connection) {
+	private boolean doesMigratedTableExist(Connection connection) {
 		
 		Statement statement = null;
 		ResultSet resultSet = null;

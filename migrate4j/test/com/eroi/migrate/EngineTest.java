@@ -134,6 +134,29 @@ public class EngineTest extends TestCase {
 		
 	}
 	
+	public void testGetVersionNumber() {
+		Configure.configure("url", "driver", "", "", "com.packagename");
+		
+		assertEquals(1, Engine.getVersionNumber("com.packagename.Migration_1"));
+		assertEquals(72, Engine.getVersionNumber("com.packagename.Migration_72"));
+	}
+	
+	public void testGetVersionNumber_UsingDifferentPrefixAndSep() {
+		Configure.configure("url", 
+							"driver", 
+							"", 
+							"", 
+							null, 
+							"com.packagename",
+							"Classes",
+							"Ver",
+							new Integer(0),
+							null);
+		
+		assertEquals(1, Engine.getVersionNumber("com.packagename.ClassesVer1"));
+		assertEquals(72, Engine.getVersionNumber("com.packagename.ClassesVer72"));
+	}
+	
 /* ----------------- Helper Methods ---------------*/
 	
 	private Class[] getClassesToMigrate() {

@@ -210,7 +210,6 @@ public class Configure {
 		return packageName;
 	}
 
-
 	protected boolean isOwnConnection() {
 		return ownConnection;
 	}

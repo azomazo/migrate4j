@@ -42,13 +42,41 @@ public class Engine {
 		Class[] classesToMigrate = classesToMigrate();
 		classesToMigrate = orderMigrations(classesToMigrate, currentVersion, version);
 		
+		int lastVersion = currentVersion;
+		Exception exception = null;
+		
 		for (int x = 0 ; x < classesToMigrate.length ; x++) {
 			//Execute each migration
-			runMigration(classesToMigrate[x], isUp);
+
+			try {
+				lastVersion = runMigration(classesToMigrate[x], isUp);
+			} catch (Exception e) {
+				exception = e;
+				break;
+			}
+		}
+		
+		if (lastVersion != currentVersion) {
+			try {
+				updateCurrentVersion(Configure.getConnection(), lastVersion);
+			} catch (SQLException e) {
+				throw new SchemaMigrationException("Failed to update " + Configure.getVersionTable() + " with versin " + lastVersion);
+			}
+		}
+		
+		if (exception != null) {
+			throw new SchemaMigrationException("Migration failed", exception);
 		}
 	}
 
-	private static void runMigration(Class classToMigrate, boolean isUp) {
+	private static int runMigration(Class classToMigrate, boolean isUp) {
+		int retVal = getVersionNumber(classToMigrate.getName());
+		
+		if (retVal < 0) {
+			//Theoretically, this can't happen
+			throw new SchemaMigrationException("Invalid classname " + classToMigrate.getName() +".");
+		}
+		
 		try {
 			Migration migration = (Migration)classToMigrate.newInstance();
 		
@@ -56,8 +84,10 @@ public class Engine {
 				migration.up();
 			} else {
 				migration.down();
+				retVal--;  //Just removed this version
 			}
-			
+		
+			return retVal;
 		} catch (InstantiationException e) {
 			throw new SchemaMigrationException(e);
 		} catch (IllegalAccessException e) {
@@ -87,6 +117,24 @@ public class Engine {
 		}
 		
 		throw new RuntimeException("Couldn't determine current version");
+	}
+
+	protected static void updateCurrentVersion(Connection connection, int lastVersion) throws SQLException {
+		
+		//This should run on every JDBC compliant DB . . . I hope
+		String query= "update " + Configure.getVersionTable() + " set " + Configure.VERSION_FIELD_NAME + " = " + lastVersion;
+		
+		Statement statement = null;
+		
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate(query);
+			
+			return;
+			
+		} finally {
+			Closer.close(statement);
+		}
 	}
 
 	protected static Class[] classesToMigrate() {
@@ -157,6 +205,24 @@ public class Engine {
 		}
 		
 		return (Class[])retVal.toArray(new Class[retVal.size()]);
+	}
+	
+	protected static int getVersionNumber(String classname) {
+		int retVal = -1;
+		
+		String baseName = Configure.getBaseClassName();
+		
+		if (classname.startsWith(baseName)) {
+			String id = classname.substring(baseName.length());
+			
+			try {
+				return Integer.parseInt(id);
+			} catch (NumberFormatException e) {
+				log.error("Invalid classname - can't determine version from " + classname, e);
+			}
+		}
+		
+		return retVal;
 	}
 	
 	private static boolean isUpMigration(int currentVersion, int targetVersion) {
