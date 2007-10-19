@@ -6,6 +6,10 @@ import com.eroi.migrate.schema.Table;
 
 public interface Generator {
 
+	public boolean exists(Table table);
+	
+	public boolean exists(Column column, Table table);
+	
 	public String createTableStatement(Table table);
 
 	public String dropTableStatement(Table table);

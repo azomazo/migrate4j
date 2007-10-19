@@ -1,11 +1,16 @@
 package com.eroi.migrate.generators;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.schema.Column;
 
 /**
@@ -73,6 +78,50 @@ public class GeneratorHelper {
 		}
 		
 		return retVal;
+	}
+	
+	public static boolean doesTableExist(Connection connection, String tableName) throws SQLException {
+		ResultSet resultSet = null;
+		
+		try {
+		
+			DatabaseMetaData databaseMetaData = connection.getMetaData();
+		
+			String catalog = getCatalog(connection);
+			resultSet = databaseMetaData.getTables(catalog, "", tableName, null);
+			
+			if (resultSet != null && resultSet.next()) {
+				return true;
+			}
+		} finally {
+			Closer.close(resultSet);
+		}
+		
+		return false;
+	}
+	
+	public static boolean doesColumnExist(Connection connection, String columnName, String tableName) throws SQLException {
+		ResultSet resultSet = null;
+		
+		try {
+		
+			DatabaseMetaData databaseMetaData = connection.getMetaData();
+		
+			String catalog = getCatalog(connection);
+			resultSet = databaseMetaData.getColumns(catalog, "", tableName, columnName);
+			
+			if (resultSet != null && resultSet.next()) {
+				return true;
+			}
+		} finally {
+			Closer.close(resultSet);
+		}
+		
+		return false;
+	}
+	
+	private static String getCatalog(Connection connection) throws SQLException {
+		return connection.getCatalog();
 	}
 	
 }

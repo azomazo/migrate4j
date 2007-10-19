@@ -6,7 +6,7 @@ import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.Table;
 
-public class H2Generator implements Generator {
+public class H2Generator extends AbstractGenerator {
 
 	public String createTableStatement(Table table) {
 		

@@ -13,6 +13,44 @@ import com.eroi.migrate.schema.Table;
 
 public class Execute {
 
+	public static boolean exists(Table table) {
+		if (table == null) {
+			throw new SchemaMigrationException("Invalid table object");
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+		
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			return generator.exists(table);
+			
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to create table " + table.getTableName(), e);
+		} 
+	}
+	
+	public static boolean exists(Column column, Table table) {
+		if (table == null) {
+			throw new SchemaMigrationException("Invalid table object");
+		}
+		
+		if (column == null) {
+			throw new SchemaMigrationException("Invalid column object");
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+		
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			return generator.exists(column, table);
+			
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to create table " + table.getTableName(), e);
+		} 
+	}
+	
 	public static void createTable(Table table){
 		
 		if (table == null) {
