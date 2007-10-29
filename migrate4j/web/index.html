@@ -9,26 +9,39 @@
 </head>
 <body>
 
-<div style="text-align: center;"><big><big><big><big><small>Welcome
-to</small> </big></big></big></big><br>
+<div style="text-align: center;"><h2>Welcome to</h2>
+<h1><big>migrate4j</big></h1>
 
-<big><big><big><big>migrate4j<br>
-
-</big></big></big></big>
-<div style="text-align: left;"><big><big><big><big><small><small><small><small><small><br>
 <br>
-</small></small></small></small></small></big></big></big></big>migrate4j strives to be Java's answer to the db:migrate rake task in
+<br />
+<div style="text-align: left;">migrate4j strives to be Java's answer to the db:migrate rake task in
 Rails. While it isn't a replacement or clone, it does provide simple
 configuration, flexibility and ease of use in a database migration tool.<br>
-<big><big><big><big><small><small><small><small><small><br>
-<br>
-<br>
-<br>
-
-</small></small></small></small></small></big></big></big></big></div>
-
 </div>
 
+<br />
+<h3>Basic Concepts</h3>
+<div style="text-align: left;">Using migrate4j is as easy as setting up a package and adding classes that
+implement the <b>Migration</b> interface.  By
+convention, each class is named "Migration_X", with X representing a numerical order for the file to 
+be applied in.  For example, you might create the following classes:
+<ul>
+	<li>Migration_1</li>
+	<li>Migration_2</li>
+	<li>Migration_3</li>
+</ul>
+These will be applied, as you might imagine, in the order listed above.  You can apply all of them by
+simply calling:
+<pre>Engine.migrate()</pre>
+Or, apply just Migration_1 with:
+<pre>Engine.migrate(1)</pre>
+Or, roll all of them back (assuming they've been applied) by simply running:
+<pre>Engine.migrate(0)</pre>
+<br>
+</div>
+
+</div>
+<br />
 <div style="text-align: center;"><a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=207661&amp;type=4" alt="SourceForge.net Logo" border="0" height="37" width="125">
 
 </a></div>
