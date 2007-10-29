@@ -31,3 +31,9 @@ To run the junit tests in Eclipse directly, add the jars in
 the lib directory to the project build path.  To do this, select
 Project -> Properties -> Java Build Path.  Click the "Add Jar" 
 button and select everything inside migrate4j/lib.
+
+To run migrate4j against your database, you need to add a "version" 
+table.  Using the following queries should work for most database
+products:
+  create table version (version int not null primary key);
+  insert into version values (0);

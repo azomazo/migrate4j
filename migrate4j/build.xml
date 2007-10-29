@@ -19,6 +19,16 @@
 		<path refid="lib.classpath"/>
 	</path>
 	
+	<target name="build" depends="compile.classes">
+		<delete file="migrate4j.jar"/>
+		<jar destfile="migrate4j.jar">
+			<fileset dir="${build.classes.dir}">
+				<include name="**/*.class"/>
+				<exclude name="com/sample/**" />
+			</fileset>
+		</jar>
+	</target>
+	
 	<target name="compile">
 		<antcall target="compile.classes" />
 		<antcall target="compile.tests" />
@@ -27,7 +37,7 @@
 	<target name="compile.classes">
 		<delete dir="${build.classes.dir}" />
 		<mkdir dir="${build.classes.dir}" />
-		<javac srcdir="${main.src.dir}" destdir="${build.classes.dir}" classpathref="lib.classpath"/>
+		<javac debug="true" srcdir="${main.src.dir}" destdir="${build.classes.dir}" classpathref="lib.classpath"/>
 	</target>
 	
 	<target name="compile.tests">

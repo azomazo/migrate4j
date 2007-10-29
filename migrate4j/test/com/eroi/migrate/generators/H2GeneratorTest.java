@@ -63,6 +63,8 @@ public class H2GeneratorTest extends TestCase {
 		
 		assertEquals(expected, tableString);
 	}
+	
+	
 	/*public void testGetCreateTableStatement() {
 		
 		String expected = "create table \"sample\" (\"id\" INT NOT NULL PRIMARY KEY,\"desc\" VARCHAR(50) NOT NULL);";

@@ -6,7 +6,7 @@ import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.Table;
 
-public class H2Generator extends AbstractGenerator {
+public class SybaseGenerator extends AbstractGenerator {
 
 	public String createTableStatement(Table table) {
 		
@@ -113,11 +113,7 @@ public class H2Generator extends AbstractGenerator {
 		retVal.append("NULL ");
 		
 		if (column.isAutoincrement()) {
-			retVal.append("AUTO_INCREMENT ");
-		}
-		
-		if (column.isPrimaryKey()) {
-			retVal.append("PRIMARY KEY ");
+			retVal.append("DEFAULT AUTOINCREMENT ");
 		}
 		
 		if (column.getDefaultValue() != null) {
@@ -125,6 +121,10 @@ public class H2Generator extends AbstractGenerator {
 				  .append(column.getDefaultValue())
 				  .append("' ");
 		}
+		
+		if (column.isPrimaryKey()) {
+                    retVal.append("PRIMARY KEY ");
+                }
 		
 		return retVal.toString().trim();
 	}
