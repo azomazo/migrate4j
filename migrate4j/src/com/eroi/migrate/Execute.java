@@ -57,6 +57,10 @@ public class Execute {
 			throw new SchemaMigrationException("Invalid table object");
 		}
 		
+		if (exists(table)) {
+			return;
+		}
+		
 		try {
 			Connection connection = Configure.getConnection();
 		
@@ -74,6 +78,10 @@ public class Execute {
 	public static void dropTable(Table table) {
 		if (table == null) {
 			throw new SchemaMigrationException("Invalid Table object");
+		}
+		
+		if (!exists(table)) {
+			return;
 		}
 		
 		try {
