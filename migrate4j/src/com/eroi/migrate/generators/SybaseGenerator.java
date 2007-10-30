@@ -1,13 +1,46 @@
 package com.eroi.migrate.generators;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Types;
 
+import com.eroi.migrate.Configure;
+import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.Table;
 
 public class SybaseGenerator extends AbstractGenerator {
 
+	public boolean exists(Table table) {
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			statement = connection.prepareStatement("select * from sysobjects where name = ?");
+			statement.setString(1, table.getTableName());
+			
+			resultSet = statement.executeQuery();
+			
+			if (resultSet != null && resultSet.next()) {
+				return true;
+			}
+			
+		} catch (SQLException exception) {
+			throw new SchemaMigrationException(exception);
+		} finally {
+			Closer.close(resultSet);
+			Closer.close(statement);
+		}
+		
+		return false;
+	}
+	
 	public String createTableStatement(Table table) {
 		
 		StringBuffer retVal = new StringBuffer();
@@ -97,7 +130,12 @@ public class SybaseGenerator extends AbstractGenerator {
 		
 		int type = column.getColumnType();
 		
-		retVal.append(GeneratorHelper.getSqlName(type));
+		if (type == Types.BOOLEAN) {
+			retVal.append(GeneratorHelper.getSqlName(Types.TINYINT));
+		} else {
+			retVal.append(GeneratorHelper.getSqlName(type));
+		}
+		
 		if (GeneratorHelper.needsLength(type)) {
 			
 			retVal.append("(")
