@@ -49,11 +49,15 @@ public class Configure {
 	private static String versionTable = DEFAULT_VERSION_TABLE;
 	
 	public static final void configure() {
-		//Do nothing
+		configure(DEFAULT_PROPERTIES_FILE);
 	}
 	
 	public static final void configure(String propertyFileName) {
 		Properties properties = null;
+		
+		if (propertyFileName == null) {
+			propertyFileName = DEFAULT_PROPERTIES_FILE;
+		}
 		
 		try {
 			InputStream in = Configure.class.getClassLoader().getResourceAsStream(propertyFileName);
@@ -240,8 +244,6 @@ public class Configure {
 			
 			ownConnection = true;
 			
-			init();
-			
 			try {
 				Class.forName(driver);
 				connection = DriverManager.getConnection(url, username, password);
@@ -256,10 +258,6 @@ public class Configure {
 		if (ownConnection) {
 			Closer.close(connection);
 		}
-	}
-	
-	private static void init() {
-		
 	}
 	
 }
