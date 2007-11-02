@@ -5,7 +5,9 @@
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
   <title>migrate4j</title>
 
-
+<style type="text/css" >
+	div {text-align: left;} 
+</style>
 </head>
 <body>
 
@@ -14,15 +16,40 @@
 
 <br>
 <br />
-<div style="text-align: left;">migrate4j strives to be Java's answer to the db:migrate rake task in
+<div>migrate4j strives to be Java's answer to the db:migrate rake task in
 Rails. While it isn't a replacement or clone, it does provide simple
 configuration, flexibility and ease of use in a database migration tool.<br>
 </div>
 
 <br />
-<h3>Basic Concepts</h3>
-<div style="text-align: left;">Using migrate4j is as easy as setting up a package and adding classes that
-implement the <b>Migration</b> interface.  By
+<h3>Why <b>migrate4j</b>?</h3>
+<div>
+<b>migrate4j</b> allows you to define Migrations, or database schema changes, in Java.  
+This provides some nice benefits:
+<ul>
+<li>Each schema change is database independent - no need to write an SQL script for each
+target database</li>
+<li>Schema changes can be automated - no more emailing the development team to tell them
+to upgrade their schemas</li>
+<li>Changes can be partially applied - if multiple changes are needed, apply as many, or
+as few, as you'd like</li>
+<li>Rollback changes with ease - reverting your source code back to a previous version and need the 
+database schema to match?  No problem!</li>
+<ul>
+</div>
+<div>
+<b>migrate4j</b> allows you to put database changes in Java classes and then apply 
+them from code.  This allows you to push Migrations out with each upgrade and
+have them applied when the application starts up.  During development, while the
+schema is highly subject to change, your team can easily modify their schemas,
+including rolling back to previous state if needed.  And you'll have a convenient 
+history of all your schema changes, right there in your source code!
+</div>
+
+<h3>Using <b>migrate4j</b></h3>
+<div>
+Using migrate4j is as easy as setting up a package and adding classes that
+implement the <b><a href="#migrations">Migration</a></b> interface.  By
 convention, each class is named "Migration_X", with X representing a numerical order for the file to 
 be applied in.  For example, you might create the following classes:
 <ul>
@@ -39,7 +66,99 @@ Or, roll all of them back (assuming they've been applied) by simply running:
 <pre>Engine.migrate(0)</pre>
 <br>
 </div>
+<a name="migrations" id="migrations" /><h3>Writing a Migration</h3>
+<div>
+Writing a Migration class is easy.  There are only 2 methods that you need to worry about - "up" and "down".
+The "up" method is called with Migrations are applied and "down" is called when they're being rolled back.
+There is also a "getDescription" method that you can use to provide information about what the 
+Migration does (unfortunately, we don't have the flexibility to put this information in the name
+of the Migration, as you can in Ruby).
+</div>
+<br />
+<div>
+A typical Migration that simply adds a table might look like:
+<pre>
+import java.sql.Types;
 
+import com.eroi.migrate.Define;
+import com.eroi.migrate.Execute;
+import com.eroi.migrate.Migration;
+import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Table;
+
+public class Migration_1 implements Migration {
+	
+	public static final String TABLE_NAME = "simple_table";
+	public static final String COLUMN_ID_NAME = "id";
+	public static final String COLUMN_DESC_NAME = "description";
+	
+	public String getDescription() {
+		return "Creates a simple table";
+	}
+
+	public void up() {
+		Execute.createTable(buildTable());
+	}
+
+	public void down() {
+		Execute.dropTable(buildTable());
+	}
+
+	private Table buildTable() {
+		Column[] columns = new Column[2];
+		
+		columns[0] = Define.column(COLUMN_ID_NAME, Types.INTEGER, -1, true, false, null, true);
+		columns[1] = Define.column("COLUMN_DESC_NAME", Types.VARCHAR, 100, false, false, "NA", false);
+		
+		return Define.table(TABLE_NAME, columns);
+	}
+	
+}
+</pre>
+</div>
+<br />
+<div>
+You only need to learn 2 classes:  Define and Execute, both of which have pretty intuitive methods.
+"Define" lets you define new schema elements like tables, columns, indexes, foreign keys, etc.  "Execute"
+lets you apply these new elements. 
+</div><br />
+<div>
+While you can look at the API for more information, let's take a quick look at the Define.column() method
+(after all, there are a lot of arguments there).  
+<pre>
+public static Column column(String columnName,
+            int columnType, 
+            int length, 
+            boolean primaryKey,
+            boolean nullable,
+            Object defaultValue, 
+            boolean autoincrement)
+</pre>
+If you've used DDL (Data Definition Language) to "CREATE TABLE" in SQL, this probably makes sense.  The columnName
+is  . . . well . . . the column name.  The "columnType" is an int that matches a java.sql.Types constant. 
+The "length", for types that need it (like char and varchar), sets the size of the field.
+If "primaryKey" is true, this will be set as a primary key.  If "nullable" is true, then "NOT NULL" is applied to the
+column.  Set a default value by providing a "defaultValue", or leave it null.  And finally, if the database is
+supposed to provide incremental values for the field, set "autoincrement" to true.  Pretty straightforward. 
+</div>
+<br />
+<h3>Current status</h3>
+<div>
+Having read all that, hopefully you're eager to get started using <b>migrate4j</b> in your project.  But before you
+do that, there are some thingsyou should know.  First, <b>migrate4j</b> is a very new project.  Many of the things that
+were mentioned above may still be "theoretical" in nature.  For example, while you can certainly run the code samples weve 
+shown on multiple databases, we may not have support for your particular product yet.  And while adding and dropping tables
+can be done now, indexes, foreign keys and other elements may not have made it into the build yet.   In fact, when we 
+said "you can look at the API for more information" . . . we're getting to it!
+</div>
+<br />
+<div>
+You can help fix this!  If you'd like to volunteer to help make <b>migrate4j</b> better, we'll welcome you with 
+open arms.  But you don't need to make that big of a commitment.  The biggest help we can get right now is 
+feedback.  Tell us what features we need to add to make <b>migrate4j</b> the database migration project that
+you'll start using on your own projects.  Visit <a href="http://sourceforge.net/projects/migrate4j">our home page</a> and
+send us a message with your thoughts, ideas, suggestions, criticisms and concerns.  We want to make migrate4j
+the defacto Java migration project - your input can help make that happen.
 </div>
 <br />
 <div style="text-align: center;"><a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=207661&amp;type=4" alt="SourceForge.net Logo" border="0" height="37" width="125">
