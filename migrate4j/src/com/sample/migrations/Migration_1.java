@@ -19,19 +19,11 @@ public class Migration_1 implements Migration {
 	}
 
 	public void up() {
-		Table table = buildTable();
-		
-		if (!Execute.exists(table)) {
-			Execute.createTable(table);
-		}
+		Execute.createTable(buildTable());
 	}
 
 	public void down() {
-		Table table = buildTable();
-		
-		if (Execute.exists(table)) {
-			Execute.dropTable(table);
-		}
+		Execute.dropTable(buildTable());
 	}
 
 	private Table buildTable() {
