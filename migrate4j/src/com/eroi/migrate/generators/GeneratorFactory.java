@@ -14,6 +14,8 @@ public class GeneratorFactory {
             return new H2Generator();
         } else if ("SQL Anywhere".equalsIgnoreCase(dbName)) {
             return new SybaseGenerator();
+        } else if ("MySQL".equalsIgnoreCase(dbName)) {
+            return new MySQLGenerator();
         } else {
             throw new SchemaMigrationException("No DDLGenerator found for \"" + dbName + "\".  You may need to write your own!");
         }
