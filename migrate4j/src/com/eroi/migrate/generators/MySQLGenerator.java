@@ -33,6 +33,11 @@ public class MySQLGenerator extends AbstractGenerator {
 	    throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
 	}
 
+	int numberOfAutoIncrementColumns = GeneratorHelper.countAutoIncrementColumns(columns);
+	if (numberOfAutoIncrementColumns !=1) {
+	    throw new SchemaMigrationException("Each table must have one and only one auto_increment key.  You included " + numberOfAutoIncrementColumns);
+	}
+
 	retVal.append("create table if not exists `")
 	      .append(table.getTableName())
 	      .append("` (");

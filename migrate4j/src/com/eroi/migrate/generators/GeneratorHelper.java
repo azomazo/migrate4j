@@ -80,6 +80,25 @@ public class GeneratorHelper {
 		return retVal;
 	}
 	
+	public static int countAutoIncrementColumns(Column[] columns) {
+		int retVal = 0;
+		
+		for (int x = 0 ; x < columns.length ; x++) {
+			
+			try {
+				Column column = columns[x];
+				
+				if (column != null && column.isAutoincrement()) {
+					retVal++;
+				}
+				
+			} catch (ClassCastException ignored) {
+			}
+		}
+		
+		return retVal;
+	}
+	
 	public static boolean doesTableExist(Connection connection, String tableName) throws SQLException {
 		ResultSet resultSet = null;
 		
