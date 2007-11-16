@@ -242,6 +242,10 @@ public class Configure {
 	private static void checkConnection() throws SQLException {
 		if (connection == null || connection.isClosed()) {
 			
+			if (driver == null) {
+				throw new RuntimeException("No driver name found!  Make sure you call Configure.configure().");
+			}
+			
 			ownConnection = true;
 			
 			try {
