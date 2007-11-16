@@ -60,6 +60,7 @@
 			<batchtest todir="${test.result.dir}">
 				<fileset dir="${build.test.dir}">
 					<include name="**/*Test.class" />
+					<exclude name="**/AnyVendorDatabaseTest.class" />
 				</fileset>
 			</batchtest>
 		</junit>
