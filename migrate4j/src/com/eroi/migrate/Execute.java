@@ -98,10 +98,51 @@ public class Execute {
 	}
 	
 	public static void addColumn(Column column, Table table) {
+		if (table == null || column == null) {
+			throw new SchemaMigrationException("Must provide a Table and Column");
+		}
 		
+		if (!exists(table)) {
+			throw new SchemaMigrationException("Table does not exist");
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.addColumnStatement(column, table, null);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to alter table " + table.getTableName() + " and add column " + column.getColumnName(), e);
+		}
 	}
 	
 	public static void dropColumn(Column column, Table table) {
+		if (table == null || column == null) {
+			throw new SchemaMigrationException("Must provide a Table and Column");
+		}
+		
+		if (!exists(table)) {
+			throw new SchemaMigrationException("Table does not exist");
+		}
+		
+		if (!exists(column, table)) {
+			return;
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.dropColumnStatement(column, table);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to alter table " + table.getTableName() + " and drop column " + column.getColumnName(), e);
+		}
 		
 	}
 	

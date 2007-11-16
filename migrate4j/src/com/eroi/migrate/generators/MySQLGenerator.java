@@ -12,6 +12,21 @@ import com.eroi.migrate.schema.Table;
   */
 public class MySQLGenerator extends AbstractGenerator {
     
+	public String createTableStatement(Table table, String options) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public String addColumnStatement(Column column, Table table, int position) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public String dropColumnStatement(Column column, Table table) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
     /**
       * <p>createTableStatememnt generates a MySQL statement used to create a 
       * table in a database if it does not already exists.</p>
