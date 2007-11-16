@@ -56,6 +56,37 @@ public class SybaseGenerator extends AbstractGenerator {
 		return false;
 	}
 	
+	public boolean exists(Column column, Table table) {
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			String query = "select * from systable t inner join systabcol c "
+				+ "on t.table_id = c.table_id where table_name = ? and "
+				+ "column_name = ? ";
+			
+			statement = connection.prepareStatement(query);
+			statement.setString(1, table.getTableName());
+			statement.setString(2, column.getColumnName());
+			
+			resultSet = statement.executeQuery();
+			
+			if (resultSet != null && resultSet.next()) {
+				return true;
+			}
+			
+		} catch (SQLException exception) {
+			throw new SchemaMigrationException(exception);
+		} finally {
+			Closer.close(resultSet);
+			Closer.close(statement);
+		}
+		
+		return false;
+	}
+	
 	public String createTableStatement(Table table) {
 		
 		StringBuffer retVal = new StringBuffer();
