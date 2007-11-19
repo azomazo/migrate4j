@@ -1,39 +1,44 @@
 
 README for migrate4j
 
-Migrate4j is a database migration package for Java.  While 
-migrate4j will never have the intuitiveness of the db:migrate 
-rake task in rails, this is an attempt to come as close as 
-possible.
+See our sourceforge page (http://sourceforge.net/projects/migrate4j)
+or our homepage (http://migrate4j.sourceforge.net) for current
+information.  This information is also included in each release in 
+the "web" directory.  Please direct questions to:
+migrate4j-users@lists.sourceforge.net
+
+Project Goals:  Migrate4j is a database migration package for Java.  
+While migrate4j will never have the intuitiveness of the db:migrate 
+rake task in rails, this is an attempt to come as close as possible.
 
 Migrate4j allows upgrading and reverting your database schema.
-In order to mimic rails, convention is used to minimize the
-amount of set up.  If you follow the convention, all you need
-to do is create classes that inherit from the Migration interface,
-naming each one with the pattern "Migration_X" where X is the 
-sequential order of the migration.  For example, you would 
-create Migration_1.java, Migration_2.java, and so on.  Most
-(or all) of the convention can be overwritten by modifying the
-migrate4j.properties file.
+In order to mimic rails, convention is used to minimize the amount 
+of set up.  If you follow the convention, all you need to do is 
+create classes that inherit from the Migration interface, naming each
+one with the pattern "Migration_X" where X is the sequential order of
+the migration.  For example, you would create Migration_1.java, 
+Migration_2.java, and so on.  Most (or all) of the convention can be 
+overwritten by modifying the migrate4j.properties file.
 
-Prerequisites:  Java 1.4 or higher, a JDBC driver for your
-database and JUnit 3 or higher.  If your database is not 
-currently supported, you are free to add support.
+Prerequisites:  Java 1.4 or higher, a JDBC driver for your database 
+and JUnit 3 or higher.  If your database is not currently supported, 
+you are free to add support (or request support by emailing 
+migrate4j-users@lists.sourceforge.net).  
 
-Installation:  Migrate4j uses a properties file to determine
-where your migration files reside and what work to do.
+Installation:  Migrate4j uses a properties file to determine where 
+your migration files reside and what work to do.
 
-To run the ant script from Eclipse, be sure you add junit.jar
-to the Ant runtime.  To do this, select Window -> Preferences -> 
-Ant -> Runtime -> Global Entries and add a link to junit.jar.
+To run the ant script from Eclipse, be sure you add junit.jar to the 
+Ant runtime.  To do this, select Window -> Preferences -> Ant -> 
+Runtime -> Global Entries and add a link to junit.jar.
 
-To run the junit tests in Eclipse directly, add the jars in
-the lib directory to the project build path.  To do this, select
-Project -> Properties -> Java Build Path.  Click the "Add Jar" 
-button and select everything inside migrate4j/lib.
+To run the junit tests in Eclipse directly, add the jars in the lib 
+directory to the project build path.  To do this, select Project -> 
+Properties -> Java Build Path.  Click the "Add Jar" button and select 
+everything inside migrate4j/lib.
 
 To run migrate4j against your database, you need to add a "version" 
-table.  Using the following queries should work for most database
+table.  Using the following queries should work for most database 
 products:
   create table version (version int not null primary key);
   insert into version values (0);

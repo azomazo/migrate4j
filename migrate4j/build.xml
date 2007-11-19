@@ -1,5 +1,7 @@
 <project name="migrate4j" default="run_tests" basedir=".">
 	
+	<property name="version.number" value="0.01" />
+	
 	<property name="main.src.dir" value="${basedir}/src" />
 	<property name="main.test.dir" value="${basedir}/test" />
 	<property name="build.dir" value="${basedir}/build" />
@@ -19,10 +21,26 @@
 		<path refid="lib.classpath"/>
 	</path>
 	
-	<target name="build" depends="compile.classes">
+	<target name="build.release" depends="build.jar">
+		<zip destfile="migrate4j_v${version.number}.zip">
+			<zipfileset dir=".">
+				<include name="migrate4j.jar" />
+				<include name="src/**" />
+				<include name="test/**" />
+				<include name="web/**" />
+				<include name="README" />
+				<include name="migrate4j.properties.sample" />
+				<include name="lib/h2.jar" />
+				<include name="lib/commons-logging.jar" />
+				<exclude name="**/*Sybase*/**" />
+			</zipfileset>
+		</zip>
+	</target>
+	
+	<target name="build.jar" depends="compile.classes">
 		<delete file="migrate4j.jar"/>
 		<jar destfile="migrate4j.jar">
-			<fileset dir="${build.classes.dir}">
+			<fileset dir="${build.classes.dir}" >
 				<include name="**/*.class"/>
 				<exclude name="com/sample/**" />
 			</fileset>
