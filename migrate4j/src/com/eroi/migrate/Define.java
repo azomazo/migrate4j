@@ -1,6 +1,7 @@
 package com.eroi.migrate;
 
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
 
@@ -42,13 +43,23 @@ public class Define {
                 autoincrement);
     }
 
-    /**
-     * @param tableName
-     * @param columns
-     * @return
-     */
     public static Table table(String tableName, Column[] columns) {
         return new Table(tableName, columns);
     }
 
+    public static Index index(String tableName, String columnName) {
+    	return new Index(tableName, new String[] { columnName });
+    }
+    
+    public static Index index(String tableName, String[] columnNames) {
+    	return new Index(tableName, columnNames);
+    }
+    
+    public static Index index(String indexName, String tableName, String[] columnNames) {
+    	return new Index(indexName, tableName, columnNames, false, false);
+    }
+    
+    public static Index uniqueIndex(String tableName, String columnName) {
+    	return new Index(null, tableName, new String[] { columnName }, true, false);
+    }
 }

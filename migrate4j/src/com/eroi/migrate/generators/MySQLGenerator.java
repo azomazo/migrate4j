@@ -4,6 +4,7 @@ import java.sql.Statement;
 
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
 /**
@@ -12,6 +13,11 @@ import com.eroi.migrate.schema.Table;
   */
 public class MySQLGenerator extends AbstractGenerator {
     
+	public String addIndex(Index index) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
 	public String createTableStatement(Table table, String options) {
 		// TODO Auto-generated method stub
 		return null;
@@ -235,7 +241,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	return retVal.toString().trim();
     }
     
-    protected String getIdentifier() {
+    public String getIdentifier() {
     	return "`";
     }
 }

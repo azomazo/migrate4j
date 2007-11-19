@@ -11,6 +11,7 @@ import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
 public class SybaseGenerator extends AbstractGenerator {
@@ -21,6 +22,11 @@ public class SybaseGenerator extends AbstractGenerator {
 	}
 	
 	public String addColumnStatement(Column column, Table table, int position) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public String addIndex(Index index) {
 		// TODO Auto-generated method stub
 		return null;
 	}

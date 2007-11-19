@@ -6,10 +6,21 @@ import java.sql.SQLException;
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
 public abstract class AbstractGenerator implements Generator {
 
+	public boolean exists(Index index) {
+		try {
+			Connection connection = Configure.getConnection();
+			
+			return GeneratorHelper.doesIndexExist(connection, index.getName(), index.getTableName());
+		} catch (SQLException exception) {
+			throw new SchemaMigrationException(exception);
+		}
+	}
+	
 	public boolean exists(Table table) {
 		try {
 			Connection connection = Configure.getConnection();
@@ -54,7 +65,23 @@ public abstract class AbstractGenerator implements Generator {
 		return query.toString();
 	}
 	
-	protected String getIdentifier() {
+	public String dropIndex(Index index) {
+		
+	    if (index == null) {
+	        throw new SchemaMigrationException("Must include a non-null index");
+	    }
+	    
+	    StringBuffer query = new StringBuffer();
+	    
+	    query.append("drop index ")
+	    	.append(getIdentifier())
+	    	.append(index.getName())
+	    	.append(getIdentifier());
+	    
+		return query.toString();
+	}
+	
+	public String getIdentifier() {
 		return "\"";
 	}
 

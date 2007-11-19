@@ -1,13 +1,63 @@
 package com.eroi.migrate.generators;
 
-import java.sql.Statement;
-
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
 public class H2Generator extends AbstractGenerator {
 
+	public String addColumnStatement(Column column, Table table, int position) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String addIndex(Index index) {
+		if (index == null) {
+			throw new SchemaMigrationException("Invalid Index Object");
+		}
+		
+		StringBuffer query = new StringBuffer();
+		
+		query.append("create ");
+		
+		if (index.isUnique()) {
+			query.append("unique ");
+		}
+		
+		query.append("index ")
+			.append(getIdentifier())
+			.append(index.getName())
+			.append(getIdentifier())
+			.append("");
+		
+		if (index.isPrimaryKey()) {
+			query.append("primary key ");
+		}
+		
+		query.append("on ")
+			.append(getIdentifier())
+			.append(index.getTableName())
+			.append(getIdentifier())
+			.append("(");
+			
+		String[] columns = index.getColumnNames();
+		String comma = "";
+		for (int x = 0 ; x < columns.length ; x++) {	
+			query.append(comma)
+				.append(getIdentifier())
+				.append(columns[x])
+				.append(getIdentifier());
+			
+			comma = ", ";
+				
+		}
+		
+		query.append(")");
+		
+		return query.toString();
+	}
+	
 	public String createTableStatement(Table table, String options) {
 		return createTableStatement(table);
 	}
@@ -70,11 +120,6 @@ public class H2Generator extends AbstractGenerator {
 	    
 	}
 
-	public String addColumnStatement(Column column, Table table, int position) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
 	public String dropTableStatement(Table table) {
 		if (table == null) {
 			throw new SchemaMigrationException("Table must not be null");
@@ -86,13 +131,6 @@ public class H2Generator extends AbstractGenerator {
 			  .append("\"");
 	
 		return retVal.toString();
-	}
-
-
-
-	public String getStatement(Statement statement) {
-		// TODO Auto-generated method stub
-		return null;
 	}
 	
 	protected String makeColumnString(Column column) {

@@ -139,6 +139,31 @@ public class GeneratorHelper {
 		return false;
 	}
 	
+	public static boolean doesIndexExist(Connection connection, String indexName, String tableName) throws SQLException {
+		ResultSet resultSet = null;
+		
+		try {
+		
+			DatabaseMetaData databaseMetaData = connection.getMetaData();
+		
+			String catalog = getCatalog(connection);
+			resultSet = databaseMetaData.getIndexInfo(catalog, "", tableName, false, false);
+			
+			if (resultSet != null) {
+				while (resultSet.next()) {
+					String name = resultSet.getString("INDEX_NAME");
+					if (name != null & name.equals(indexName)) {
+						return true;
+					}
+				}
+			}
+		} finally {
+			Closer.close(resultSet);
+		}
+		
+		return false;
+	}
+	
 	private static String getCatalog(Connection connection) throws SQLException {
 		return connection.getCatalog();
 	}

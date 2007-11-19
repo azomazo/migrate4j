@@ -9,10 +9,28 @@ import com.eroi.migrate.generators.GeneratorFactory;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
 public class Execute {
 
+	public static boolean exists(Index index) {
+		if (index == null) {
+			throw new SchemaMigrationException("Invalid index object");
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+		
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			return generator.exists(index);
+			
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to check index " + index.getName() + " on table " + index.getTableName(), e);
+		} 
+	}
+	
 	public static boolean exists(Table table) {
 		if (table == null) {
 			throw new SchemaMigrationException("Invalid table object");
@@ -26,7 +44,7 @@ public class Execute {
 			return generator.exists(table);
 			
 		} catch (SQLException e) {
-			throw new SchemaMigrationException("Unable to create table " + table.getTableName(), e);
+			throw new SchemaMigrationException("Unable to check table " + table.getTableName(), e);
 		} 
 	}
 	
@@ -47,7 +65,7 @@ public class Execute {
 			return generator.exists(column, table);
 			
 		} catch (SQLException e) {
-			throw new SchemaMigrationException("Unable to create table " + table.getTableName(), e);
+			throw new SchemaMigrationException("Unable to check column " + column.getColumnName() + " on table " + table.getTableName(), e);
 		} 
 	}
 	
@@ -146,13 +164,53 @@ public class Execute {
 		
 	}
 	
-	public static void statement(String query) {
+	public static void addIndex(Index index) {
+		if (index == null) {
+			throw new SchemaMigrationException("Invalid Index Object");
+		}
 		
+		if (exists(index)) {
+			return;
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.addIndex(index);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to add index " + index.getName() + " on table " + index.getTableName(), e);
+		}
 	}
 	
-	//public static void addIndex(Index index, Table table)
+	public static void dropIndex(Index index) {
+		if (index == null) {
+			throw new SchemaMigrationException("Invalid Index Object");
+		}
+		
+		if (!exists(index)) {
+			return;
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.dropIndex(index);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to drop index " + index.getName() + " from table " + index.getTableName(), e);
+		}
+	}
 	
-	//public static void addForeignKey(ForeignKey key)
+	public static void statement(Connection connection, String query) throws SQLException {
+		executeStatement(connection, query);
+	}
 	
 	private static void executeStatement(Connection connection, String query) throws SQLException {
 		

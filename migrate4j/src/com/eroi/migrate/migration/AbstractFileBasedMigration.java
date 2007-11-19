@@ -45,14 +45,14 @@ public abstract class AbstractFileBasedMigration implements Migration {
 	public void up(Connection connection) throws SQLException {
 		String script = getFileContents(upScriptPath); 
 		
-		Execute.statement(script);
+		Execute.statement(connection, script);
 		
 	}
 	
 	public void down(Connection connection) throws SQLException {
 		String script = getFileContents(downScriptPath); 
 		
-		Execute.statement(script);
+		Execute.statement(connection, script);
 	}
 
 	private String getFileContents(String scriptPath) {

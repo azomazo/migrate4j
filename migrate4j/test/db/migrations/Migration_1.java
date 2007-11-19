@@ -11,6 +11,7 @@ import com.eroi.migrate.schema.Table;
 public class Migration_1 implements Migration {
 
 	public static final String TABLE_NAME = "BasicTable";
+	public static final String DESC_COLUMN_NAME = "desc";
 	
 	public void down() {
 		Execute.dropTable(getTable());		
@@ -28,7 +29,7 @@ public class Migration_1 implements Migration {
 		Column[] columns = new Column[2];
 		
 		columns[0] = Define.column("id", Types.INTEGER, -1, true, false, null, true);
-		columns[1] = Define.column("desc", Types.VARCHAR, 50, false, true, null, false);
+		columns[1] = Define.column(DESC_COLUMN_NAME, Types.VARCHAR, 50, false, true, null, false);
 		
 		return new Table(TABLE_NAME, columns);
 	}
