@@ -1,0 +1,24 @@
+This folder contains a migrate4j.properties file that allows
+testing migrate4j against a MySQL database.  Copy this file
+into the test directory to make migrate4j use your test MySQL database.
+
+To set up your test MySQL database, please complete the following steps:
+
+1)  Open a shell
+2)  Log into mysql:
+		$>  mysql
+3)  Run the following commands:
+		mysql>  create database testMysql;
+		mysql>  grant all on testMysql.* to sa@localhost;
+		mysql>  exit
+		$>  mysql -u sa
+		mysql> \u testMysql
+		mysql> create table version (version int not null primary key);
+		mysql> insert into version values (0);
+		
+Note:  The "$>" represents an shell prompt while "mysql>" represents
+		a mysql prompt
+		
+You only need to complete these steps once.  After you have completed
+these steps, the tests should run without any additional work.
+
