@@ -22,12 +22,7 @@ public class MySQLGenerator extends AbstractGenerator {
 		return null;
 	}
 	
-	public String dropColumnStatement(Column column, Table table) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-    /**
+	/**
       * <p>createTableStatememnt generates a MySQL statement used to create a 
       * table in a database if it does not already exists.</p>
       * @param table the table to be created
@@ -238,5 +233,9 @@ public class MySQLGenerator extends AbstractGenerator {
 	}
 
 	return retVal.toString().trim();
+    }
+    
+    protected String getIdentifier() {
+    	return "`";
     }
 }

@@ -9,7 +9,7 @@ import com.eroi.migrate.schema.Table;
 public class H2Generator extends AbstractGenerator {
 
 	public String createTableStatement(Table table, String options) {
-		return null;
+		return createTableStatement(table);
 	}
 	
 	public String createTableStatement(Table table) {
@@ -75,27 +75,6 @@ public class H2Generator extends AbstractGenerator {
 		return null;
 	}
 
-	public String dropColumnStatement(Column column, Table table) {
-
-	    if (column == null) {
-	        throw new SchemaMigrationException("Must include a non-null column");
-	    }
-	    
-	    if (table == null) {
-	        throw new SchemaMigrationException ("Must provide a table to add the column too");
-	    }
-	    
-	    StringBuffer retVal = new StringBuffer();
-	    
-	    retVal.append("alter table \"")
-	          .append(table.getTableName())
-	          .append("\" drop \"")
-	          .append(column.getColumnName())
-	          .append("\"");
-	    
-	    return retVal.toString();
-	}
-	
 	public String dropTableStatement(Table table) {
 		if (table == null) {
 			throw new SchemaMigrationException("Table must not be null");

@@ -140,27 +140,6 @@ public class SybaseGenerator extends AbstractGenerator {
 	    
 	}
 
-	public String dropColumnStatement(Column column, Table table) {
-
-	    if (column == null) {
-	        throw new SchemaMigrationException("Must include a non-null column");
-	    }
-	    
-	    if (table == null) {
-	        throw new SchemaMigrationException ("Must provide a table to drop the column from");
-	    }
-	    
-	    StringBuffer query = new StringBuffer();
-	    
-	    query.append("alter table \"")
-	    	.append(table.getTableName())
-	    	.append("\" drop \"")
-	    	.append(column.getColumnName())
-	    	.append("\"");
-	    
-		return query.toString();
-	}
-	
 	public String dropTableStatement(Table table) {
 		if (table == null) {
 			throw new SchemaMigrationException("Table must not be null");
