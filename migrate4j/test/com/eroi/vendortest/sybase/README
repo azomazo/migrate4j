@@ -4,7 +4,7 @@ into the test directory to make migrate4j use your test Sybase database.
 
 To create a test Sybase database, please complete the following steps:
 
-1)  Open a shell and "cd" to this directory
+1)  Open a shell and "cd" to the "test" directory
 2)  Source the sa_config.sh or sa_config.csh file
 3)  Type:  dbinit testSybase
 4)  Type:  dbeng10 -n testSybase -x "tcpip(port=26388)" testSybase.db
@@ -24,8 +24,9 @@ driver to your classpath.
 
 Each time you run the tests, you must first complete the following steps:
 
-1)  Open a shell and "cd" to this directory
-2)  Type:  dbeng10 -n testSybase -x "tcpip(port=26388)" testSybase.db
+1)  Open a shell and "cd" to the "test" directory
+2)  Source the sa_config.sh or sa_config.csh file
+3)  Type:  dbeng10 -n testSybase -x "tcpip(port=26388)" testSybase.db
 
 This runs your database on port 26388, which will not conflict with a 
 Sybase instance running on the default port.
