@@ -27,8 +27,44 @@ public class SybaseGenerator extends AbstractGenerator {
 	}
 	
 	public String addIndex(Index index) {
-		// TODO Auto-generated method stub
-		return null;
+		
+	    if (index == null) {
+	        throw new SchemaMigrationException("Must include a non-null index");
+	    }
+	    
+	    StringBuffer retVal = new StringBuffer();
+	    
+	    retVal.append("create ");
+	    
+	    if (index.isUnique()) {
+	    	retVal.append("unique ");
+	    }
+	    
+	    retVal.append("index ")
+	    	  .append(getIdentifier())
+	          .append(index.getName())
+	          .append(getIdentifier())
+	          .append(" on ")
+	          .append(getIdentifier())
+	          .append(index.getTableName())
+	          .append(getIdentifier())
+	          .append(" (");
+	    
+	    String[] columnNames = index.getColumnNames();
+	    String comma = "";
+	    for (int x = 0 ; x < columnNames.length ; x++) {
+	    	retVal.append(comma)
+	    		.append(getIdentifier())
+	    		.append(columnNames[x])
+	    		.append(getIdentifier());
+	    	
+	    	comma = ", ";
+	    }
+	    
+	    retVal.append(")");
+	    
+	    return retVal.toString();
+	    		
 	}
 	
 	public boolean exists(Table table) {
@@ -88,6 +124,43 @@ public class SybaseGenerator extends AbstractGenerator {
 		return false;
 	}
 	
+	public boolean exists(Index index) {
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			String query = "select index_name from systable t " 
+				+ " inner join sysidx x on "
+				+ "t.table_id = x.table_id "
+				+ "where t.table_name = ? ";
+			
+			statement = connection.prepareStatement(query);
+			statement.setString(1, index.getTableName());
+			
+			resultSet = statement.executeQuery();
+			
+			if (resultSet != null) {
+				while (resultSet.next()) {
+					String name = resultSet.getString(1);
+					if (name != null && name.equals(index.getName())) {
+						return true;
+					}
+				}
+			}
+			
+		} catch (SQLException exception) {
+			throw new SchemaMigrationException(exception);
+		} finally {
+			Closer.close(resultSet);
+			Closer.close(statement);
+		}
+		
+		return false;
+
+	}
+	
 	public String createTableStatement(Table table) {
 		
 		StringBuffer retVal = new StringBuffer();
@@ -103,9 +176,11 @@ public class SybaseGenerator extends AbstractGenerator {
 			throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
 		}
 		
-		retVal.append("create table \"")
+		retVal.append("create table ")
+			  .append(getIdentifier())
 			  .append(table.getTableName())
-			  .append("\" (");
+			  .append(getIdentifier())
+			  .append(" (");
 		
 		try {
 			for (int x = 0 ; x < columns.length ; x++ ){
@@ -137,9 +212,11 @@ public class SybaseGenerator extends AbstractGenerator {
 	    
 	    StringBuffer retVal = new StringBuffer();
 	    
-	    retVal.append("alter table \"")
+	    retVal.append("alter table ")
+	    	  .append(getIdentifier())
 	          .append(table.getTableName())
-	          .append("\" add ")
+	          .append(getIdentifier())
+	          .append(" add ")
 	          .append(makeColumnString(column));
 	    
 	    return retVal.toString();
@@ -152,9 +229,10 @@ public class SybaseGenerator extends AbstractGenerator {
 		}
 		
 		StringBuffer retVal = new StringBuffer();
-		retVal.append("DROP TABLE \"")
+		retVal.append("DROP TABLE ")
+			  .append(getIdentifier())
 			  .append(table.getTableName())
-			  .append("\"");
+			  .append(getIdentifier());
 	
 		return retVal.toString();
 	}
@@ -169,9 +247,10 @@ public class SybaseGenerator extends AbstractGenerator {
 	protected String makeColumnString(Column column) {
 		StringBuffer retVal = new StringBuffer();
 		
-		retVal.append("\"")
+		retVal.append(getIdentifier())
 			  .append(column.getColumnName())
-			  .append("\" ");		
+			  .append(getIdentifier())
+			  .append(" ");		
 		
 		int type = column.getColumnType();
 		
