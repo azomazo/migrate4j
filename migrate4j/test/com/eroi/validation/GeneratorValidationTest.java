@@ -158,16 +158,11 @@ public class GeneratorValidationTest extends TestCase {
 		Statement s = null;
 		
 		AbstractGenerator generator = (AbstractGenerator)GeneratorFactory.getGenerator(connection);
-		String identifier = generator.getIdentifier();
 		
 		String query = "insert into " 
-			+ identifier 
-			+ Migration_1.TABLE_NAME 
-			+ identifier
+			+ generator.wrapName(Migration_1.TABLE_NAME) 
 			+ " ("
-			+ identifier 
-			+ Migration_1.DESC_COLUMN_NAME
-			+ identifier
+			+ generator.wrapName(Migration_1.DESC_COLUMN_NAME)
 			+ ") values ('Desc')";
 		
 		try {

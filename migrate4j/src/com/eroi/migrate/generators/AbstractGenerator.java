@@ -81,7 +81,17 @@ public abstract class AbstractGenerator implements Generator {
 		return query.toString();
 	}
 	
-	public String getIdentifier() {
+	public String wrapName(String name) {
+		StringBuffer wrap = new StringBuffer();
+		
+		wrap.append(getIdentifier())
+			.append(name)
+			.append(getIdentifier());
+	
+		return wrap.toString();
+	}
+	
+	protected String getIdentifier() {
 		return "\"";
 	}
 
