@@ -26,28 +26,22 @@ public class H2Generator extends AbstractGenerator {
 		}
 		
 		query.append("index ")
-			.append(getIdentifier())
-			.append(index.getName())
-			.append(getIdentifier())
-			.append("");
+			.append(wrapName(index.getName()))
+			.append(" ");
 		
 		if (index.isPrimaryKey()) {
 			query.append("primary key ");
 		}
 		
 		query.append("on ")
-			.append(getIdentifier())
-			.append(index.getTableName())
-			.append(getIdentifier())
+			.append(wrapName(index.getTableName()))
 			.append("(");
 			
 		String[] columns = index.getColumnNames();
 		String comma = "";
 		for (int x = 0 ; x < columns.length ; x++) {	
 			query.append(comma)
-				.append(getIdentifier())
-				.append(columns[x])
-				.append(getIdentifier());
+				.append(wrapName(columns[x]));
 			
 			comma = ", ";
 				
@@ -77,9 +71,9 @@ public class H2Generator extends AbstractGenerator {
 			throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
 		}
 		
-		retVal.append("create table \"")
-			  .append(table.getTableName())
-			  .append("\" (");
+		retVal.append("create table ")
+			  .append(wrapName(table.getTableName()))
+			  .append(" (");
 		
 		try {
 			for (int x = 0 ; x < columns.length ; x++ ){
@@ -111,9 +105,9 @@ public class H2Generator extends AbstractGenerator {
 	    
 	    StringBuffer retVal = new StringBuffer();
 	    
-	    retVal.append("alter table \"")
-	          .append(table.getTableName())
-	          .append("\" add ")
+	    retVal.append("alter table ")
+	          .append(wrapName(table.getTableName()))
+	          .append(" add ")
 	          .append(makeColumnString(column));
 	    
 	    return retVal.toString();
@@ -126,9 +120,8 @@ public class H2Generator extends AbstractGenerator {
 		}
 		
 		StringBuffer retVal = new StringBuffer();
-		retVal.append("DROP TABLE \"")
-			  .append(table.getTableName())
-			  .append("\"");
+		retVal.append("DROP TABLE ")
+			  .append(wrapName(table.getTableName()));
 	
 		return retVal.toString();
 	}
@@ -136,9 +129,8 @@ public class H2Generator extends AbstractGenerator {
 	protected String makeColumnString(Column column) {
 		StringBuffer retVal = new StringBuffer();
 		
-		retVal.append("\"")
-			  .append(column.getColumnName())
-			  .append("\" ");		
+		retVal.append(wrapName(column.getColumnName()))
+			  .append(" ");		
 		
 		int type = column.getColumnType();
 		

@@ -54,13 +54,9 @@ public abstract class AbstractGenerator implements Generator {
 	    StringBuffer query = new StringBuffer();
 	    
 	    query.append("alter table ")
-	    	.append(getIdentifier())
-	    	.append(table.getTableName())
-	    	.append(getIdentifier())
+	    	.append(wrapName(table.getTableName()))
 	    	.append(" drop ")
-	    	.append(getIdentifier())
-	    	.append(column.getColumnName())
-	    	.append(getIdentifier());
+	    	.append(wrapName(column.getColumnName()));
 	    
 		return query.toString();
 	}
@@ -74,9 +70,7 @@ public abstract class AbstractGenerator implements Generator {
 	    StringBuffer query = new StringBuffer();
 	    
 	    query.append("drop index ")
-	    	.append(getIdentifier())
-	    	.append(index.getName())
-	    	.append(getIdentifier());
+	    	.append(wrapName(index.getName()));
 	    
 		return query.toString();
 	}

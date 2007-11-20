@@ -41,22 +41,16 @@ public class SybaseGenerator extends AbstractGenerator {
 	    }
 	    
 	    retVal.append("index ")
-	    	  .append(getIdentifier())
-	          .append(index.getName())
-	          .append(getIdentifier())
+	    	  .append(wrapName(index.getName()))
 	          .append(" on ")
-	          .append(getIdentifier())
-	          .append(index.getTableName())
-	          .append(getIdentifier())
+	          .append(wrapName(index.getTableName()))
 	          .append(" (");
 	    
 	    String[] columnNames = index.getColumnNames();
 	    String comma = "";
 	    for (int x = 0 ; x < columnNames.length ; x++) {
 	    	retVal.append(comma)
-	    		.append(getIdentifier())
-	    		.append(columnNames[x])
-	    		.append(getIdentifier());
+	    		.append(wrapName(columnNames[x]));
 	    	
 	    	comma = ", ";
 	    }
@@ -177,9 +171,7 @@ public class SybaseGenerator extends AbstractGenerator {
 		}
 		
 		retVal.append("create table ")
-			  .append(getIdentifier())
-			  .append(table.getTableName())
-			  .append(getIdentifier())
+			  .append(wrapName(table.getTableName()))
 			  .append(" (");
 		
 		try {
@@ -213,9 +205,7 @@ public class SybaseGenerator extends AbstractGenerator {
 	    StringBuffer retVal = new StringBuffer();
 	    
 	    retVal.append("alter table ")
-	    	  .append(getIdentifier())
-	          .append(table.getTableName())
-	          .append(getIdentifier())
+	    	  .append(wrapName(table.getTableName()))
 	          .append(" add ")
 	          .append(makeColumnString(column));
 	    
@@ -230,9 +220,7 @@ public class SybaseGenerator extends AbstractGenerator {
 		
 		StringBuffer retVal = new StringBuffer();
 		retVal.append("DROP TABLE ")
-			  .append(getIdentifier())
-			  .append(table.getTableName())
-			  .append(getIdentifier());
+			  .append(wrapName(table.getTableName()));
 	
 		return retVal.toString();
 	}
@@ -247,9 +235,7 @@ public class SybaseGenerator extends AbstractGenerator {
 	protected String makeColumnString(Column column) {
 		StringBuffer retVal = new StringBuffer();
 		
-		retVal.append(getIdentifier())
-			  .append(column.getColumnName())
-			  .append(getIdentifier())
+		retVal.append(wrapName(column.getColumnName()))
 			  .append(" ");		
 		
 		int type = column.getColumnType();

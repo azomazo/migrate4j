@@ -54,9 +54,9 @@ public class MySQLGenerator extends AbstractGenerator {
 	    throw new SchemaMigrationException("Each table must have one and only one auto_increment key.  You included " + numberOfAutoIncrementColumns);
 	}
 
-	retVal.append("create table if not exists `")
-	      .append(table.getTableName())
-	      .append("` (");
+	retVal.append("create table if not exists ")
+	      .append(wrapName(table.getTableName()))
+	      .append(" (");
 
 	try {
 	    for (int x = 0; x < columns.length; x++) {
@@ -109,9 +109,9 @@ public class MySQLGenerator extends AbstractGenerator {
 
 	StringBuffer retVal = new StringBuffer();
 
-	retVal.append("alter table `")
-	      .append(table.getTableName())
-	      .append("` add ")
+	retVal.append("alter table ")
+	      .append(wrapName(table.getTableName()))
+	      .append(" add ")
 	      .append(makeColumnString(column) + ";");
 
 	return retVal.toString();
@@ -136,9 +136,9 @@ public class MySQLGenerator extends AbstractGenerator {
 
 	StringBuffer retVal = new StringBuffer();
 
-	retVal.append("alter table `")
-	      .append(table.getTableName())
-	      .append("` add ")
+	retVal.append("alter table ")
+	      .append(wrapName(table.getTableName()))
+	      .append(" add ")
 	      .append(makeColumnString(column))
 	      .append(" FIRST;");
 
@@ -166,11 +166,13 @@ public class MySQLGenerator extends AbstractGenerator {
 
 	StringBuffer retVal = new StringBuffer();
 
-	retVal.append("alter table `")
-	      .append(table.getTableName())
-	      .append("` add ")
+	retVal.append("alter table ")
+	      .append(wrapName(table.getTableName()))
+	      .append(" add ")
 	      .append(makeColumnString(column))
-	      .append(" AFTER `" + afterColumn + "`;");
+	      .append(" AFTER ")
+	      .append(wrapName(afterColumn))
+	      .append(";");
 
 	return retVal.toString();
     }
@@ -187,9 +189,9 @@ public class MySQLGenerator extends AbstractGenerator {
 	}
 
 	StringBuffer retVal = new StringBuffer();
-	retVal.append("drop table if exists `")
-	      .append(table.getTableName())
-	      .append("`;");
+	retVal.append("drop table if exists ")
+	      .append(wrapName(table.getTableName()))
+	      .append(";");
 
 	return retVal.toString();
     }
@@ -206,9 +208,8 @@ public class MySQLGenerator extends AbstractGenerator {
       */
     protected String makeColumnString(Column column) {
 	StringBuffer retVal = new StringBuffer();
-	retVal.append("`")
-	      .append(column.getColumnName())
-	      .append("` ");
+	retVal.append(wrapName(column.getColumnName()))
+	      .append(" ");
 
 	int type = column.getColumnType();
 
