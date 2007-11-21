@@ -60,7 +60,9 @@ public class Configure {
 		}
 		
 		try {
+	
 			InputStream in = Configure.class.getClassLoader().getResourceAsStream(propertyFileName);
+			
 			if (in != null) {
 				properties = new Properties();
 				properties.load(in);
@@ -86,6 +88,8 @@ public class Configure {
 				} catch (Exception ignored) {}
 				
 				setStartIndex(startIndex);
+			} else {
+				throw new RuntimeException ("Could not open an input stream on " + propertyFileName +".  Check that it is in the path " + System.getProperty("java.class.path"));
 			}
 			
 		} catch (IOException e) {
