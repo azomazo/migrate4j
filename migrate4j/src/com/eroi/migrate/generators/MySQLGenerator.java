@@ -1,5 +1,9 @@
 package com.eroi.migrate.generators;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import com.eroi.migrate.misc.SchemaMigrationException;
@@ -50,8 +54,8 @@ public class MySQLGenerator extends AbstractGenerator {
 	}
 
 	int numberOfAutoIncrementColumns = GeneratorHelper.countAutoIncrementColumns(columns);
-	if (numberOfAutoIncrementColumns !=1) {
-	    throw new SchemaMigrationException("Each table must have one and only one auto_increment key.  You included " + numberOfAutoIncrementColumns);
+	if (numberOfAutoIncrementColumns > 1) {
+	    throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + numberOfAutoIncrementColumns);
 	}
 
 	retVal.append("create table if not exists ")
@@ -244,5 +248,83 @@ public class MySQLGenerator extends AbstractGenerator {
     
     public String getIdentifier() {
     	return "`";
+    }
+
+    /** <p>getTableFromDB creates a Table object by querying the database for 
+      * information about the columns in a table from the DatabaseMetaData 
+      * and the show create table statement.</p>
+      * @param connection a Connection to the database
+      * @param catalogName a String containing the name of the database
+      * @param tableName a String containing the name of the table
+      * @return Table object of the table that is in the database
+      *
+      */
+    public Table getTableFromDB(Connection connection, String catalogName, String tableName) {
+	Column[] columns = null;
+	try {
+	    Statement statement = connection.createStatement();
+	    ResultSet rs = statement.executeQuery("SHOW CREATE TABLE `" + tableName + "`;");
+	    int autoincrementColumn = 0;
+	    int autoincrementCount = 0;
+	    while (rs.next()) {
+		String[] showCreateTableString = rs.getString(2).split("\n");
+		for (int i = 0; i < showCreateTableString.length; i++) {
+		    if (showCreateTableString[i].indexOf("auto_increment") > 0) {
+			autoincrementColumn = i;
+			autoincrementCount++;
+		    }
+		}
+	    }
+	    if (autoincrementCount > 1) {
+		throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + autoincrementCount);
+	    }
+	    DatabaseMetaData dmd = connection.getMetaData();
+	    rs= dmd.getPrimaryKeys(catalogName, null, tableName);
+	    rs.last();
+	    if (rs.getRow() != 1) {
+		throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.");
+	    }
+	    rs.beforeFirst();
+	    String primaryKeyColumnName = null;
+	    while (rs.next()) {
+		primaryKeyColumnName = rs.getString(4);
+	    }
+	    rs = dmd.getColumns(catalogName, null, tableName, null);
+	    rs.last();
+	    int numberOfColumns = rs.getRow();
+	    columns = new Column[numberOfColumns];
+	    rs.beforeFirst();
+	    int columnNumber = 0;
+	    boolean primaryKeyColumn = false;
+	    boolean nullableColumn = true;
+	    boolean canAutoincrement = false;
+	    String columnName = null;
+	    while (rs.next()) {
+		columnName = rs.getString(4);
+		if (columnName.equalsIgnoreCase(primaryKeyColumnName)) {
+		    primaryKeyColumn = true;
+		}
+		else {
+		    primaryKeyColumn = false;
+		}
+		if (rs.getInt(11) == 0) {
+		    nullableColumn = false;
+		}
+		else {
+		    nullableColumn = true;
+		}
+		if (columnNumber == (autoincrementColumn - 1)) {
+		    canAutoincrement = true;
+		}
+		else {
+		    canAutoincrement = false;
+		}
+		columns[columnNumber] = new Column(columnName, rs.getInt(5), rs.getInt(7), primaryKeyColumn, nullableColumn, rs.getObject(13), canAutoincrement);
+		columnNumber++;
+	    }
+	}
+	catch (SQLException e) {
+	}
+	return new Table(tableName, columns);
     }
 }
