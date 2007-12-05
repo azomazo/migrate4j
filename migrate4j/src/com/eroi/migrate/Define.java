@@ -62,4 +62,8 @@ public class Define {
     public static Index uniqueIndex(String tableName, String columnName) {
     	return new Index(null, tableName, new String[] { columnName }, true, false);
     }
+    
+    public static Index uniqueIndex(String tableName, String[] columnNames) {
+    	return new Index(null, tableName, columnNames, true, false);
+    }
 }
