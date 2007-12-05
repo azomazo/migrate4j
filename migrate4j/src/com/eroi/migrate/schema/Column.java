@@ -10,6 +10,7 @@ public class Column {
 	private boolean nullable;
 	private Object defaultValue;
 	private boolean autoincrement;
+	private boolean unicode;
 	
 	public Column(String columnName, int columnType) {
 		this(columnName, columnType, -1, false, true, null, false);
@@ -29,6 +30,8 @@ public class Column {
 		this.nullable = nullable;
 		this.defaultValue = defaultValue;
 		this.autoincrement = autoincrement;
+		
+		unicode = false;
 	}
 	
 	public String getColumnName() {
@@ -58,4 +61,13 @@ public class Column {
 	public boolean isAutoincrement() {
 		return autoincrement;
 	}
+	
+	public boolean isUnicode() {
+		return unicode;
+	}
+	
+	public void setUnicode(boolean unicode) {
+		this.unicode = unicode;
+	}
+
 }

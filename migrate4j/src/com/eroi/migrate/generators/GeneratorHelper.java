@@ -22,6 +22,7 @@ public class GeneratorHelper {
 	private static final Map types;
 	private static final List needsLength;
 	private static final List needsQuotes;
+	private static final List stringTypes;
 	
 	static {
 		types = new HashMap();
@@ -33,6 +34,7 @@ public class GeneratorHelper {
 		types.put(new Integer(Types.DOUBLE), "DOUBLE");
 		types.put(new Integer(Types.FLOAT), "FLOAT");
 		types.put(new Integer(Types.INTEGER), "INT");
+		types.put(new Integer(Types.LONGVARCHAR), "TEXT");
 		types.put(new Integer(Types.NUMERIC), "NUMERIC");
 		types.put(new Integer(Types.SMALLINT), "SMALLINT");
 		types.put(new Integer(Types.TIME), "TIME");
@@ -46,7 +48,13 @@ public class GeneratorHelper {
 		
 		needsQuotes = new ArrayList();
 		needsQuotes.add(new Integer(Types.CHAR));
+		needsQuotes.add(new Integer(Types.LONGVARCHAR));
 		needsQuotes.add(new Integer(Types.VARCHAR));
+		
+		stringTypes = new ArrayList();
+		stringTypes.add(new Integer(Types.CHAR));
+		stringTypes.add(new Integer(Types.LONGVARCHAR));
+		stringTypes.add(new Integer(Types.VARCHAR));
 	}
 	
 	public static String getSqlName(int type) {
@@ -59,6 +67,10 @@ public class GeneratorHelper {
 	
 	public static boolean needsQuotes(int type) {
 		return needsQuotes.contains(new Integer(type));
+	}
+	
+	public static boolean isStringType(int type) {
+		return stringTypes.contains(new Integer(type));
 	}
 	
 	public static int countPrimaryKeyColumns(Column[] columns) {

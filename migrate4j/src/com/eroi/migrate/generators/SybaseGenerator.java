@@ -242,6 +242,8 @@ public class SybaseGenerator extends AbstractGenerator {
 		
 		if (type == Types.BOOLEAN) {
 			retVal.append(GeneratorHelper.getSqlName(Types.TINYINT));
+		} else if (GeneratorHelper.isStringType(type) && column.isUnicode()){
+			retVal.append("N").append(GeneratorHelper.getSqlName(type));
 		} else {
 			retVal.append(GeneratorHelper.getSqlName(type));
 		}
