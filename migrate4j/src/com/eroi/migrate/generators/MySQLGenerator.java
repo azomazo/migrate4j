@@ -180,6 +180,29 @@ public class MySQLGenerator extends AbstractGenerator {
 
 	return retVal.toString();
     }
+     
+    /**
+     * <p>alterEngine generates a MySQL statement that converts a table from 
+     * one storage engine to another.</p>
+     * @param table the table whose storage engine is to be changed
+     * @param engineName the name of the new storage
+     * @return String that is the MySQL statement to alter the storage engine
+     */
+    public String alterEngine(Table table, String engineName) {
+	if (table == null) {
+	    throw new SchemaMigrationException("Table must not be null");
+	}
+
+	StringBuffer retVal = new StringBuffer();
+	
+	retVal.append("alter table ")
+	      .append(wrapName(table.getTableName()))
+ 	      .append(" engine = ")
+ 	      .append(wrapName(engineName))
+ 	      .append(";");
+	
+	return retVal.toString();
+     }
 
     /**
       * <p>dropTableStatement generates a MySQL statement that drops a 
@@ -323,7 +346,7 @@ public class MySQLGenerator extends AbstractGenerator {
 		columnNumber++;
 	    }
 	}
-	catch (SQLException e) {
+	catch (SQLException ignored) {
 	}
 	return new Table(tableName, columns);
     }
