@@ -45,7 +45,7 @@ public class Index {
 	}
 	
 	private void init() {
-		if (tableName == null || columnNames == null || columnNames.length == 0 || !hasColumns()) {
+		if (tableName == null || columnNames == null || columnNames.length == 0 || !ConstraintHelper.hasValidValue(columnNames)) {
 			throw new SchemaMigrationException("Must provide a table and columns to use for index");
 		}
 		
@@ -58,46 +58,12 @@ public class Index {
 		StringBuffer name = new StringBuffer();
 		
 		name.append("idx_")
-			.append(tableName.substring(0, 8))
+			.append(ConstraintHelper.nameFromTable(tableName, 8))
 			.append("_");
 	
-		if (columnNames.length == 1) {
-			name.append(getCharacters(columnNames[0], 8));
-		} else {
-			//Multiple Columns
-			name.append(getCharacters(columnNames[0], 4));
-			name.append("_");
-			name.append(getCharacters(columnNames[columnNames.length - 1], 4));
-		}
+		name.append(ConstraintHelper.nameFromColumns(columnNames));
 		
 		return name.toString();
 	}
 
-	private String getCharacters(String string, int length) {
-		if (string == null) {
-			return "null";
-		}
-		
-		String str = string;
-		
-		if (str.length() > length) {
-			str = str.substring(0, length);
-		}
-		
-		return str;
-	}
-	
-	private boolean hasColumns() {
-		boolean hasColumn = false;
-		
-		for (int x = 0 ; x < columnNames.length ; x++) {
-			if (columnNames[x] != null && columnNames[x].trim().length() > 0) {
-				hasColumn = true;
-				break;
-			}
-		}
-		
-		return hasColumn;
-	}
-	
 }

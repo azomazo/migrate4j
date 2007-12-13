@@ -75,6 +75,16 @@ public class IndexTest extends TestCase {
 		assertEquals(expected, new Index(tableName, columnNames).getName());
 	}
 	
+	public void testConstructor_DefaultNameUsesFullTableNameIfItIsLessThanEightCharactersLong() {
+
+		String[] columnNames = new String[1];
+		columnNames[0] = "onecolumn";
+		
+		String expected = "idx_table_onecolum";
+		
+		assertEquals(expected, new Index("table", columnNames).getName());
+	}
+	
 	public void testConstructor_DefaultNameUsesFirstAndLastColumns() {
 
 		String[] columnNames = new String[5];
@@ -116,4 +126,6 @@ public class IndexTest extends TestCase {
 		
 		assertEquals(expected, new Index(tableName, columnNames).getName());
 	}
+	
+	
 }

@@ -1,6 +1,7 @@
 package com.eroi.migrate;
 
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
@@ -65,5 +66,9 @@ public class Define {
     
     public static Index uniqueIndex(String tableName, String[] columnNames) {
     	return new Index(null, tableName, columnNames, true, false);
+    }
+    
+    public static ForeignKey foreignKey(String parentTable, String parentColumn, String childTable, String childColumn) {
+    	return new ForeignKey(parentTable, parentColumn, childTable, childColumn);
     }
 }

@@ -9,6 +9,7 @@ import com.eroi.migrate.generators.GeneratorFactory;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
@@ -206,6 +207,14 @@ public class Execute {
 		} catch (SQLException e) {
 			throw new SchemaMigrationException("Unable to drop index " + index.getName() + " from table " + index.getTableName(), e);
 		}
+	}
+	
+	public static void addForeignKey(ForeignKey foreignKey) {
+		
+	}
+	
+	public static void dropForeignKey(ForeignKey foreignKey) {
+		
 	}
 	
 	public static void statement(Connection connection, String query) throws SQLException {

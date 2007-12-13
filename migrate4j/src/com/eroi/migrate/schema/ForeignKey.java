@@ -1,41 +1,86 @@
 package com.eroi.migrate.schema;
 
+import com.eroi.migrate.misc.SchemaMigrationException;
+
 public class ForeignKey {
     
-    private Table parentTable;
-    private Column[] parentColumns;
-    private Table childTable;
-    private Column[] childColumns;
+	private String name;
+    private String parentTable;
+    private String[] parentColumns;
+    private String childTable;
+    private String[] childColumns;
     
-    public ForeignKey(Table parentTable, Column parentColumn, Table childTable, Column childColumn) {
-        this.parentTable = parentTable;
-        this.childTable = childTable;
-        this.parentColumns = new Column[] { parentColumn };
-        this.childColumns = new Column[] { childColumn };
+    public ForeignKey(String name, String parentTable, String parentColumn, String childTable, String childColumn) {
+    	this(null, parentTable, new String[] { parentColumn }, childTable, new String[] { childColumn });
     }
     
-    public ForeignKey(Table parentTable, Column[] parentColumns, Table childTable, Column[] childColumns) {
-        this.parentTable = parentTable;
+    public ForeignKey(String name, String parentTable, String[] parentColumns, String childTable, String[] childColumns) {
+        
+    	this.name = name;
+    	this.parentTable = parentTable;
         this.childTable = childTable;
         this.parentColumns = parentColumns;
         this.childColumns = childColumns;
+        
+        init();
+    }
+    
+    private void init() {
+    	
+    	if (parentTable == null || 
+    			parentColumns == null || 
+    			parentColumns.length == 0 || 
+    			!ConstraintHelper.hasValidValue(parentColumns) ||
+    			childTable == null || 
+    			childColumns == null || 
+    			childColumns.length == 0 || 
+    			!ConstraintHelper.hasValidValue(childColumns)) {
+			throw new SchemaMigrationException("Must provide a table and columns to use for index");
+		}
+    	
+    	if (name == null || name.trim().length() == 0) {
+        	name = createName();
+        }
+    }
+    
+    public ForeignKey(String parentTable, String parentColumn, String childTable, String childColumn) {
+        this(null, parentTable, parentColumn, childTable, childColumn);
+    }
+    
+    public ForeignKey(String parentTable, String[] parentColumns, String childTable, String[] childColumns) {
+    	this(null, parentTable, parentColumns, childTable, childColumns);
     }
 
-    public Table getParentTable() {
+    public String getName() {
+		return name;
+	}
+    
+    public String getParentTable() {
         return parentTable;
     }
 
-    public Column[] getParentColumns() {
+    public String[] getParentColumns() {
         return parentColumns;
     }
 
-    public Table getChildTable() {
+    public String getChildTable() {
         return childTable;
     }
 
-    public Column[] getChildColumns() {
+    public String[] getChildColumns() {
         return childColumns;
     }
     
-    
+    private String createName() {
+    	StringBuffer name = new StringBuffer();
+    	
+    	name.append("fky_")
+    		.append(ConstraintHelper.nameFromTable(parentTable, 5))
+    		.append("_")
+    		.append(ConstraintHelper.nameFromColumns(parentColumns))
+    		.append("_")
+    		.append(ConstraintHelper.nameFromTable(childTable, 5));
+    	
+    	return name.toString();
+    }
 }
