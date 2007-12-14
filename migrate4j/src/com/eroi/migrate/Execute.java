@@ -70,6 +70,23 @@ public class Execute {
 		} 
 	}
 	
+	public static boolean exists(ForeignKey foreignKey) {
+		if (foreignKey == null) {
+			throw new SchemaMigrationException("Invalid Foreign Key object");
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+		
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			return generator.exists(foreignKey);
+			
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to check foreign key " + foreignKey.getName() + " on table " + foreignKey.getParentTable(), e);
+		} 
+	}
+	
 	public static void createTable(Table table){
 		
 		if (table == null) {
@@ -210,11 +227,47 @@ public class Execute {
 	}
 	
 	public static void addForeignKey(ForeignKey foreignKey) {
+		if (foreignKey == null) {
+			throw new SchemaMigrationException("Invalid Index Object");
+		}
 		
+		if (exists(foreignKey)) {
+			return;
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.addForeignKey(foreignKey);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to add foreign key " + foreignKey.getName() + " on table " + foreignKey.getParentTable(), e);
+		}
 	}
 	
 	public static void dropForeignKey(ForeignKey foreignKey) {
+		if (foreignKey == null) {
+			throw new SchemaMigrationException("Invalid foreign key Object");
+		}
 		
+		if (!exists(foreignKey)) {
+			return;
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.dropForeignKey(foreignKey);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to drop foreign key " + foreignKey.getName() + " from table " + foreignKey.getParentTable(), e);
+		}
 	}
 	
 	public static void statement(Connection connection, String query) throws SQLException {

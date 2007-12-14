@@ -1,7 +1,15 @@
 package com.eroi.migrate.generators;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+import com.eroi.migrate.Configure;
+import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
@@ -164,6 +172,72 @@ public class H2Generator extends AbstractGenerator {
 		}
 		
 		return retVal.toString().trim();
+	}
+
+	public String addForeignKey(ForeignKey foreignKey) {
+
+		if (foreignKey == null) {
+	        throw new SchemaMigrationException("Must include a non-null foreign key object");
+	    }
+	    
+	    StringBuffer retVal = new StringBuffer();
+	    
+	    String[] childColumns = wrapStrings(foreignKey.getChildColumns());
+	    String[] parentColumns = wrapStrings(foreignKey.getParentColumns());
+	    
+	    
+	    retVal.append("alter table ")
+	    	  .append(wrapName(foreignKey.getChildTable()))
+	          .append(" add foreign key (")
+	          .append(GeneratorHelper.makeStringList(childColumns))
+	          .append(") references ")
+	          .append(wrapName(foreignKey.getParentTable()))
+	          .append(" (")
+	          .append(GeneratorHelper.makeStringList(parentColumns))
+	          .append(")");
+	    
+	    return retVal.toString();
+	}
+
+	public String dropForeignKey(ForeignKey foreignKey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+
+	public boolean exists(ForeignKey foreignKey) {
+		try {
+			Connection connection = Configure.getConnection();
+			ResultSet resultSet = null;
+			
+			try {
+			
+				DatabaseMetaData databaseMetaData = connection.getMetaData();
+			
+				resultSet = databaseMetaData.getImportedKeys(null, "", foreignKey.getChildTable());
+				
+				if (resultSet != null) {
+					while (resultSet.next()) {
+						String parentTable = resultSet.getString("PKTABLE_NAME");
+						String parentColumn = resultSet.getString("PKCOLUMN_NAME");
+						String childColumn = resultSet.getString("FKCOLUMN_NAME");
+						
+						if (foreignKey.getParentTable().equals(parentTable) &&
+								foreignKey.getParentColumns()[0].equals(parentColumn) &&
+								foreignKey.getChildColumns()[0].equals(childColumn)) {
+							return true;
+						}
+						
+					}
+				}
+			} finally {
+				Closer.close(resultSet);
+			}
+			
+			return false;
+		} catch (SQLException exception) {
+			throw new SchemaMigrationException(exception);
+		}
 	}
 
 }

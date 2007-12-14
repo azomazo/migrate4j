@@ -176,8 +176,24 @@ public class GeneratorHelper {
 		return false;
 	}
 	
+		
 	private static String getCatalog(Connection connection) throws SQLException {
 		return connection.getCatalog();
+	}
+	
+	public static String makeStringList(String[] strings) {
+		
+		StringBuffer buffer = new StringBuffer();
+		
+		String comma = "";
+		for (int x = 0 ; x < strings.length ; x++) {
+			buffer.append(comma)
+				.append(strings[x]);
+			
+			comma = ", ";
+		}
+		
+		return buffer.toString();
 	}
 	
 }

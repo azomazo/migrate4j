@@ -8,6 +8,7 @@ import java.sql.Statement;
 
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
@@ -350,4 +351,19 @@ public class MySQLGenerator extends AbstractGenerator {
 	}
 	return new Table(tableName, columns);
     }
+
+	public String addForeignKey(ForeignKey foreignKey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public String dropForeignKey(ForeignKey foreignKey) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	public boolean exists(ForeignKey foreignKey) {
+		// TODO Auto-generated method stub
+		return false;
+	}
 }

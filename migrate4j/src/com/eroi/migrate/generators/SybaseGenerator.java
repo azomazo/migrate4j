@@ -11,14 +11,14 @@ import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
 public class SybaseGenerator extends AbstractGenerator {
 
 	public String createTableStatement(Table table, String options) {
-		// TODO Auto-generated method stub
-		return null;
+		return createTableStatement(table);
 	}
 	
 	public String addColumnStatement(Column column, Table table, int position) {
@@ -155,6 +155,35 @@ public class SybaseGenerator extends AbstractGenerator {
 
 	}
 	
+
+	public boolean exists(ForeignKey foreignKey) {
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			String query = "select * from sysforeignkeys where role = ? ";
+			
+			statement = connection.prepareStatement(query);
+			statement.setString(1, foreignKey.getName());
+			
+			resultSet = statement.executeQuery();
+			
+			if (resultSet != null && resultSet.next()) {
+				return true;
+			}
+			
+		} catch (SQLException exception) {
+			throw new SchemaMigrationException(exception);
+		} finally {
+			Closer.close(resultSet);
+			Closer.close(statement);
+		}
+		
+		return false;
+	}
+	
 	public String createTableStatement(Table table) {
 		
 		StringBuffer retVal = new StringBuffer();
@@ -277,6 +306,34 @@ public class SybaseGenerator extends AbstractGenerator {
                 }
 		
 		return retVal.toString().trim();
+	}
+
+	public String addForeignKey(ForeignKey foreignKey) {
+		
+		if (foreignKey == null) {
+	        throw new SchemaMigrationException("Must include a non-null foreign key object");
+	    }
+	    
+	    StringBuffer retVal = new StringBuffer();
+	    
+	    String[] childColumns = wrapStrings(foreignKey.getChildColumns());
+	    String[] parentColumns = wrapStrings(foreignKey.getParentColumns());
+	    
+	    
+	    retVal.append("alter table ")
+	    	  .append(wrapName(foreignKey.getChildTable()))
+	          .append(" add foreign key ")
+	          .append(wrapName(foreignKey.getName()))
+	          .append(" (")
+	          .append(GeneratorHelper.makeStringList(childColumns))
+	          .append(") references ")
+	          .append(wrapName(foreignKey.getParentTable()))
+	          .append(" (")
+	          .append(GeneratorHelper.makeStringList(parentColumns))
+	          .append(")");
+	    
+	    return retVal.toString();
+		
 	}
 
 }

@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
+import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
@@ -75,6 +76,18 @@ public abstract class AbstractGenerator implements Generator {
 		return query.toString();
 	}
 	
+	public String dropForeignKey(ForeignKey foreignKey) {
+		
+		StringBuffer retVal = new StringBuffer();
+		
+		retVal.append("alter table ")
+			.append(wrapName(foreignKey.getChildTable()))
+			.append(" drop foreign key ")
+			.append(wrapName(foreignKey.getName()));
+		
+		return retVal.toString();
+	}
+
 	public String wrapName(String name) {
 		StringBuffer wrap = new StringBuffer();
 		
@@ -83,6 +96,17 @@ public abstract class AbstractGenerator implements Generator {
 			.append(getIdentifier());
 	
 		return wrap.toString();
+	}
+	
+	public String[] wrapStrings(String[] strings) {
+		
+		String[] wrapped = new String[strings.length];
+		
+		for (int x = 0 ; x < strings.length ; x++ ) {
+			wrapped[x] = wrapName(strings[x]);
+		}
+		
+		return wrapped;
 	}
 	
 	protected String getIdentifier() {

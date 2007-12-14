@@ -17,6 +17,7 @@ import db.migrations.Migration_1;
 import db.migrations.Migration_2;
 import db.migrations.Migration_3;
 import db.migrations.Migration_4;
+import db.migrations.Migration_5;
 
 /**
  * Validates a Generators ability to perform DDL tasks.
@@ -153,7 +154,32 @@ public class GeneratorValidationTest extends TestCase {
 		assertEquals(3, Engine.getCurrentVersion(connection));
 	}
 	
+	public void testAddForeignKey_Version4To5() throws Exception {
+		Engine.migrate(4);
+
+		assertFalse(Execute.exists(Migration_5.getForeignKey()));
+		assertEquals(4, Engine.getCurrentVersion(connection));
+
+		Engine.migrate(5);
+		
+		assertTrue(Execute.exists(Migration_5.getForeignKey()));
+		assertEquals(5, Engine.getCurrentVersion(connection));
+	}
 	
+	public void testDropForeignKey_Version5To4() throws Exception {
+		Engine.migrate(5);
+
+		assertTrue(Execute.exists(Migration_5.getForeignKey()));
+		assertEquals(5, Engine.getCurrentVersion(connection));
+		
+		Engine.migrate(4);
+		
+		assertFalse(Execute.exists(Migration_5.getForeignKey()));
+		assertEquals(4, Engine.getCurrentVersion(connection));
+
+	}
+	
+	/** ------------- Helper Methods ---------------- **/
 	private void insertDescIntoBasicTable() throws SQLException {
 		Statement s = null;
 		
