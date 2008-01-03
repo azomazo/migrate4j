@@ -12,9 +12,11 @@ import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class Execute {
-
+	private static Log log = LogFactory.getLog(Execute.class);
 	public static boolean exists(Index index) {
 		if (index == null) {
 			throw new SchemaMigrationException("Invalid index object");
@@ -28,12 +30,14 @@ public class Execute {
 			return generator.exists(index);
 			
 		} catch (SQLException e) {
+            log.error("Unable to check index " + index.getName() + " on table " + index.getTableName(), e);
 			throw new SchemaMigrationException("Unable to check index " + index.getName() + " on table " + index.getTableName(), e);
 		} 
 	}
 	
 	public static boolean exists(Table table) {
 		if (table == null) {
+			log.debug("Invalid Table object located in Execute.exists(Table)");
 			throw new SchemaMigrationException("Invalid table object");
 		}
 		
@@ -45,16 +49,19 @@ public class Execute {
 			return generator.exists(table);
 			
 		} catch (SQLException e) {
+			log.error("Unable to create table " + table.getTableName(), e);
 			throw new SchemaMigrationException("Unable to check table " + table.getTableName(), e);
 		} 
 	}
 	
 	public static boolean exists(Column column, Table table) {
 		if (table == null) {
+			log.debug("Invalid Table object located in Execute.exists(Column,Table)");
 			throw new SchemaMigrationException("Invalid table object");
 		}
 		
 		if (column == null) {
+			log.debug("Invalid Column object located in Execute.exists(Column,Table)");
 			throw new SchemaMigrationException("Invalid column object");
 		}
 		
@@ -66,12 +73,14 @@ public class Execute {
 			return generator.exists(column, table);
 			
 		} catch (SQLException e) {
+			log.error("Unable to create table " + table.getTableName(), e);
 			throw new SchemaMigrationException("Unable to check column " + column.getColumnName() + " on table " + table.getTableName(), e);
 		} 
 	}
 	
 	public static boolean exists(ForeignKey foreignKey) {
 		if (foreignKey == null) {
+			log.debug("Invalid Foreign Key object in Execute.exists(ForeignKey)");
 			throw new SchemaMigrationException("Invalid Foreign Key object");
 		}
 		
@@ -83,6 +92,7 @@ public class Execute {
 			return generator.exists(foreignKey);
 			
 		} catch (SQLException e) {
+			log.error("Unable to check foreign key " + foreignKey.getName() + " on table " + foreignKey.getParentTable(), e);
 			throw new SchemaMigrationException("Unable to check foreign key " + foreignKey.getName() + " on table " + foreignKey.getParentTable(), e);
 		} 
 	}
@@ -90,6 +100,7 @@ public class Execute {
 	public static void createTable(Table table){
 		
 		if (table == null) {
+			log.debug("Invalid table object located in Execute.createTable(Table)");
 			throw new SchemaMigrationException("Invalid table object");
 		}
 		
@@ -107,6 +118,7 @@ public class Execute {
 			executeStatement(connection, query);
 			
 		} catch (SQLException e) {
+			log.error("Unable to create table " + table.getTableName(), e);
 			throw new SchemaMigrationException("Unable to create table " + table.getTableName(), e);
 		} 
 	}
@@ -129,16 +141,19 @@ public class Execute {
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
+			log.error("Unable to drop table " + table.getTableName(), e);
 			throw new SchemaMigrationException("Unable to drop table " + table.getTableName(), e);
 		} 
 	}
 	
 	public static void addColumn(Column column, Table table) {
 		if (table == null || column == null) {
+			log.error("Either Table name or the Column name is not provided !! Must provide a Table and Column name");
 			throw new SchemaMigrationException("Must provide a Table and Column");
 		}
 		
 		if (!exists(table)) {
+			log.error("Table "+table.getTableName()+ " does not exsists !!!");
 			throw new SchemaMigrationException("Table does not exist");
 		}
 		
@@ -151,16 +166,19 @@ public class Execute {
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
+			log.error("Unable to alter table " + table.getTableName() + " and add column " + column.getColumnName(), e);
 			throw new SchemaMigrationException("Unable to alter table " + table.getTableName() + " and add column " + column.getColumnName(), e);
 		}
 	}
 	
 	public static void dropColumn(Column column, Table table) {
 		if (table == null || column == null) {
+			log.error("Either Table name or the Column name is not provided !! Must provide a Table and Column name");
 			throw new SchemaMigrationException("Must provide a Table and Column");
 		}
 		
 		if (!exists(table)) {
+			log.error("Table "+table.getTableName()+ " does not exsists !!!");
 			throw new SchemaMigrationException("Table does not exist");
 		}
 		
@@ -177,6 +195,7 @@ public class Execute {
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
+			log.error("Unable to alter table " + table.getTableName() + " and drop column " + column.getColumnName(), e);
 			throw new SchemaMigrationException("Unable to alter table " + table.getTableName() + " and drop column " + column.getColumnName(), e);
 		}
 		
@@ -184,6 +203,7 @@ public class Execute {
 	
 	public static void addIndex(Index index) {
 		if (index == null) {
+			log.debug("Invalid Index Object located in Execute.addIndex(Index)");
 			throw new SchemaMigrationException("Invalid Index Object");
 		}
 		
@@ -200,12 +220,14 @@ public class Execute {
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
+			log.error("Unable to add index " + index.getName() + " on table " + index.getTableName(), e);
 			throw new SchemaMigrationException("Unable to add index " + index.getName() + " on table " + index.getTableName(), e);
 		}
 	}
 	
 	public static void dropIndex(Index index) {
 		if (index == null) {
+			log.debug("Invalid Index Object located in Execute.dropIndex(Index)");
 			throw new SchemaMigrationException("Invalid Index Object");
 		}
 		
@@ -222,13 +244,15 @@ public class Execute {
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
+			log.error("Unable to drop index " + index.getName() + " from table " + index.getTableName(), e);
 			throw new SchemaMigrationException("Unable to drop index " + index.getName() + " from table " + index.getTableName(), e);
 		}
 	}
 	
 	public static void addForeignKey(ForeignKey foreignKey) {
 		if (foreignKey == null) {
-			throw new SchemaMigrationException("Invalid Index Object");
+			log.debug("Invalid foreignKey Object located in Execute.addForeignKey(ForeignKey)");
+			throw new SchemaMigrationException("Invalid foreignKey Object");
 		}
 		
 		if (exists(foreignKey)) {
@@ -244,12 +268,14 @@ public class Execute {
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
+			log.error("Unable to add foreign key " + foreignKey.getName() + " on table " + foreignKey.getParentTable(), e);
 			throw new SchemaMigrationException("Unable to add foreign key " + foreignKey.getName() + " on table " + foreignKey.getParentTable(), e);
 		}
 	}
 	
 	public static void dropForeignKey(ForeignKey foreignKey) {
 		if (foreignKey == null) {
+			log.debug("Invalid foreignKey Object located in Execute.dropForeignKey(ForeignKey)");
 			throw new SchemaMigrationException("Invalid foreign key Object");
 		}
 		
@@ -266,6 +292,7 @@ public class Execute {
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
+			log.error("Unable to drop foreign key " + foreignKey.getName() + " from table " + foreignKey.getParentTable(), e);
 			throw new SchemaMigrationException("Unable to drop foreign key " + foreignKey.getName() + " from table " + foreignKey.getParentTable(), e);
 		}
 	}
