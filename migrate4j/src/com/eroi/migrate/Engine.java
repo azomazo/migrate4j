@@ -35,6 +35,7 @@ public class Engine {
 			Connection connection = Configure.getConnection();
 			currentVersion = getCurrentVersion(connection);
 		} catch (SQLException e) {
+			log.error("Failed to get current version from the database", e);
 			throw new SchemaMigrationException("Failed to get current version from the database", e);
 		}
 
@@ -60,11 +61,13 @@ public class Engine {
 			try {
 				updateCurrentVersion(Configure.getConnection(), lastVersion);
 			} catch (SQLException e) {
+				log.error("Failed to update " + Configure.getVersionTable() + " with versin " + lastVersion,e );
 				throw new SchemaMigrationException("Failed to update " + Configure.getVersionTable() + " with versin " + lastVersion);
 			}
 		}
 		
 		if (exception != null) {
+			log.error("Migration failed",exception);
 			throw new SchemaMigrationException("Migration failed", exception);
 		}
 	}
@@ -89,8 +92,10 @@ public class Engine {
 		
 			return retVal;
 		} catch (InstantiationException e) {
+			log.error("Instantiation Exception Occured in Engine.runMigration",e);
 			throw new SchemaMigrationException(e);
 		} catch (IllegalAccessException e) {
+			log.error("IllegalAccessException Occoured in Engine.runMigration",e);
 			throw new SchemaMigrationException(e);
 		}
 	}
