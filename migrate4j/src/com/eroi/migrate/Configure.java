@@ -7,6 +7,8 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import com.eroi.migrate.misc.Closer;
 
 public class Configure {
@@ -29,6 +31,7 @@ public class Configure {
 	public static final String DEFAULT_VERSION_TABLE = "version";
 	
 	public static final String VERSION_FIELD_NAME = "version";
+	private static Log log = LogFactory.getLog(Configure.class);
 	
 	/* Configure with variables */
 	private static String url = null;
@@ -56,6 +59,7 @@ public class Configure {
 		Properties properties = null;
 		
 		if (propertyFileName == null) {
+			log.debug("Reading default property File !!");
 			propertyFileName = DEFAULT_PROPERTIES_FILE;
 		}
 		
@@ -93,6 +97,7 @@ public class Configure {
 			}
 			
 		} catch (IOException e) {
+			log.error("Couldn not locate and load property file \"" + propertyFileName + "\"", new IOException());
 			throw new RuntimeException("Couldn't locate and load property file \"" + propertyFileName + "\"");
 		}
 	}
@@ -247,18 +252,20 @@ public class Configure {
 		if (connection == null || connection.isClosed()) {
 			
 			if (driver == null) {
+				log.error("No driver name found!  Make sure you call Configure.configure()");
 				throw new RuntimeException("No driver name found!  Make sure you call Configure.configure().");
 			}
 			
 			ownConnection = true;
-			
+			log.debug("JDBC Driver  "+ driver);
 			try {
 				Class.forName(driver);
 				connection = DriverManager.getConnection(url, username, password);
 			} catch (ClassNotFoundException e) {
+				log.error("Class"+ driver +"not found ",new ClassNotFoundException() );
 				throw new RuntimeException(e);
 			}
-			
+			log.debug("Connection done successfully for "+ url );
 		}
 	}
 	
