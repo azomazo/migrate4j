@@ -9,8 +9,11 @@ import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public abstract class AbstractGenerator implements Generator {
+	private static Log log = LogFactory.getLog(AbstractGenerator.class);
 
 	public boolean exists(Index index) {
 		try {
@@ -18,6 +21,7 @@ public abstract class AbstractGenerator implements Generator {
 			
 			return GeneratorHelper.doesIndexExist(connection, index.getName(), index.getTableName());
 		} catch (SQLException exception) {
+			log.error("Exception occoured in AbstractGenerator.exists(Index)!!",exception);
 			throw new SchemaMigrationException(exception);
 		}
 	}
@@ -28,6 +32,7 @@ public abstract class AbstractGenerator implements Generator {
 			
 			return GeneratorHelper.doesTableExist(connection, table.getTableName());
 		} catch (SQLException exception) {
+			log.error("Exception occoured in AbstractGenerator.exists(Table)!!",exception);
 			throw new SchemaMigrationException(exception);
 		}
 	}
@@ -38,6 +43,7 @@ public abstract class AbstractGenerator implements Generator {
 			
 			return GeneratorHelper.doesColumnExist(connection, column.getColumnName(), table.getTableName());
 		} catch (SQLException exception) {
+			log.error("Exception occoured in AbstractGenerator.exists(Column , Table )!!",exception);
 			throw new SchemaMigrationException(exception);
 		}
 	}
@@ -45,10 +51,12 @@ public abstract class AbstractGenerator implements Generator {
 	public String dropColumnStatement(Column column, Table table) {
 	
 	    if (column == null) {
+	    	log.debug("Could not locate Column in AbstractGenerator.dropColumnStatement()");
 	        throw new SchemaMigrationException("Must include a non-null column");
 	    }
 	    
 	    if (table == null) {
+	    	log.debug("Could not locate Table in AbstractGenerator.dropColumnStatement()");
 	        throw new SchemaMigrationException ("Must provide a table to drop the column from");
 	    }
 	    
@@ -65,6 +73,7 @@ public abstract class AbstractGenerator implements Generator {
 	public String dropIndex(Index index) {
 		
 	    if (index == null) {
+                  log.debug("Null Index located in AbstractGenerator.dropIndex(Index)");
 	        throw new SchemaMigrationException("Must include a non-null index");
 	    }
 	    
