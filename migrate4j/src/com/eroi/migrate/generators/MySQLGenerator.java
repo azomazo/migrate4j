@@ -11,13 +11,15 @@ import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
   * <p>Class MySQLGenerator provides methods for creating statements to 
   * create, alter, or drop tables.</p>
   */
 public class MySQLGenerator extends AbstractGenerator {
-    
+	private static Log log = LogFactory.getLog(MySQLGenerator.class);
 	public String addIndex(Index index) {
 		// TODO Auto-generated method stub
 		return null;
@@ -46,16 +48,19 @@ public class MySQLGenerator extends AbstractGenerator {
 	Column[] columns = table.getColumns();
 
 	if (columns == null || columns.length == 0) {
+		log.debug("No column located in MySQLGenerator.createTableStatement(Table) !! Table must include at least one column");
 	    throw new SchemaMigrationException("Table must include at least one column");
 	}
 
 	int numberOfKeyColumns = GeneratorHelper.countPrimaryKeyColumns(columns);
 	if (numberOfKeyColumns !=1) {
+	    log.debug("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
 	    throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
 	}
 
 	int numberOfAutoIncrementColumns = GeneratorHelper.countAutoIncrementColumns(columns);
 	if (numberOfAutoIncrementColumns > 1) {
+		log.debug("Each table must have one and only one auto_increment key.  You included " + numberOfAutoIncrementColumns);
 	    throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + numberOfAutoIncrementColumns);
 	}
 
@@ -74,6 +79,7 @@ public class MySQLGenerator extends AbstractGenerator {
 		retVal.append(makeColumnString(column));
 	    }
 	} catch (ClassCastException e) {
+	    log.error("A table column couldn't be cast to a column: " + e.getMessage());
 	    throw new SchemaMigrationException("A table column couldn't be cast to a column: " + e.getMessage());
 	}
 
@@ -105,10 +111,12 @@ public class MySQLGenerator extends AbstractGenerator {
     public String addColumnStatement(Column column, Table table) {
 
 	if (column == null) {
+		log.debug("Null Column located in MySqlGenerator.addColumnStatement(Column, Table)!! Must include a non-null column");
 	    throw new SchemaMigrationException("Must include a non-null column");
 	}
 
 	if (table == null) {
+	    log.debug("Null Table located in MySqlGenerator.addColumnStatement(Column, Table)!! Must include a non-null Table");
 	    throw new SchemaMigrationException ("Must provide a table to add the column to");
 	}
 
@@ -132,10 +140,12 @@ public class MySQLGenerator extends AbstractGenerator {
     public String addColumnFirstStatement(Column column, Table table) {
 
 	if (column == null) {
+		log.debug("Null Column located in MySqlGenerator.addColumnFirstStatement(Column, Table)!! Must include a non-null column");
 	    throw new SchemaMigrationException("Must include a non-null column");
 	}
 
 	if (table == null) {
+		log.debug("Null Table located in MySqlGenerator.addColumnFirstStatement(Column, Table)!! Must include a non-null Table");
 	    throw new SchemaMigrationException ("Must provide a table to add the column too");
 	}
 
@@ -162,10 +172,12 @@ public class MySQLGenerator extends AbstractGenerator {
     public String addColumnAfterStatement(Column column, Table table, String afterColumn) {
 
 	if (column == null) {
+		log.debug("Null Column located in MySqlGenerator.addColumnAfterStatement(Column, Table,String)!! Must include a non-null column");
 	    throw new SchemaMigrationException("Must include a non-null column");
 	}
 
 	if (table == null) {
+		log.debug("Null Table located in MySqlGenerator.addColumnAfterStatement(Column, Table,String)!! Must include a non-null Table");
 	    throw new SchemaMigrationException ("Must provide a table to add the column too");
 	}
 
@@ -191,6 +203,7 @@ public class MySQLGenerator extends AbstractGenerator {
      */
     public String alterEngine(Table table, String engineName) {
 	if (table == null) {
+           log.debug("Null table located at MySqlGenerator.alterEngine(Table,String) !! Table should not ne null");
 	    throw new SchemaMigrationException("Table must not be null");
 	}
 
@@ -348,6 +361,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	    }
 	}
 	catch (SQLException ignored) {
+           log.error("Error occoured in MySQLGenerator.generateTableFromDb()",ignored);
 	}
 	return new Table(tableName, columns);
     }
