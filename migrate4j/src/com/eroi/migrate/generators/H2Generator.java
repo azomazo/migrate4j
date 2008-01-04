@@ -12,9 +12,11 @@ import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class H2Generator extends AbstractGenerator {
-
+	private static Log log = LogFactory.getLog(H2Generator.class);
 	public String addColumnStatement(Column column, Table table, int position) {
 		// TODO Auto-generated method stub
 		return null;
@@ -71,11 +73,13 @@ public class H2Generator extends AbstractGenerator {
 		Column[] columns = table.getColumns();
 		
 		if (columns == null || columns.length == 0) {
+			log.debug("No Column found in H2Generator.createTableStatement()!! Table must include at least one column.");
 			throw new SchemaMigrationException("Table must include at least one column");
 		}
 		
 		int numberOfKeyColumns = GeneratorHelper.countPrimaryKeyColumns(columns);
 		if (numberOfKeyColumns != 1) {
+			log.error("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
 			throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
 		}
 		
@@ -95,6 +99,7 @@ public class H2Generator extends AbstractGenerator {
 				
 			}
 		} catch (ClassCastException e) {
+			log.error("A table column couldn't be cast to a column: " + e.getMessage());
 			throw new SchemaMigrationException("A table column couldn't be cast to a column: " + e.getMessage());
 		}
 		
@@ -104,10 +109,12 @@ public class H2Generator extends AbstractGenerator {
 	public String addColumnStatement(Column column, Table table, String afterColumn) {
 		
 	    if (column == null) {
+	    	log.debug("Null Column located in H2Generated.addColumnStatement(Column,Table,String) !! Must include a non-null column" );
 	        throw new SchemaMigrationException("Must include a non-null column");
 	    }
 	    
 	    if (table == null) {
+	    	log.debug("Null Table located in H2Generated.addColumnStatement(Column,Table,String)!! Must provide a table to add the column too " );
 	        throw new SchemaMigrationException ("Must provide a table to add the column too");
 	    }
 	    
@@ -124,6 +131,7 @@ public class H2Generator extends AbstractGenerator {
 
 	public String dropTableStatement(Table table) {
 		if (table == null) {
+			log.debug("Null table located in H2Generator.dropTableStatement(Table) !! Table must not be null");
 			throw new SchemaMigrationException("Table must not be null");
 		}
 		
@@ -177,6 +185,7 @@ public class H2Generator extends AbstractGenerator {
 	public String addForeignKey(ForeignKey foreignKey) {
 
 		if (foreignKey == null) {
+                log.debug("Null ForeignKey located in H2Generator.aaForeignKey(ForeignKey) !! Foreign Key must not be null");
 	        throw new SchemaMigrationException("Must include a non-null foreign key object");
 	    }
 	    
@@ -236,6 +245,7 @@ public class H2Generator extends AbstractGenerator {
 			
 			return false;
 		} catch (SQLException exception) {
+                       log.error("Error occoured in H2Generator.exsists(ForeignKey)",exception);
 			throw new SchemaMigrationException(exception);
 		}
 	}
