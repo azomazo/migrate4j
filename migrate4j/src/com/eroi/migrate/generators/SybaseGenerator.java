@@ -188,7 +188,7 @@ public class SybaseGenerator extends AbstractGenerator {
 		
 		return false;
 	}
-	
+	//create table statement
 	public String createTableStatement(Table table) {
 		
 		StringBuffer retVal = new StringBuffer();
