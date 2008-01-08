@@ -7,6 +7,9 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
@@ -17,6 +20,8 @@ import com.eroi.migrate.schema.Table;
 
 public class SybaseGenerator extends AbstractGenerator {
 
+	private static final Log log = LogFactory.getLog(SybaseGenerator.class);
+	
 	public String createTableStatement(Table table, String options) {
 		return createTableStatement(table);
 	}
@@ -193,15 +198,16 @@ public class SybaseGenerator extends AbstractGenerator {
 		if (columns == null || columns.length == 0) {
 			throw new SchemaMigrationException("Table must include at least one column");
 		}
-		
-		int numberOfKeyColumns = GeneratorHelper.countPrimaryKeyColumns(columns);
-		if (numberOfKeyColumns != 1) {
-			throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
+			
+		if (GeneratorHelper.countAutoIncrementColumns(columns) > 1) {
+			throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + GeneratorHelper.countAutoIncrementColumns(columns));
 		}
 		
 		retVal.append("create table ")
 			  .append(wrapName(table.getTableName()))
 			  .append(" (");
+		
+		boolean hasMultiplePrimaryKeys = GeneratorHelper.countPrimaryKeyColumns(columns) > 1;
 		
 		try {
 			for (int x = 0 ; x < columns.length ; x++ ){
@@ -211,14 +217,35 @@ public class SybaseGenerator extends AbstractGenerator {
 					retVal.append(", ");
 				}
 				
-				retVal.append(makeColumnString(column));
+				retVal.append(makeColumnString(column, hasMultiplePrimaryKeys));
 				
 			}
 		} catch (ClassCastException e) {
 			throw new SchemaMigrationException("A table column couldn't be cast to a column: " + e.getMessage());
 		}
 		
-		return retVal.toString().trim() + ");";
+		if (hasMultiplePrimaryKeys) {
+			retVal.append(", primary key (");
+		
+			Column[] primaryKeys = GeneratorHelper.getPrimaryKeyColumns(columns);
+			for (int x = 0; x < primaryKeys.length; x++) {
+				Column column = (Column)primaryKeys[x];
+		
+				if (x > 0) {
+				    retVal.append(", ");
+				}
+		
+				retVal.append(wrapName(column.getColumnName()));
+		    }
+			
+			retVal.append(") ");
+		}
+		
+		retVal.append(")");
+		
+		log.debug("Creating table with query: " + retVal.toString());
+		
+		return retVal.toString();
 	}
 
 	public String addColumnStatement(Column column, Table table, String afterColumn) {
@@ -236,7 +263,7 @@ public class SybaseGenerator extends AbstractGenerator {
 	    retVal.append("alter table ")
 	    	  .append(wrapName(table.getTableName()))
 	          .append(" add ")
-	          .append(makeColumnString(column));
+	          .append(makeColumnString(column, false));
 	    
 	    return retVal.toString();
 	    
@@ -261,7 +288,7 @@ public class SybaseGenerator extends AbstractGenerator {
 		return null;
 	}
 	
-	protected String makeColumnString(Column column) {
+	protected String makeColumnString(Column column, boolean suppressPrimaryKey) {
 		StringBuffer retVal = new StringBuffer();
 		
 		retVal.append(wrapName(column.getColumnName()))
@@ -301,9 +328,9 @@ public class SybaseGenerator extends AbstractGenerator {
 				  .append("' ");
 		}
 		
-		if (column.isPrimaryKey()) {
-                    retVal.append("PRIMARY KEY ");
-                }
+		if (!suppressPrimaryKey && column.isPrimaryKey()) {
+			retVal.append("PRIMARY KEY ");
+		}
 		
 		return retVal.toString().trim();
 	}

@@ -73,8 +73,9 @@ public class GeneratorHelper {
 		return stringTypes.contains(new Integer(type));
 	}
 	
-	public static int countPrimaryKeyColumns(Column[] columns) {
-		int retVal = 0;
+	public static Column[] getPrimaryKeyColumns(Column[] columns) {
+		
+		List primaryKeyColumns = new ArrayList();
 		
 		for (int x = 0 ; x < columns.length ; x++) {
 			
@@ -82,14 +83,19 @@ public class GeneratorHelper {
 				Column column = columns[x];
 				
 				if (column != null && column.isPrimaryKey()) {
-					retVal++;
+					primaryKeyColumns.add(column);
 				}
 				
 			} catch (ClassCastException ignored) {
 			}
+
 		}
 		
-		return retVal;
+		return (Column[])primaryKeyColumns.toArray(new Column[primaryKeyColumns.size()]);
+	}
+	
+	public static int countPrimaryKeyColumns(Column[] columns) {
+		return getPrimaryKeyColumns(columns).length;
 	}
 	
 	public static int countAutoIncrementColumns(Column[] columns) {
