@@ -11,7 +11,7 @@ public class ForeignKey {
     private String[] childColumns;
     
     public ForeignKey(String name, String parentTable, String parentColumn, String childTable, String childColumn) {
-    	this(null, parentTable, new String[] { parentColumn }, childTable, new String[] { childColumn });
+    	this(name, parentTable, new String[] { parentColumn }, childTable, new String[] { childColumn });
     }
     
     public ForeignKey(String name, String parentTable, String[] parentColumns, String childTable, String[] childColumns) {

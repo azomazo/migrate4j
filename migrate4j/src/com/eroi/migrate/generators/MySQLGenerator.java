@@ -6,6 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import com.eroi.migrate.Configure;
+import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
@@ -20,11 +22,136 @@ import org.apache.commons.logging.LogFactory;
   */
 public class MySQLGenerator extends AbstractGenerator {
 	private static Log log = LogFactory.getLog(MySQLGenerator.class);
+	
+	/**
+	  * <p>addIndex generates a MySQL alter table statement used to add 
+	  * an index to an existing table in a database.</p>
+	  * @param index the index to be added
+	  * @return String that is the alter table statement
+	  */
 	public String addIndex(Index index) {
-		// TODO Auto-generated method stub
-		return null;
+	    if (index == null) {
+		log.debug("Null Index located in MySqlGenerator.addIndex(Index)!! Must include a non-null index");
+		throw new SchemaMigrationException("Must include a non-null index");
+	    }
+
+	    StringBuffer retVal = new StringBuffer();
+
+	    retVal.append("alter table ")
+		  .append(wrapName(index.getTableName()))
+		  .append(" add ");
+
+	    if (index.isUnique()) {
+		retVal.append("unique ");
+	    }
+	    retVal.append("index ");
+	    String indexName = index.getName();
+	    if (indexName != null && indexName.length() > 0) {
+		retVal.append(wrapName(indexName))
+		      .append(" ");
+	    }
+
+	    retVal.append("(");
+
+	    String[] columns = index.getColumnNames();
+	    String comma = "";
+	    for (int x = 0; x < columns.length; x++) {
+		retVal.append(comma)
+		      .append(wrapName(columns[x]));
+		comma = ", ";
+	    }
+
+	    retVal.append(");");
+
+	    return retVal.toString();
 	}
 	
+	/**
+	  * <p>addPrimaryKey generates a MySQL alter table statement used to 
+	  * add a primary key to an existing table in a database.</p>
+	  * @param index the primary key to be added
+	  * @return String that is the alter table statement
+	  */
+	public String addPrimaryKey(Index index) {
+	    if (index == null) {
+		log.debug("Null Index located in MySqlGenerator.addPrimaryKey(Index)!! Must include a non-null index");
+		throw new SchemaMigrationException("Must include a non-null index");
+	    }
+
+	    StringBuffer retVal = new StringBuffer();
+
+	    retVal.append("alter table ")
+		  .append(wrapName(index.getTableName()))
+		  .append(" add ");
+
+	    String indexName = index.getName();
+	    if (indexName != null && indexName.length() > 0) {
+		retVal.append("constraint ")
+		      .append(wrapName(indexName));
+	    }
+	    retVal.append(" PRIMARY KEY(");
+
+	    String[] columns = index.getColumnNames();
+	    String comma = "";
+	    for (int x = 0; x < columns.length; x++) {
+		retVal.append(comma)
+		      .append(wrapName(columns[x]));
+		comma = ", ";
+	    }
+
+	    retVal.append(");");
+
+	    return retVal.toString();
+	}
+	
+	/**
+	  * <p>dropIndex generates a MySQL alter table statement used to 
+	  * drop an index from an existing table in a database.</p>
+	  * @param index the index to be dropped
+	  * @return String that is the alter table statement
+	  */
+	public String dropIndex(Index index) {
+	    if (index == null) {
+		log.debug("Null Index located in MySqlGenerator.dropIndex(Index)!! Must include a non-null index");
+		throw new SchemaMigrationException("Must include a non-null index");
+	    }
+
+	    StringBuffer retVal = new StringBuffer();
+
+	    retVal.append("alter table ")
+		  .append(wrapName(index.getTableName()))
+		  .append(" drop INDEX ");
+
+	    String indexName = index.getName();
+	    if (indexName != null && indexName.length() > 0) {
+		retVal.append(wrapName(indexName));
+	    }
+	    retVal.append(";");
+
+	    return retVal.toString();
+	}
+	
+	/**
+	  * <p>dropPrimaryKey generates a MySQL alter table statement used to 
+	  * drop a primary key from an existing table in a database.</p>
+	  * @param index the primary key to be dropped
+	  * @return String that is the alter table statement
+	  */
+	public String dropPrimaryKey(Index index) {
+	    if (index == null) {
+		log.debug("Null Index located in MySqlGenerator.dropPrimaryKey(Index)!! Must include a non-null index");
+		throw new SchemaMigrationException("Must include a non-null index");
+	    }
+
+	    StringBuffer retVal = new StringBuffer();
+
+	    retVal.append("alter table ")
+		  .append(wrapName(index.getTableName()))
+		  .append(" drop PRIMARY KEY;");
+
+	    return retVal.toString();
+	}
+
 	public String createTableStatement(Table table, String options) {
 		// TODO Auto-generated method stub
 		return null;
@@ -52,17 +179,13 @@ public class MySQLGenerator extends AbstractGenerator {
 	    throw new SchemaMigrationException("Table must include at least one column");
 	}
 
-	int numberOfKeyColumns = GeneratorHelper.countPrimaryKeyColumns(columns);
-	if (numberOfKeyColumns !=1) {
-	    log.debug("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
-	    throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.  You included " + numberOfKeyColumns);
-	}
-
 	int numberOfAutoIncrementColumns = GeneratorHelper.countAutoIncrementColumns(columns);
 	if (numberOfAutoIncrementColumns > 1) {
 		log.debug("Each table must have one and only one auto_increment key.  You included " + numberOfAutoIncrementColumns);
 	    throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + numberOfAutoIncrementColumns);
 	}
+	
+	boolean hasMultiplePrimaryKeys = GeneratorHelper.countPrimaryKeyColumns(columns) > 1;
 
 	retVal.append("create table if not exists ")
 	      .append(wrapName(table.getTableName()))
@@ -76,14 +199,29 @@ public class MySQLGenerator extends AbstractGenerator {
 		    retVal.append(", ");
 		}
 
-		retVal.append(makeColumnString(column));
+		retVal.append(makeColumnString(column, hasMultiplePrimaryKeys));
 	    }
 	} catch (ClassCastException e) {
 	    log.error("A table column couldn't be cast to a column: " + e.getMessage());
 	    throw new SchemaMigrationException("A table column couldn't be cast to a column: " + e.getMessage());
 	}
 
-	return retVal.toString().trim() + ");";
+	if (hasMultiplePrimaryKeys) {
+	    retVal.append(", PRIMARY KEY(");
+	    Column[] primaryKeys = GeneratorHelper.getPrimaryKeyColumns(columns);
+	    for (int x = 0; x < primaryKeys.length; x++) {
+		Column column = (Column)primaryKeys[x];
+		if (x > 0) {
+		    retVal.append(", ");
+		}
+		retVal.append(wrapName(column.getColumnName()));
+	    }
+	    retVal.append(")");
+	}
+	
+	retVal.append(");");
+
+	return retVal.toString();
     }
 
     /**
@@ -125,7 +263,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	retVal.append("alter table ")
 	      .append(wrapName(table.getTableName()))
 	      .append(" add ")
-	      .append(makeColumnString(column) + ";");
+	      .append(makeColumnString(column, false) + ";");
 
 	return retVal.toString();
     }
@@ -154,7 +292,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	retVal.append("alter table ")
 	      .append(wrapName(table.getTableName()))
 	      .append(" add ")
-	      .append(makeColumnString(column))
+	      .append(makeColumnString(column, false))
 	      .append(" FIRST;");
 
 	return retVal.toString();
@@ -186,7 +324,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	retVal.append("alter table ")
 	      .append(wrapName(table.getTableName()))
 	      .append(" add ")
-	      .append(makeColumnString(column))
+	      .append(makeColumnString(column, false))
 	      .append(" AFTER ")
 	      .append(wrapName(afterColumn))
 	      .append(";");
@@ -203,7 +341,7 @@ public class MySQLGenerator extends AbstractGenerator {
      */
     public String alterEngine(Table table, String engineName) {
 	if (table == null) {
-           log.debug("Null table located at MySqlGenerator.alterEngine(Table,String) !! Table should not ne null");
+	    log.debug("Null table located at MySqlGenerator.alterEngine(Table,String) !! Table should not be null");
 	    throw new SchemaMigrationException("Table must not be null");
 	}
 
@@ -217,6 +355,32 @@ public class MySQLGenerator extends AbstractGenerator {
 	
 	return retVal.toString();
      }
+
+    /**
+      * <p>alterAutoincrement generates a MySQL statement that changes the 
+      * value assigned to the auto_increment column for the next entry for 
+      * a table.
+      * @param table the table whose auto_increment value is to be changed
+      * @param value the value of the new auto_increment entry
+      * @return String that is the MySQL statement to alter the auto_increment
+      * value
+      */
+    public String alterAutoincrement(Table table, int value) {
+	if (table == null) {
+           log.debug("Null table located at MySqlGenerator.alterAutoincrement(Table, int) !! Table should not be null");
+	    throw new SchemaMigrationException("Table must not be null");
+	}
+
+	StringBuffer retVal = new StringBuffer();
+	
+	retVal.append("alter table ")
+	      .append(wrapName(table.getTableName()))
+ 	      .append(" auto_increment = ")
+ 	      .append(value)
+ 	      .append(";");
+	
+	return retVal.toString();
+    }
 
     /**
       * <p>dropTableStatement generates a MySQL statement that drops a 
@@ -247,7 +411,7 @@ public class MySQLGenerator extends AbstractGenerator {
       * @param column the column to be added
       * @return String containing the column information
       */
-    protected String makeColumnString(Column column) {
+    protected String makeColumnString(Column column, boolean suppressPrimaryKey) {
 	StringBuffer retVal = new StringBuffer();
 	retVal.append(wrapName(column.getColumnName()))
 	      .append(" ");
@@ -276,7 +440,7 @@ public class MySQLGenerator extends AbstractGenerator {
 		  .append("' ");
 	}
 
-	if (column.isPrimaryKey()) {
+	if (!suppressPrimaryKey && column.isPrimaryKey()) {
 	    retVal.append("PRIMARY KEY ");
 	}
 
@@ -318,13 +482,12 @@ public class MySQLGenerator extends AbstractGenerator {
 	    DatabaseMetaData dmd = connection.getMetaData();
 	    rs= dmd.getPrimaryKeys(catalogName, null, tableName);
 	    rs.last();
-	    if (rs.getRow() != 1) {
-		throw new SchemaMigrationException("Compound primary key support is not implemented yet.  Each table must have one and only one primary key.");
-	    }
+	    int numberOfPrimaryKeys = rs.getRow();
+	    String[] primaryKeyColumnName = new String[numberOfPrimaryKeys];
 	    rs.beforeFirst();
-	    String primaryKeyColumnName = null;
+	    int k = 0;
 	    while (rs.next()) {
-		primaryKeyColumnName = rs.getString(4);
+		primaryKeyColumnName[k++] = rs.getString(4);
 	    }
 	    rs = dmd.getColumns(catalogName, null, tableName, null);
 	    rs.last();
@@ -336,12 +499,14 @@ public class MySQLGenerator extends AbstractGenerator {
 	    boolean nullableColumn = true;
 	    boolean canAutoincrement = false;
 	    String columnName = null;
+	    k = 0;
 	    while (rs.next()) {
 		columnName = rs.getString(4);
-		if (columnName.equalsIgnoreCase(primaryKeyColumnName)) {
-		    primaryKeyColumn = true;
-		}
-		else {
+		for (int j = 0; j < numberOfPrimaryKeys; j++) {
+		    if (columnName.equalsIgnoreCase(primaryKeyColumnName[j])) {
+			primaryKeyColumn = true;
+			break;
+		    }
 		    primaryKeyColumn = false;
 		}
 		if (rs.getInt(11) == 0) {
@@ -366,18 +531,101 @@ public class MySQLGenerator extends AbstractGenerator {
 	return new Table(tableName, columns);
     }
 
+	/**
+	  * <p>addForeignKey creates a MySQL alter table statement that adds 
+	  * a foreign key to an existing table.</p>
+	  * @param foreignKey the foreign key to be added
+	  * @return String that is the alter table statement
+	  */
 	public String addForeignKey(ForeignKey foreignKey) {
-		// TODO Auto-generated method stub
-		return null;
+	    if (foreignKey == null) {
+		log.debug("Null ForeignKey located in MySQLGenerator.addForeignKey(ForeignKey)!! Foreign Key must not be null");
+		throw new SchemaMigrationException("Must include a non-null foreign key object");
+	    }
+
+	    StringBuffer retVal = new StringBuffer();
+
+	    String[] childColumns = wrapStrings(foreignKey.getChildColumns());
+	    String[] parentColumns = wrapStrings(foreignKey.getParentColumns());
+
+	    retVal.append("alter table ")
+		  .append(wrapName(foreignKey.getChildTable()))
+		  .append(" add ");
+	    if (foreignKey.getName() != null) {
+		retVal.append("constraint ")
+		      .append(wrapName(foreignKey.getName()));
+	    }
+	    retVal.append(" foreign key (")
+		  .append(GeneratorHelper.makeStringList(childColumns))
+		  .append(") references ")
+		  .append(wrapName(foreignKey.getParentTable()))
+		  .append(" (")
+		  .append(GeneratorHelper.makeStringList(parentColumns))
+		  .append(");");
+
+	    return retVal.toString();
 	}
 
+	/**
+	  * <p>dropForeignKey creates a MySQL alter table statement that 
+	  * drops a foreign key from an existing table.</p>
+	  * @param foreignKey the foreign key to be dropped
+	  * @return String that is the alter table statement
+	  */
 	public String dropForeignKey(ForeignKey foreignKey) {
-		// TODO Auto-generated method stub
-		return null;
+	    if (foreignKey == null) {
+		log.debug("Null ForeignKey located in MySQLGenerator.dropForeignKey(ForeignKey)!! Foreign Key must not be null");
+		throw new SchemaMigrationException("Must include a non-null foreign key object");
+	    }
+
+	    StringBuffer retVal = new StringBuffer();
+
+	    retVal.append("alter table ")
+		  .append(wrapName(foreignKey.getChildTable()))
+		  .append(" drop foreign key ");
+
+	    String foreignKeyName = foreignKey.getName();
+	    if (foreignKeyName != null && foreignKeyName.length() > 0) {
+		retVal.append(wrapName(foreignKeyName));
+	    }
+	    retVal.append(";");
+
+	    return retVal.toString();
 	}
 
+	/**
+	  * <p>exists tests for whether or not a foreign key exists.</p>
+	  * @param foreignKey the foreign key to be checked
+	  * @return boolean indicating the existence of the foreign key
+	  */
 	public boolean exists(ForeignKey foreignKey) {
-		// TODO Auto-generated method stub
+	    try {
+		Connection connection = Configure.getConnection();
+		ResultSet resultSet = null;
+
+		try {
+		    DatabaseMetaData databaseMetaData = connection.getMetaData();
+		    resultSet = databaseMetaData.getImportedKeys(null, "", foreignKey.getChildTable());
+
+		    if (resultSet != null) {
+			while (resultSet.next()) {
+			    String parentTable = resultSet.getString("PKTABLE_NAME");
+			    String parentColumn = resultSet.getString("PKCOLUMN_NAME");
+			    String childColumn = resultSet.getString("FKCOLUMN_NAME");
+			    if (foreignKey.getParentTable().equals(parentTable) && foreignKey.getParentColumns()[0].equals(parentColumn) && foreignKey.getChildColumns()[0].equals(childColumn)) {
+				return true;
+			    }
+			}
+		    }
+		}
+		finally {
+		    Closer.close(resultSet);
+		}
 		return false;
+	    }
+	    catch (SQLException exception) {
+		log.error("Error occurred on MySQLGenerator.exists(ForeignKey)", exception);
+		throw new SchemaMigrationException(exception);
+	    }
 	}
 }
