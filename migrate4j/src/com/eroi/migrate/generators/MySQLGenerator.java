@@ -219,9 +219,15 @@ public class MySQLGenerator extends AbstractGenerator {
 	    retVal.append(")");
 	}
 	
-	retVal.append(");");
+	retVal.append(")");
 
-	return retVal.toString();
+	if (table.getEngineName() != null) {
+            retVal.append(" ENGINE = ")
+                  .append(wrapName(table.getEngineName()));
+        }
+        retVal.append(";");
+
+        return retVal.toString();
     }
 
     /**
@@ -461,7 +467,8 @@ public class MySQLGenerator extends AbstractGenerator {
       *
       */
     public Table getTableFromDB(Connection connection, String catalogName, String tableName) {
-	Column[] columns = null;
+	String engineName = null;
+        Column[] columns = null;
 	try {
 	    Statement statement = connection.createStatement();
 	    ResultSet rs = statement.executeQuery("SHOW CREATE TABLE `" + tableName + "`;");
@@ -470,10 +477,19 @@ public class MySQLGenerator extends AbstractGenerator {
 	    while (rs.next()) {
 		String[] showCreateTableString = rs.getString(2).split("\n");
 		for (int i = 0; i < showCreateTableString.length; i++) {
-		    if (showCreateTableString[i].indexOf("auto_increment") > 0) {
+		    if ((showCreateTableString[i].toLowerCase().indexOf("auto_increment") > 0) &&  (showCreateTableString[i].toLowerCase().indexOf("engine") < 0)) {
 			autoincrementColumn = i;
 			autoincrementCount++;
 		    }
+                    if (showCreateTableString[i].toLowerCase().indexOf("engine") > 0) {
+                        String[] engineStringArray = showCreateTableString[i].split("[=\\s]");
+                        for (int i2 = 0; i2 < engineStringArray.length; i2++) {
+                            if (engineStringArray[i2].equalsIgnoreCase("ENGINE")) {
+                                engineName = engineStringArray[i2 + 1];
+                                break;
+                            }
+                        }
+                    }
 		}
 	    }
 	    if (autoincrementCount > 1) {
@@ -528,7 +544,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	catch (SQLException ignored) {
            log.error("Error occoured in MySQLGenerator.generateTableFromDb()",ignored);
 	}
-	return new Table(tableName, columns);
+	return new Table(tableName, engineName, columns);
     }
 
 	/**
