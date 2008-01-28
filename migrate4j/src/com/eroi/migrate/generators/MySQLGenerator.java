@@ -152,9 +152,71 @@ public class MySQLGenerator extends AbstractGenerator {
 	    return retVal.toString();
 	}
 
+	/** 
+	 * Adds the ability to add table options to a created table.
+	 * For example, setting <code>options</code> to "ENGINE=InnoDB"
+	 * will create an InnoDB table.
+	 * 
+	 * @see com.eroi.migrate.generators.Generator#createTableStatement(com.eroi.migrate.schema.Table, java.lang.String)
+	 */
 	public String createTableStatement(Table table, String options) {
-		// TODO Auto-generated method stub
-		return null;
+		StringBuffer retVal = new StringBuffer();
+
+		Column[] columns = table.getColumns();
+
+		if (columns == null || columns.length == 0) {
+			log.debug("No column located in MySQLGenerator.createTableStatement(Table) !! Table must include at least one column");
+		    throw new SchemaMigrationException("Table must include at least one column");
+		}
+
+		int numberOfAutoIncrementColumns = GeneratorHelper.countAutoIncrementColumns(columns);
+		if (numberOfAutoIncrementColumns > 1) {
+			log.debug("Each table must have one and only one auto_increment key.  You included " + numberOfAutoIncrementColumns);
+		    throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + numberOfAutoIncrementColumns);
+		}
+		
+		boolean hasMultiplePrimaryKeys = GeneratorHelper.countPrimaryKeyColumns(columns) > 1;
+
+		retVal.append("create table if not exists ")
+		      .append(wrapName(table.getTableName()))
+		      .append(" (");
+
+		try {
+		    for (int x = 0; x < columns.length; x++) {
+			Column column = (Column)columns[x];
+
+			if (x > 0) {
+			    retVal.append(", ");
+			}
+
+			retVal.append(makeColumnString(column, hasMultiplePrimaryKeys));
+		    }
+		} catch (ClassCastException e) {
+		    log.error("A table column couldn't be cast to a column: " + e.getMessage());
+		    throw new SchemaMigrationException("A table column couldn't be cast to a column: " + e.getMessage());
+		}
+
+		if (hasMultiplePrimaryKeys) {
+		    retVal.append(", PRIMARY KEY(");
+		    Column[] primaryKeys = GeneratorHelper.getPrimaryKeyColumns(columns);
+		    for (int x = 0; x < primaryKeys.length; x++) {
+			Column column = (Column)primaryKeys[x];
+			if (x > 0) {
+			    retVal.append(", ");
+			}
+			retVal.append(wrapName(column.getColumnName()));
+		    }
+		    retVal.append(")");
+		}
+		
+		retVal.append(")");
+
+		if (options != null) {
+	            retVal.append(" ").append(options);
+	    }
+	    retVal.append(";");
+
+	    return retVal.toString();
 	}
 	
 	public String addColumnStatement(Column column, Table table, int position) {
@@ -169,65 +231,7 @@ public class MySQLGenerator extends AbstractGenerator {
       * @return String that is the MySQL statement to create the table
       */
     public String createTableStatement(Table table) {
-
-	StringBuffer retVal = new StringBuffer();
-
-	Column[] columns = table.getColumns();
-
-	if (columns == null || columns.length == 0) {
-		log.debug("No column located in MySQLGenerator.createTableStatement(Table) !! Table must include at least one column");
-	    throw new SchemaMigrationException("Table must include at least one column");
-	}
-
-	int numberOfAutoIncrementColumns = GeneratorHelper.countAutoIncrementColumns(columns);
-	if (numberOfAutoIncrementColumns > 1) {
-		log.debug("Each table must have one and only one auto_increment key.  You included " + numberOfAutoIncrementColumns);
-	    throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + numberOfAutoIncrementColumns);
-	}
-	
-	boolean hasMultiplePrimaryKeys = GeneratorHelper.countPrimaryKeyColumns(columns) > 1;
-
-	retVal.append("create table if not exists ")
-	      .append(wrapName(table.getTableName()))
-	      .append(" (");
-
-	try {
-	    for (int x = 0; x < columns.length; x++) {
-		Column column = (Column)columns[x];
-
-		if (x > 0) {
-		    retVal.append(", ");
-		}
-
-		retVal.append(makeColumnString(column, hasMultiplePrimaryKeys));
-	    }
-	} catch (ClassCastException e) {
-	    log.error("A table column couldn't be cast to a column: " + e.getMessage());
-	    throw new SchemaMigrationException("A table column couldn't be cast to a column: " + e.getMessage());
-	}
-
-	if (hasMultiplePrimaryKeys) {
-	    retVal.append(", PRIMARY KEY(");
-	    Column[] primaryKeys = GeneratorHelper.getPrimaryKeyColumns(columns);
-	    for (int x = 0; x < primaryKeys.length; x++) {
-		Column column = (Column)primaryKeys[x];
-		if (x > 0) {
-		    retVal.append(", ");
-		}
-		retVal.append(wrapName(column.getColumnName()));
-	    }
-	    retVal.append(")");
-	}
-	
-	retVal.append(")");
-
-	if (table.getEngineName() != null) {
-            retVal.append(" ENGINE = ")
-                  .append(wrapName(table.getEngineName()));
-        }
-        retVal.append(";");
-
-        return retVal.toString();
+    	return createTableStatement(table, null);	
     }
 
     /**
@@ -475,22 +479,22 @@ public class MySQLGenerator extends AbstractGenerator {
 	    int autoincrementColumn = 0;
 	    int autoincrementCount = 0;
 	    while (rs.next()) {
-		String[] showCreateTableString = rs.getString(2).split("\n");
-		for (int i = 0; i < showCreateTableString.length; i++) {
-		    if ((showCreateTableString[i].toLowerCase().indexOf("auto_increment") > 0) &&  (showCreateTableString[i].toLowerCase().indexOf("engine") < 0)) {
-			autoincrementColumn = i;
-			autoincrementCount++;
-		    }
-                    if (showCreateTableString[i].toLowerCase().indexOf("engine") > 0) {
-                        String[] engineStringArray = showCreateTableString[i].split("[=\\s]");
-                        for (int i2 = 0; i2 < engineStringArray.length; i2++) {
-                            if (engineStringArray[i2].equalsIgnoreCase("ENGINE")) {
-                                engineName = engineStringArray[i2 + 1];
-                                break;
-                            }
-                        }
-                    }
-		}
+			String[] showCreateTableString = rs.getString(2).split("\n");
+			for (int i = 0; i < showCreateTableString.length; i++) {
+			    if ((showCreateTableString[i].toLowerCase().indexOf("auto_increment") > 0) &&  (showCreateTableString[i].toLowerCase().indexOf("engine") < 0)) {
+				autoincrementColumn = i;
+				autoincrementCount++;
+			    }
+	                    if (showCreateTableString[i].toLowerCase().indexOf("engine") > 0) {
+	                        String[] engineStringArray = showCreateTableString[i].split("[=\\s]");
+	                        for (int i2 = 0; i2 < engineStringArray.length; i2++) {
+	                            if (engineStringArray[i2].equalsIgnoreCase("ENGINE")) {
+	                                engineName = "ENGINE = " + engineStringArray[i2 + 1];
+	                                break;
+	                            }
+	                        }
+	                    }
+			}
 	    }
 	    if (autoincrementCount > 1) {
 		throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + autoincrementCount);
@@ -518,33 +522,33 @@ public class MySQLGenerator extends AbstractGenerator {
 	    k = 0;
 	    while (rs.next()) {
 		columnName = rs.getString(4);
-		for (int j = 0; j < numberOfPrimaryKeys; j++) {
-		    if (columnName.equalsIgnoreCase(primaryKeyColumnName[j])) {
-			primaryKeyColumn = true;
-			break;
-		    }
-		    primaryKeyColumn = false;
-		}
-		if (rs.getInt(11) == 0) {
-		    nullableColumn = false;
-		}
-		else {
-		    nullableColumn = true;
-		}
-		if (columnNumber == (autoincrementColumn - 1)) {
-		    canAutoincrement = true;
-		}
-		else {
-		    canAutoincrement = false;
-		}
-		columns[columnNumber] = new Column(columnName, rs.getInt(5), rs.getInt(7), primaryKeyColumn, nullableColumn, rs.getObject(13), canAutoincrement);
-		columnNumber++;
+			for (int j = 0; j < numberOfPrimaryKeys; j++) {
+			    if (columnName.equalsIgnoreCase(primaryKeyColumnName[j])) {
+				primaryKeyColumn = true;
+				break;
+			    }
+			    primaryKeyColumn = false;
+			}
+			if (rs.getInt(11) == 0) {
+			    nullableColumn = false;
+			}
+			else {
+			    nullableColumn = true;
+			}
+			if (columnNumber == (autoincrementColumn - 1)) {
+			    canAutoincrement = true;
+			}
+			else {
+			    canAutoincrement = false;
+			}
+			columns[columnNumber] = new Column(columnName, rs.getInt(5), rs.getInt(7), primaryKeyColumn, nullableColumn, rs.getObject(13), canAutoincrement);
+			columnNumber++;
 	    }
 	}
 	catch (SQLException ignored) {
            log.error("Error occoured in MySQLGenerator.generateTableFromDb()",ignored);
 	}
-	return new Table(tableName, engineName, columns);
+	return new MySQLTable(tableName, columns, engineName);
     }
 
 	/**
@@ -643,5 +647,23 @@ public class MySQLGenerator extends AbstractGenerator {
 		log.error("Error occurred on MySQLGenerator.exists(ForeignKey)", exception);
 		throw new SchemaMigrationException(exception);
 	    }
+	}
+	
+	public static class MySQLTable extends Table {
+		
+		private String options = null;
+		
+		public MySQLTable(String tableName, Column[] columns) {
+			super(tableName, columns);
+		}
+		
+		public MySQLTable(String tableName, Column[] columns, String options) {
+			super(tableName, columns);
+			this.options = options;
+		}
+		
+		public String getOptions() {
+			return options;
+		}
 	}
 }
