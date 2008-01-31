@@ -25,7 +25,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	
 	/**
 	  * <p>addIndex generates a MySQL alter table statement used to add 
-	  * an index to an existing table in a database.</p>
+	  * an index or primary to an existing table in a database.</p>
 	  * @param index the index to be added
 	  * @return String that is the alter table statement
 	  */
@@ -35,6 +35,10 @@ public class MySQLGenerator extends AbstractGenerator {
 		throw new SchemaMigrationException("Must include a non-null index");
 	    }
 
+            if (index.isPrimaryKey()) {
+                return addPrimaryKey(index);
+            }
+            
 	    StringBuffer retVal = new StringBuffer();
 
 	    retVal.append("alter table ")
@@ -72,7 +76,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	  * @param index the primary key to be added
 	  * @return String that is the alter table statement
 	  */
-	public String addPrimaryKey(Index index) {
+	private String addPrimaryKey(Index index) {
 	    if (index == null) {
 		log.debug("Null Index located in MySqlGenerator.addPrimaryKey(Index)!! Must include a non-null index");
 		throw new SchemaMigrationException("Must include a non-null index");
@@ -106,7 +110,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	
 	/**
 	  * <p>dropIndex generates a MySQL alter table statement used to 
-	  * drop an index from an existing table in a database.</p>
+	  * drop an index or primary key from an existing table in a database.</p>
 	  * @param index the index to be dropped
 	  * @return String that is the alter table statement
 	  */
@@ -116,6 +120,10 @@ public class MySQLGenerator extends AbstractGenerator {
 		throw new SchemaMigrationException("Must include a non-null index");
 	    }
 
+            if(index.isPrimaryKey()) {
+                return dropPrimaryKey(index);
+            }
+            
 	    StringBuffer retVal = new StringBuffer();
 
 	    retVal.append("alter table ")
@@ -137,7 +145,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	  * @param index the primary key to be dropped
 	  * @return String that is the alter table statement
 	  */
-	public String dropPrimaryKey(Index index) {
+	private String dropPrimaryKey(Index index) {
 	    if (index == null) {
 		log.debug("Null Index located in MySqlGenerator.dropPrimaryKey(Index)!! Must include a non-null index");
 		throw new SchemaMigrationException("Must include a non-null index");
