@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="project" default="migrate" basedir=".">
+    <description>
+   		This demonstrates how to use the migrate task.
+    	
+    	Create a "path" that includes the migrate4j jar file,
+    	your compiled Migration classes and (optionally) 
+    	your migrate4j.properties file.
+    	
+    	Create a "taskdef" for the AntTask that points to
+    	your path.
+    	
+    	Finally, add the migrate tag.  If you've got a migrate4j.properties file
+    	in your classpath, you don't need to add any attributes.  You can add
+    	a "version" attribute to control which Migrations are applied or rolledback.
+    	And you can override 
+    </description>
+
+	<property name="lib.directory" value="lib" />
+	<property name="build.directory" value="build" />
+	<property name="src.directory" value="src" />
+	<property name="jdbc.jar.name" value="h2.jar" />
+	
+	<path id="lib.classpath" >
+		<fileset dir="${lib.directory}">
+			<include name="**/migrate4j.jar" />
+			<include name="**/commons-logging*.jar" />
+			<include name="**/${jdbc.jar.name}" />
+		</fileset>
+		<dirset dir="${build.directory}" />
+		
+	</path>
+
+	<taskdef name="migrate" 
+		classname="com.eroi.migrate.migration.AntTask" 
+		classpathref="lib.classpath" />
+	
+    <target name="migrate" depends="compile" >
+    	<echo message="Starting migration" />
+    	
+    	<!-- Easiest - uses migrate4j.properties and
+    		applies all Migration classes found -->
+    	<migrate />
+    	
+    	<!-- You can use migrate4j.properties but 
+    		specify a specific version to apply or
+    		rollback to by including "version" -->
+    	<!-- <migrate version="2"> -->
+    	
+    	<!-- If you've named your migrate4j.properties 
+    		file something else, use the configfile attribute --> 
+    	<!-- <migrate
+    		version="3"
+    		configfile="migrate4j.properties"
+    	/> -->
+    	
+    	<!-- You can also provide most of the attributes 
+    		normally found in migrate4j.properties by 
+    		using the url, driver, username, password
+    		and packagename attributes. -->
+        <!--<migrate 
+        	version="3"
+        	url="jdbc:h2:~/testH2"
+        	driver="org.h2.Driver"
+        	username="sa"
+    		password=""
+        	packagename="db.migrations"
+		/>-->
+    	
+    	<echo message="Migration Complete" />
+    </target>
+
+	<target name="compile" description="Compile Migration files into classes">
+		<delete dir="${build.directory}" />
+		<mkdir dir="${build.directory}" />
+		<javac debug="true" srcdir="${src.directory}" destdir="${build.directory}"> 
+			<classpath>
+				<fileset dir="${lib.directory}">
+					<include name="**/*.jar" />
+				</fileset>
+			</classpath>
+		</javac>		
+		<copy todir="${build.directory}"
+				description="add migrate4j.properties file
+							 to the classpath">
+		   	<fileset dir="${lib.directory}">
+		   		<include name="migrate4j.properties" />
+	 		</fileset>
+	   	</copy>
+	</target>
+</project>
