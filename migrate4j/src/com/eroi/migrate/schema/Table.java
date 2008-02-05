@@ -7,10 +7,7 @@ public class Table {
 	private Column[] columns;
 
 	public Table(String tableName, Column[] columns){
-		this(tableName, null, columns);
-	}
-
-	public Table(String tableName, String engineName, Column[] columns) {
+		
 		if (tableName == null) {
 			throw new RuntimeException("Table must not have a null name");
 		}

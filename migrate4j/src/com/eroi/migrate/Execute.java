@@ -97,7 +97,11 @@ public class Execute {
 		} 
 	}
 	
-	public static void createTable(Table table){
+	public static void createTable(Table table) {
+		createTable(table, null);
+	}
+	
+	public static void createTable(Table table, String tableOptions){
 		
 		if (table == null) {
 			log.debug("Invalid table object located in Execute.createTable(Table)");
@@ -113,7 +117,12 @@ public class Execute {
 		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			String query = generator.createTableStatement(table);
+			String query;
+			if (tableOptions != null) {
+				query = generator.createTableStatement(table, tableOptions);
+			} else {
+				query = generator.createTableStatement(table);
+			}
 			
 			executeStatement(connection, query);
 			
