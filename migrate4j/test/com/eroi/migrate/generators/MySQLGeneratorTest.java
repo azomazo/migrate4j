@@ -19,14 +19,12 @@ public class MySQLGeneratorTest extends TestCase {
     public MySQLGeneratorTest(String testName) {
         super(testName);
     }
-
-    @Override
+    
     protected void setUp() throws Exception {
         super.setUp();
         generator = new MySQLGenerator();
     }
 
-    @Override
     protected void tearDown() throws Exception {
         super.tearDown();
     }
