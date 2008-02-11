@@ -71,7 +71,7 @@ Or, roll all of them back (assuming they've been applied) by simply running:
 <a name="migrations" id="migrations" /><h3>Writing a Migration</h3>
 <div>
 Writing a Migration class is easy.  There are only 2 methods that you need to worry about - "up" and "down".
-The "up" method is called with Migrations are applied and "down" is called when they're being rolled back.
+The "up" method is called when Migrations are applied and "down" is called when they're being rolled back.
 There is also a "getDescription" method that you can use to provide information about what the 
 Migration does (unfortunately, we don't have the flexibility to put this information in the name
 of the Migration, as you can in Ruby).
@@ -147,8 +147,8 @@ supposed to provide incremental values for the field, set "autoincrement" to tru
 <h3>Current status</h3>
 <div>
 Having read all that, hopefully you're eager to get started using <b>migrate4j</b> in your project.  But before you
-do that, there are some thingsyou should know.  First, <b>migrate4j</b> is a very new project.  Many of the things that
-were mentioned above may still be "theoretical" in nature.  For example, while you can certainly run the code samples weve 
+do that, there are some things you should know.  First, <b>migrate4j</b> is a very new project.  Many of the things that
+were mentioned above may still be "theoretical" in nature.  For example, while you can certainly run the code samples we've 
 shown on multiple databases, we may not have support for your particular product yet.  And while adding and dropping tables
 can be done now, indexes, foreign keys and other elements may not have made it into the build yet.   In fact, when we 
 said "you can look at the API for more information" . . . we're getting to it!
@@ -156,7 +156,7 @@ said "you can look at the API for more information" . . . we're getting to it!
 <br />
 <div>
 You may get a better idea by checking our <a href="status.html">Status Page</a>.  While there's no guarantee this page will
-always reflect new code submissions, it's pretty safe bet that what's listed on that page are going to work.  Of course, if
+always reflect new code submissions, it's a pretty safe bet that what's listed on that page is going to work.  Of course, if
 you find something listed that you can't get working, be sure to let us know!
 </div>
 <br />
