@@ -5,7 +5,6 @@ import java.sql.SQLException;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.SchemaMigrationException;
 
 public class GeneratorFactory {
