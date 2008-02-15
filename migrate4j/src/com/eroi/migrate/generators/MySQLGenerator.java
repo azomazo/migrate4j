@@ -445,8 +445,9 @@ public class MySQLGenerator extends AbstractGenerator {
 	retVal.append(" ");
 
 	if (!column.isNullable()) {
-	    retVal.append("NOT NULL ");
+	    retVal.append("NOT ");
 	}
+	retVal.append("NULL ");
 
 	if (column.isAutoincrement()) {
 	    retVal.append("AUTO_INCREMENT ");
