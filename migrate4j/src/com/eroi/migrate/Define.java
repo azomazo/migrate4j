@@ -4,6 +4,8 @@ import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
+import com.eroi.migrate.schema.Column.ColumnOption;
+import com.eroi.migrate.schema.Column.columnTypes;
 
 
 public class Define {
@@ -16,7 +18,26 @@ public class Define {
     public static Column column(String columnName, int columnType) {
         return new Column(columnName, columnType);
     }
+    
+    public static Column column(String columnName, columnTypes columnType) {
+		return column(columnName, columnType, (ColumnOption<?>)null);
+	}
+       
+    public static Column column(String columnName, columnTypes columnType, ColumnOption<?> ... columnOption) {
+    	Column column = new Column(columnName, columnType.getTypeValue());
+    	
+    	if (columnOption != null && columnOption.length > 0) {
+    		for(ColumnOption<?> option : columnOption) {
+    			if(option != null) {
+    				option.decorate(column);
+    			}
+        	}
+    	}
 
+    	return column;
+	}
+    
+    
     /**
      * @param columnName
      * @param columnType
@@ -71,4 +92,5 @@ public class Define {
     public static ForeignKey foreignKey(String parentTable, String parentColumn, String childTable, String childColumn) {
     	return new ForeignKey(parentTable, parentColumn, childTable, childColumn);
     }
+
 }
