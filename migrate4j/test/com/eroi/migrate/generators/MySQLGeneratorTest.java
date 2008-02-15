@@ -32,7 +32,7 @@ public class MySQLGeneratorTest extends TestCase {
     public void testMakeColumnString_SimpleColumn() {
         Column column = Define.column("basic", Types.INTEGER);
         String columnString = generator.makeColumnString(column, false);
-        assertEquals("`basic` INT", columnString);
+        assertEquals("`basic` INT NULL", columnString);
     }
 
     public void testMakeColumnString_PrimaryKeyNonIncrementing() {
@@ -140,7 +140,7 @@ public class MySQLGeneratorTest extends TestCase {
         columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
         Column column = new Column("desc", Types.VARCHAR, 100, false, true, null, false);
         Table table = Define.table("sample", columns);
-        String expected = "alter table `sample` add `desc` VARCHAR(100);";
+        String expected = "alter table `sample` add `desc` VARCHAR(100) NULL;";
         String result = generator.addColumnStatement(column, table);
         assertEquals(expected, result);
     }
@@ -153,7 +153,7 @@ public class MySQLGeneratorTest extends TestCase {
         columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
         Column column = new Column("desc", Types.VARCHAR, 100, false, true, null, false);
         Table table = Define.table("sample", columns);
-        String expected = "alter table `sample` add `desc` VARCHAR(100) FIRST;";
+        String expected = "alter table `sample` add `desc` VARCHAR(100) NULL FIRST;";
         String result = generator.addColumnFirstStatement(column, table);
         assertEquals(expected, result);
     }
@@ -166,7 +166,7 @@ public class MySQLGeneratorTest extends TestCase {
         columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
         Column column = new Column("desc", Types.VARCHAR, 100, false, true, null, false);
         Table table = Define.table("sample", columns);
-        String expected = "alter table `sample` add `desc` VARCHAR(100) AFTER `id`;";
+        String expected = "alter table `sample` add `desc` VARCHAR(100) NULL AFTER `id`;";
         String result = generator.addColumnAfterStatement(column, table, "id");
         assertEquals(expected, result);
     }
