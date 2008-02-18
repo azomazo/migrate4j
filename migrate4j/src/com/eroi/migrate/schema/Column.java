@@ -130,7 +130,6 @@ public class Column {
 	
 	
 	public interface ColumnOption<T> {
-		public T get();
 		public void decorate(Column column);
 	}
 	
@@ -144,11 +143,7 @@ public class Column {
 
 		public NotNull() {
 			this(true);
-		}
-
-		public Boolean get() {
-			return notNull;
-		}
+		}		
 
 		public void decorate(Column column) {
 			column.setNullable(!notNull);
@@ -174,11 +169,7 @@ public class Column {
 		public AutoIncrement() {
 			this(true);
 		}
-		
-		public Boolean get() {
-			return autoincrement;
-		}
-		
+					
 		public void decorate(Column column) {
 			column.setAutoIncrement(autoincrement);
 		}
@@ -203,11 +194,7 @@ public class Column {
 		public Unicode() {
 			this(true);
 		}
-		
-		public Boolean get() {
-			return isUnicode;
-		}
-		
+					
 		public void decorate(Column column) {
 			column.setUnicode(isUnicode);
 		}
@@ -232,11 +219,7 @@ public class Column {
 		public PrimaryKey() {
 			this(true);
 		}
-		
-		public Boolean get() {
-			return isPrimaryKey;
-		}
-		
+						
 		public void decorate(Column column) {
 			column.setPrimaryKey(isPrimaryKey);
 		}
@@ -257,11 +240,7 @@ public class Column {
 		public Length(Integer myLen) {
 			myLength = myLen;
 		}
-		
-		public Integer get() {
-			return myLength;
-		}
-		
+			
 		public void decorate(Column column) {
 			column.setLength(myLength);
 		}
@@ -278,10 +257,6 @@ public class Column {
 		
 		public DefaultValue(Object obj) {
 			defaultObject = obj;
-		}
-		
-		public Object get() {
-			return defaultObject;
 		}
 		
 		public void decorate(Column column) {
