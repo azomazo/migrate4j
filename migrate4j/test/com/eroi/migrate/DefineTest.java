@@ -1,7 +1,7 @@
 package com.eroi.migrate;
 
-import static com.eroi.migrate.schema.Column.*;
-import static com.eroi.migrate.schema.Column.columnTypes.*;
+import static com.eroi.migrate.Define.*;
+import static com.eroi.migrate.Define.DataTypes.*;
 
 import java.sql.Types;
 
@@ -13,7 +13,7 @@ public class DefineTest extends TestCase {
 	
 	public void testDefine_passColumnNameAndType() {
 		
-		Column column = Define.column("column_name", Types.INTEGER);
+		Column column = Define.column("column_name", DataTypes.INTEGER);
 		assertEquals("column_name", column.getColumnName());
 		assertEquals(Types.INTEGER, column.getColumnType());
 				

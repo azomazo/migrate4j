@@ -6,23 +6,26 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
+import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
   * <p>Class MySQLGenerator provides methods for creating statements to 
   * create, alter, or drop tables.</p>
   */
-public class MySQLGenerator extends AbstractGenerator {
-	private static Log log = LogFactory.getLog(MySQLGenerator.class);
+public class MySQLGenerator extends GenericGenerator {
 	
+	private static Log log = LogFactory.getLog(MySQLGenerator.class);
+		
 	/**
 	  * <p>addIndex generates a MySQL alter table statement used to add 
 	  * an index or primary to an existing table in a database.</p>
@@ -170,18 +173,16 @@ public class MySQLGenerator extends AbstractGenerator {
 	public String createTableStatement(Table table, String options) {
 		StringBuffer retVal = new StringBuffer();
 
+		Validator.notNull(table, "Table can not be null");		
+		
 		Column[] columns = table.getColumns();
 
-		if (columns == null || columns.length == 0) {
-			log.debug("No column located in MySQLGenerator.createTableStatement(Table) !! Table must include at least one column");
-		    throw new SchemaMigrationException("Table must include at least one column");
-		}
-
+		Validator.notNull(columns, "Columns can not be null");
+		Validator.isTrue(columns.length > 0, "At least one column must exist");
+		
 		int numberOfAutoIncrementColumns = GeneratorHelper.countAutoIncrementColumns(columns);
-		if (numberOfAutoIncrementColumns > 1) {
-			log.debug("Each table must have one and only one auto_increment key.  You included " + numberOfAutoIncrementColumns);
-		    throw new SchemaMigrationException("Each table can have at most one auto_increment key.  You included " + numberOfAutoIncrementColumns);
-		}
+		
+		Validator.isTrue(numberOfAutoIncrementColumns <=1, "Can not have more than one autoincrement key");
 		
 		boolean hasMultiplePrimaryKeys = GeneratorHelper.countPrimaryKeyColumns(columns) > 1;
 
@@ -254,7 +255,7 @@ public class MySQLGenerator extends AbstractGenerator {
       * @return String that is the MySQL statement to add the column
       */
     public String addColumnStatement(Column column, Table table, String afterColumn) {
-	return addColumnStatement(column, table);
+    	return addColumnStatement(column, table);
     }
 
     /**
@@ -400,23 +401,15 @@ public class MySQLGenerator extends AbstractGenerator {
 	return retVal.toString();
     }
 
-    /**
-      * <p>dropTableStatement generates a MySQL statement that drops a 
-      * table from a database if it exists.</p>
-      * @param table the table to be dropped
-      * @return String that is the MySQL statement to drop the table
-      */
-    public String dropTableStatement(Table table) {
-	if (table == null) {
-	    throw new SchemaMigrationException("Table must not be null");
-	}
-
-	StringBuffer retVal = new StringBuffer();
-	retVal.append("drop table if exists ")
-	      .append(wrapName(table.getTableName()))
-	      .append(";");
-
-	return retVal.toString();
+    public String dropTableStatement(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
+	
+		StringBuffer retVal = new StringBuffer();
+		retVal.append("drop table if exists ")
+		      .append(wrapName(tableName))
+		      .append(";");
+	
+		return retVal.toString();
     }
 
     public String getStatement(Statement statement) {
@@ -567,10 +560,7 @@ public class MySQLGenerator extends AbstractGenerator {
 	  * @return String that is the alter table statement
 	  */
 	public String addForeignKey(ForeignKey foreignKey) {
-	    if (foreignKey == null) {
-		log.debug("Null ForeignKey located in MySQLGenerator.addForeignKey(ForeignKey)!! Foreign Key must not be null");
-		throw new SchemaMigrationException("Must include a non-null foreign key object");
-	    }
+	    Validator.notNull(foreignKey, "Foreign key can not be null");
 
 	    StringBuffer retVal = new StringBuffer();
 
@@ -621,7 +611,7 @@ public class MySQLGenerator extends AbstractGenerator {
 
 	    return retVal.toString();
 	}
-
+	
 	/**
 	  * <p>exists tests for whether or not a foreign key exists.</p>
 	  * @param foreignKey the foreign key to be checked

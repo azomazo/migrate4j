@@ -20,6 +20,6 @@ public class Migration_4 implements Migration {
 	}
 
 	public static Index getIndex() {
-		return Define.uniqueIndex(Migration_1.getTable().getTableName(), Migration_1.DESC_COLUMN_NAME);
+		return Define.uniqueIndex("idx_basictable_desc", Migration_1.getTable().getTableName(), Migration_1.DESC_COLUMN_NAME);
 	}
 }

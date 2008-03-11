@@ -8,18 +8,18 @@ import com.eroi.migrate.Define;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.Table;
 
-public class H2GeneratorTest extends TestCase {
+public class GenericGeneratorTest extends TestCase {
 
-	private H2Generator generator;
+	private GenericGenerator generator;
 	
 	protected void setUp() throws Exception {
 		super.setUp();
 		
-		generator = new H2Generator();
+		generator = new GenericGenerator();
 	}
 	
 	public void testMakeColumnString_SimpleColumn() {
-		Column column = Define.column("basic", Types.INTEGER);
+		Column column = new Column("basic", Types.INTEGER);
 		
 		String columnString = generator.makeColumnString(column);
 		
@@ -27,7 +27,7 @@ public class H2GeneratorTest extends TestCase {
 	}
 	
 	public void testMakeColumnString_PrimaryKeyNonIncrementing() {
-		Column column = Define.column("basic", Types.INTEGER, -1, true, false, null, false);
+		Column column = new Column("basic", Types.INTEGER, -1, true, false, null, false);
 		
 		String columnString = generator.makeColumnString(column);
 		
@@ -35,7 +35,7 @@ public class H2GeneratorTest extends TestCase {
 	}
 	
 	public void testMakeColumnString_PrimaryKeyIncrementing() {
-		Column column = Define.column("basic", Types.INTEGER, -1, true, false, null, true);
+		Column column = new Column("basic", Types.INTEGER, -1, true, false, null, true);
 		
 		String columnString = generator.makeColumnString(column);
 		
@@ -43,7 +43,7 @@ public class H2GeneratorTest extends TestCase {
 	}
 	
 	public void testMakeColumnString_VarcharWithDefault() {
-		Column column = Define.column("basic", Types.VARCHAR, 50, false, false, "NA", false);
+		Column column = new Column("basic", Types.VARCHAR, 50, false, false, "NA", false);
 		
 		String columnString = generator.makeColumnString(column);
 		
@@ -54,8 +54,8 @@ public class H2GeneratorTest extends TestCase {
 		String expected = "create table \"sample\" (\"id\" INT NOT NULL PRIMARY KEY, \"desc\" VARCHAR(50) NOT NULL);";
 		
 		Column[] columns = new Column[2];
-		columns[0] = Define.column("id", Types.INTEGER, -1, true, false, null, false);
-		columns[1] = Define.column("desc", Types.VARCHAR, 50, false, false, null, false);
+		columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, false);
+		columns[1] = new Column("desc", Types.VARCHAR, 50, false, false, null, false);
 	
 		Table table = Define.table("sample", columns);
 		

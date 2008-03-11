@@ -19,13 +19,13 @@ import com.eroi.migrate.schema.Column;
  */
 public class GeneratorHelper {
 
-	private static final Map types;
-	private static final List needsLength;
-	private static final List needsQuotes;
-	private static final List stringTypes;
+	private static final Map<Integer, String> types;
+	private static final List<Integer> needsLength;
+	private static final List<Integer> needsQuotes;
+	private static final List<Integer> stringTypes;
 	
 	static {
-		types = new HashMap();
+		types = new HashMap<Integer, String>();
 		types.put(new Integer(Types.BIGINT), "BIGINT");
 		types.put(new Integer(Types.BOOLEAN), "BOOL");
 		types.put(new Integer(Types.CHAR), "CHAR");
@@ -42,23 +42,23 @@ public class GeneratorHelper {
 		types.put(new Integer(Types.TINYINT), "TINYINT");
 		types.put(new Integer(Types.VARCHAR), "VARCHAR");
 		
-		needsLength = new ArrayList();
+		needsLength = new ArrayList<Integer>();
 		needsLength.add(new Integer(Types.CHAR));
 		needsLength.add(new Integer(Types.VARCHAR));
 		
-		needsQuotes = new ArrayList();
+		needsQuotes = new ArrayList<Integer>();
 		needsQuotes.add(new Integer(Types.CHAR));
 		needsQuotes.add(new Integer(Types.LONGVARCHAR));
 		needsQuotes.add(new Integer(Types.VARCHAR));
 		
-		stringTypes = new ArrayList();
+		stringTypes = new ArrayList<Integer>();
 		stringTypes.add(new Integer(Types.CHAR));
 		stringTypes.add(new Integer(Types.LONGVARCHAR));
 		stringTypes.add(new Integer(Types.VARCHAR));
 	}
 	
 	public static String getSqlName(int type) {
-		return (String)types.get(new Integer(type));
+		return types.get(new Integer(type));
 	}
 	
 	public static boolean needsLength(int type) {
@@ -75,7 +75,7 @@ public class GeneratorHelper {
 	
 	public static Column[] getPrimaryKeyColumns(Column[] columns) {
 		
-		List primaryKeyColumns = new ArrayList();
+		List<Column> primaryKeyColumns = new ArrayList<Column>();
 		
 		for (int x = 0 ; x < columns.length ; x++) {
 			
@@ -91,7 +91,7 @@ public class GeneratorHelper {
 
 		}
 		
-		return (Column[])primaryKeyColumns.toArray(new Column[primaryKeyColumns.size()]);
+		return primaryKeyColumns.toArray(new Column[primaryKeyColumns.size()]);
 	}
 	
 	public static int countPrimaryKeyColumns(Column[] columns) {
@@ -115,26 +115,6 @@ public class GeneratorHelper {
 		}
 		
 		return retVal;
-	}
-	
-	public static boolean doesTableExist(Connection connection, String tableName) throws SQLException {
-		ResultSet resultSet = null;
-		
-		try {
-		
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-		
-			String catalog = getCatalog(connection);
-			resultSet = databaseMetaData.getTables(catalog, "", tableName, null);
-			
-			if (resultSet != null && resultSet.next()) {
-				return true;
-			}
-		} finally {
-			Closer.close(resultSet);
-		}
-		
-		return false;
 	}
 	
 	public static boolean doesColumnExist(Connection connection, String columnName, String tableName) throws SQLException {

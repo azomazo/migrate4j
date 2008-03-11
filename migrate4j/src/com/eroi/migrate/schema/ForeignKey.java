@@ -1,6 +1,6 @@
 package com.eroi.migrate.schema;
 
-import com.eroi.migrate.misc.SchemaMigrationException;
+import com.eroi.migrate.misc.Validator;
 
 public class ForeignKey {
     
@@ -27,30 +27,19 @@ public class ForeignKey {
     
     private void init() {
     	
-    	if (parentTable == null || 
-    			parentColumns == null || 
-    			parentColumns.length == 0 || 
-    			!ConstraintHelper.hasValidValue(parentColumns) ||
-    			childTable == null || 
-    			childColumns == null || 
-    			childColumns.length == 0 || 
-    			!ConstraintHelper.hasValidValue(childColumns)) {
-			throw new SchemaMigrationException("Must provide a table and columns to use for index");
-		}
+    	Validator.notNull(name, "Name can not be null");
+    	Validator.isTrue(name.trim().length() > 0, "Name can not be empty");
+    	Validator.notNull(parentTable, "Parent table can not be null");
+    	Validator.notNull(parentColumns, "Parent Columns can not be null");
+    	Validator.isTrue(parentColumns.length > 0, "Must include at least one parent column");
+    	Validator.isTrue(ConstraintHelper.hasValidValue(parentColumns), "Parent columns must include at least one valid column name");
+    	Validator.notNull(childTable, "Child table can not be null");
+    	Validator.notNull(childColumns, "Child columns can not be null");
+    	Validator.isTrue(childColumns.length > 0, "Must include at least one child column");
+    	Validator.isTrue(ConstraintHelper.hasValidValue(childColumns), "Child columns must include at least one valid column name");
     	
-    	if (name == null || name.trim().length() == 0) {
-        	name = createName();
-        }
     }
     
-    public ForeignKey(String parentTable, String parentColumn, String childTable, String childColumn) {
-        this(null, parentTable, parentColumn, childTable, childColumn);
-    }
-    
-    public ForeignKey(String parentTable, String[] parentColumns, String childTable, String[] childColumns) {
-    	this(null, parentTable, parentColumns, childTable, childColumns);
-    }
-
     public String getName() {
 		return name;
 	}
@@ -71,15 +60,15 @@ public class ForeignKey {
         return childColumns;
     }
     
-    private String createName() {
+    public static String createName(String parentTableName, String childTableName, String[] parentColumnNames) {
     	StringBuffer name = new StringBuffer();
     	
     	name.append("fky_")
-    		.append(ConstraintHelper.nameFromTable(parentTable, 5))
+    		.append(ConstraintHelper.nameFromTable(parentTableName, 5))
     		.append("_")
-    		.append(ConstraintHelper.nameFromColumns(parentColumns))
+    		.append(ConstraintHelper.nameFromColumns(parentColumnNames))
     		.append("_")
-    		.append(ConstraintHelper.nameFromTable(childTable, 5));
+    		.append(ConstraintHelper.nameFromTable(childTableName, 5));
     	
     	return name.toString();
     }

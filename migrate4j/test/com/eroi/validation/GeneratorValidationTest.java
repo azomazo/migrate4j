@@ -9,7 +9,7 @@ import junit.framework.TestCase;
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.Engine;
 import com.eroi.migrate.Execute;
-import com.eroi.migrate.generators.AbstractGenerator;
+import com.eroi.migrate.generators.GenericGenerator;
 import com.eroi.migrate.generators.GeneratorFactory;
 import com.eroi.migrate.misc.Closer;
 
@@ -183,7 +183,7 @@ public class GeneratorValidationTest extends TestCase {
 	private void insertDescIntoBasicTable() throws SQLException {
 		Statement s = null;
 		
-		AbstractGenerator generator = (AbstractGenerator)GeneratorFactory.getGenerator(connection);
+		GenericGenerator generator = (GenericGenerator)GeneratorFactory.getGenerator(connection);
 		
 		String query = "insert into " 
 			+ generator.wrapName(Migration_1.TABLE_NAME) 

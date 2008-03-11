@@ -1,6 +1,6 @@
 package com.eroi.migrate.schema;
 
-import com.eroi.migrate.misc.SchemaMigrationException;
+import com.eroi.migrate.misc.Validator;
 
 public class Index {
 
@@ -45,9 +45,10 @@ public class Index {
 	}
 	
 	private void init() {
-		if (tableName == null || columnNames == null || columnNames.length == 0 || !ConstraintHelper.hasValidValue(columnNames)) {
-			throw new SchemaMigrationException("Must provide a table and columns to use for index");
-		}
+		Validator.notNull(tableName, "Table is required for an Index");
+		Validator.notNull(columnNames, "At least one column names are required for an index");
+		Validator.isTrue(columnNames.length > 0, "At least one column names are required for an index");
+		Validator.isTrue(ConstraintHelper.hasValidValue(columnNames), "At least one column names are required for an index");
 		
 		if (name == null) {
 			name = generateIndexName();

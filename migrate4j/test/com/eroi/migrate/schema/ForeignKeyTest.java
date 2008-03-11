@@ -23,7 +23,7 @@ public class ForeignKeyTest extends TestCase {
 	public void testConstructor_ThrowsExceptionIfMissingParentTableName() {
 		
 		try {
-			new ForeignKey(null, parentColumns, childTable, childColumns);
+			new ForeignKey("name", null, parentColumns, childTable, childColumns);
 			fail("Should have thrown a SchemaMigrationException");
 		} catch (SchemaMigrationException expected) {
 		} catch (Exception exception) {
@@ -34,7 +34,7 @@ public class ForeignKeyTest extends TestCase {
 	public void testConstructor_ThrowsExceptionIfMissingParentColumns() {
 				
 		try {
-			new ForeignKey(parentTable, null, childTable, childColumns);
+			new ForeignKey("name", parentTable, null, childTable, childColumns);
 			fail("Should have thrown a SchemaMigrationException");
 		} catch (SchemaMigrationException expected) {
 		} catch (Exception exception) {
@@ -45,7 +45,7 @@ public class ForeignKeyTest extends TestCase {
 	public void testConstructor_ThrowsExceptionIfMissingChildTableName() {
 				
 		try {
-			new ForeignKey(parentTable, parentColumns, null, childColumns);
+			new ForeignKey("name", parentTable, parentColumns, null, childColumns);
 			fail("Should have thrown a SchemaMigrationException");
 		} catch (SchemaMigrationException expected) {
 		} catch (Exception exception) {
@@ -56,7 +56,7 @@ public class ForeignKeyTest extends TestCase {
 	public void testConstructor_ThrowsExceptionIfMissingChildColumns() {
 				
 		try {
-			new ForeignKey(parentTable, parentColumns, childTable, null);
+			new ForeignKey("name", parentTable, parentColumns, childTable, null);
 			fail("Should have thrown a SchemaMigrationException");
 		} catch (SchemaMigrationException expected) {
 		} catch (Exception exception) {
@@ -69,7 +69,7 @@ public class ForeignKeyTest extends TestCase {
 		parentColumns = new String[0];
 		
 		try {
-			new ForeignKey(parentTable, parentColumns, childTable, childColumns);
+			new ForeignKey("name", parentTable, parentColumns, childTable, childColumns);
 			fail("Should have thrown a SchemaMigrationException");
 		} catch (SchemaMigrationException expected) {
 		} catch (Exception exception) {
@@ -82,7 +82,7 @@ public class ForeignKeyTest extends TestCase {
 		childColumns = new String[0];
 		
 		try {
-			new ForeignKey(parentTable, parentColumns, childTable, childColumns);
+			new ForeignKey("name", parentTable, parentColumns, childTable, childColumns);
 			fail("Should have thrown a SchemaMigrationException");
 		} catch (SchemaMigrationException expected) {
 		} catch (Exception exception) {
@@ -95,7 +95,7 @@ public class ForeignKeyTest extends TestCase {
 		parentColumns = new String[1];
 		
 		try {
-			new ForeignKey(parentTable, parentColumns, childTable, childColumns);
+			new ForeignKey("name", parentTable, parentColumns, childTable, childColumns);
 			fail("Should have thrown a SchemaMigrationException");
 		} catch (SchemaMigrationException expected) {
 		} catch (Exception exception) {
@@ -108,7 +108,7 @@ public class ForeignKeyTest extends TestCase {
 		childColumns = new String[1];
 		
 		try {
-			new ForeignKey(parentTable, parentColumns, childTable, childColumns);
+			new ForeignKey("name", parentTable, parentColumns, childTable, childColumns);
 			fail("Should have thrown a SchemaMigrationException");
 		} catch (SchemaMigrationException expected) {
 		} catch (Exception exception) {
@@ -116,10 +116,9 @@ public class ForeignKeyTest extends TestCase {
 		}
 	}
 	
-	public void testConstructor_DefaultNameIsAssigned() {
-		ForeignKey foreignKey = new ForeignKey(parentTable, parentColumns, childTable, childColumns);
+	public void testCreateName() {
 		
-		String name = foreignKey.getName();
+		String name = ForeignKey.createName(parentTable, childTable, parentColumns);
 		assertNotNull(name);
 		assertEquals("fky_paren_pcolumn_child", name);
 	}

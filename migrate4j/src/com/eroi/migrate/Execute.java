@@ -8,6 +8,7 @@ import com.eroi.migrate.generators.Generator;
 import com.eroi.migrate.generators.GeneratorFactory;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
+import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
@@ -15,12 +16,16 @@ import com.eroi.migrate.schema.Table;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * Contains commands that can be called from within Migration classes.
+ *
+ */
 public class Execute {
+	
 	private static Log log = LogFactory.getLog(Execute.class);
+	
 	public static boolean exists(Index index) {
-		if (index == null) {
-			throw new SchemaMigrationException("Invalid index object");
-		}
+		Validator.notNull(index, "Index can not be null");
 		
 		try {
 			Connection connection = Configure.getConnection();
@@ -35,54 +40,78 @@ public class Execute {
 		} 
 	}
 	
-	public static boolean exists(Table table) {
-		if (table == null) {
-			log.debug("Invalid Table object located in Execute.exists(Table)");
-			throw new SchemaMigrationException("Invalid table object");
-		}
+	public static boolean indexExists(String indexName, String tableName) {
+		Validator.notNull(indexName, "Index name can not be null");
 		
 		try {
 			Connection connection = Configure.getConnection();
 		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			return generator.exists(table);
+			return generator.indexExists(indexName, tableName);
 			
 		} catch (SQLException e) {
-			log.error("Unable to create table " + table.getTableName(), e);
-			throw new SchemaMigrationException("Unable to check table " + table.getTableName(), e);
+			String message = "Unable to check index " + indexName + " on table " + tableName;
+			log.error(message, e);
+			throw new SchemaMigrationException(message, e);
 		} 
 	}
 	
-	public static boolean exists(Column column, Table table) {
-		if (table == null) {
-			log.debug("Invalid Table object located in Execute.exists(Column,Table)");
-			throw new SchemaMigrationException("Invalid table object");
-		}
+	public static boolean exists(Table table) {
+		Validator.notNull(table, "Table can not be null");
 		
-		if (column == null) {
-			log.debug("Invalid Column object located in Execute.exists(Column,Table)");
-			throw new SchemaMigrationException("Invalid column object");
-		}
+		return tableExists(table.getTableName());
+	}
+	
+	public static boolean tableExists(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
 		
 		try {
 			Connection connection = Configure.getConnection();
 		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			return generator.exists(column, table);
+			return generator.tableExists(tableName);
 			
 		} catch (SQLException e) {
-			log.error("Unable to create table " + table.getTableName(), e);
-			throw new SchemaMigrationException("Unable to check column " + column.getColumnName() + " on table " + table.getTableName(), e);
+			log.error("Unable to create table " + tableName, e);
+			throw new SchemaMigrationException("Unable to check table " + tableName, e);
+		}
+	}
+	
+	public static boolean exists(Column column, Table table) {
+		Validator.notNull(table, "Table can not be null");
+		Validator.notNull(column, "Column can not be null");
+		
+		return exists(column.getColumnName(), table.getTableName());
+		
+	}
+	
+	public static boolean exists(Column column, String tableName) {
+		Validator.notNull(column, "Column can not be null");
+		
+		return exists(column.getColumnName(), tableName);
+		
+	}
+	
+	public static boolean exists(String columnName, String tableName) {
+		Validator.notNull(tableName, "Table Name can not be null");
+		Validator.notNull(columnName, "Column Name can not be null");
+		
+		try {
+			Connection connection = Configure.getConnection();
+		
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			return generator.columnExists(columnName, tableName);
+			
+		} catch (SQLException e) {
+			throw new SchemaMigrationException("Unable to check column " + columnName + " on table " + tableName, e);
 		} 
 	}
 	
 	public static boolean exists(ForeignKey foreignKey) {
-		if (foreignKey == null) {
-			log.debug("Invalid Foreign Key object in Execute.exists(ForeignKey)");
-			throw new SchemaMigrationException("Invalid Foreign Key object");
-		}
+		Validator.notNull(foreignKey, "Foreign key can not be null");
 		
 		try {
 			Connection connection = Configure.getConnection();
@@ -102,11 +131,7 @@ public class Execute {
 	}
 	
 	public static void createTable(Table table, String tableOptions){
-		
-		if (table == null) {
-			log.debug("Invalid table object located in Execute.createTable(Table)");
-			throw new SchemaMigrationException("Invalid table object");
-		}
+		Validator.notNull(table, "Table can not be null");
 		
 		if (exists(table)) {
 			return;
@@ -132,12 +157,10 @@ public class Execute {
 		} 
 	}
 	
-	public static void dropTable(Table table) {
-		if (table == null) {
-			throw new SchemaMigrationException("Invalid Table object");
-		}
+	public static void dropTable(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
 		
-		if (!exists(table)) {
+		if (!tableExists(tableName)) {
 			return;
 		}
 		
@@ -146,32 +169,26 @@ public class Execute {
 			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			String query = generator.dropTableStatement(table);
+			String query = generator.dropTableStatement(tableName);
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
-			log.error("Unable to drop table " + table.getTableName(), e);
-			throw new SchemaMigrationException("Unable to drop table " + table.getTableName(), e);
+			log.error("Unable to drop table " + tableName, e);
+			throw new SchemaMigrationException("Unable to drop table " + tableName, e);
 		} 
 	}
 	
 	public static void addColumn(Column column, Table table) {
-		if (table == null || column == null) {
-			log.error("Either Table name or the Column name is not provided !! Must provide a Table and Column name");
-			throw new SchemaMigrationException("Must provide a Table and Column");
-		}
-		
-		if (!exists(table)) {
-			log.error("Table "+table.getTableName()+ " does not exsists !!!");
-			throw new SchemaMigrationException("Table does not exist");
-		}
+		Validator.notNull(column, "Column can not be null");
+		Validator.notNull(table, "Table can not be null");
+		Validator.isTrue(exists(table), "Table does not exist");
 		
 		try {
 			Connection connection = Configure.getConnection();
 			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			String query = generator.addColumnStatement(column, table, null);
+			String query = generator.addColumnStatement(column, table.getTableName(), null);
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
@@ -181,17 +198,11 @@ public class Execute {
 	}
 	
 	public static void dropColumn(Column column, Table table) {
-		if (table == null || column == null) {
-			log.error("Either Table name or the Column name is not provided !! Must provide a Table and Column name");
-			throw new SchemaMigrationException("Must provide a Table and Column");
-		}
+		Validator.notNull(column, "Column can not be null");
+		Validator.notNull(table, "Table can not be null");
+		Validator.isTrue(exists(table), "Table does not exist");
 		
-		if (!exists(table)) {
-			log.error("Table "+table.getTableName()+ " does not exsists !!!");
-			throw new SchemaMigrationException("Table does not exist");
-		}
-		
-		if (!exists(column, table)) {
+		if (!exists(column.getColumnName(), table.getTableName())) {
 			return;
 		}
 		
@@ -200,7 +211,7 @@ public class Execute {
 			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			String query = generator.dropColumnStatement(column, table);
+			String query = generator.dropColumnStatement(column.getColumnName(), table.getTableName());
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
@@ -211,10 +222,7 @@ public class Execute {
 	}
 	
 	public static void addIndex(Index index) {
-		if (index == null) {
-			log.debug("Invalid Index Object located in Execute.addIndex(Index)");
-			throw new SchemaMigrationException("Invalid Index Object");
-		}
+		Validator.notNull(index, "Index can not be null");
 		
 		if (exists(index)) {
 			return;
@@ -235,10 +243,7 @@ public class Execute {
 	}
 	
 	public static void dropIndex(Index index) {
-		if (index == null) {
-			log.debug("Invalid Index Object located in Execute.dropIndex(Index)");
-			throw new SchemaMigrationException("Invalid Index Object");
-		}
+		Validator.notNull(index, "Index can not be null");
 		
 		if (!exists(index)) {
 			return;
@@ -259,10 +264,7 @@ public class Execute {
 	}
 	
 	public static void addForeignKey(ForeignKey foreignKey) {
-		if (foreignKey == null) {
-			log.debug("Invalid foreignKey Object located in Execute.addForeignKey(ForeignKey)");
-			throw new SchemaMigrationException("Invalid foreignKey Object");
-		}
+		Validator.notNull(foreignKey, "ForeignKey can not be null");
 		
 		if (exists(foreignKey)) {
 			return;
@@ -283,10 +285,7 @@ public class Execute {
 	}
 	
 	public static void dropForeignKey(ForeignKey foreignKey) {
-		if (foreignKey == null) {
-			log.debug("Invalid foreignKey Object located in Execute.dropForeignKey(ForeignKey)");
-			throw new SchemaMigrationException("Invalid foreign key Object");
-		}
+		Validator.notNull(foreignKey, "ForeignKey can not be null");
 		
 		if (!exists(foreignKey)) {
 			return;

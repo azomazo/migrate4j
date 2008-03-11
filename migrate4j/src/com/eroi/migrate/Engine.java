@@ -23,8 +23,8 @@ public class Engine {
 	
 	public static void migrate(int version) {
 		
-		Class[] migrationClasses = classesToMigrate();
-		if (migrationClasses == null || migrationClasses.length <= 0) {
+		List<Class<? extends Migration>> migrationClasses = classesToMigrate();
+		if (migrationClasses == null || migrationClasses.size() <= 0) {
 			log.debug("No migration classes match " + Configure.getBaseClassName());
 			return;
 		}
@@ -40,17 +40,17 @@ public class Engine {
 		}
 
 		boolean isUp = isUpMigration(currentVersion, version);
-		Class[] classesToMigrate = classesToMigrate();
+		List<Class<? extends Migration>> classesToMigrate = classesToMigrate();
 		classesToMigrate = orderMigrations(classesToMigrate, currentVersion, version);
 		
 		int lastVersion = currentVersion;
 		Exception exception = null;
 		
-		for (int x = 0 ; x < classesToMigrate.length ; x++) {
+		for (int x = 0 ; x < classesToMigrate.size() ; x++) {
 			//Execute each migration
 
 			try {
-				lastVersion = runMigration(classesToMigrate[x], isUp);
+				lastVersion = runMigration(classesToMigrate.get(x), isUp);
 			} catch (Exception e) {
 				exception = e;
 				break;
@@ -72,7 +72,7 @@ public class Engine {
 		}
 	}
 
-	private static int runMigration(Class classToMigrate, boolean isUp) {
+	private static int runMigration(Class<? extends Migration> classToMigrate, boolean isUp) {
 		int retVal = getVersionNumber(classToMigrate.getName());
 		
 		if (retVal < 0) {
@@ -142,9 +142,10 @@ public class Engine {
 		}
 	}
 
-	protected static Class[] classesToMigrate() {
+	@SuppressWarnings("unchecked")
+	protected static List<Class<? extends Migration>> classesToMigrate() {
 		
-		List retVal = new ArrayList();
+		List<Class<? extends Migration>> retVal = new ArrayList<Class<? extends Migration>>();
 		String baseName = Configure.getBaseClassName();
 		
 		int item = Configure.getStartIndex().intValue();
@@ -161,12 +162,12 @@ public class Engine {
 			item++;
 		}		
 		
-		return (Class[])retVal.toArray(new Class[retVal.size()]);
+		return retVal;
 	}
 	
-	protected static Class[] orderMigrations(Class[] migrationClasses, int currentVersion, int targetVersion) {
+	protected static List<Class<? extends Migration>> orderMigrations(List<Class<? extends Migration>> migrationClasses, int currentVersion, int targetVersion) {
 		
-		List retVal = new ArrayList();
+		List<Class<? extends Migration>> retVal = new ArrayList<Class<? extends Migration>>();
 		String baseName = Configure.getBaseClassName();
 		boolean goUp = true;
 		
@@ -184,8 +185,7 @@ public class Engine {
 			
 		boolean hasStarted = false;
 			
-		for (int x = 0 ; x < migrationClasses.length ; x++) {
-			Class clazz = migrationClasses[x];
+		for (Class<? extends Migration> clazz  : migrationClasses) {
 			
 			if (!hasStarted) {
 				
@@ -209,7 +209,7 @@ public class Engine {
 			}
 		}
 		
-		return (Class[])retVal.toArray(new Class[retVal.size()]);
+		return retVal;
 	}
 	
 	protected static int getVersionNumber(String classname) {

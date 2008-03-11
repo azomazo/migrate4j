@@ -1,5 +1,7 @@
 package com.eroi.migrate;
 
+import java.util.List;
+
 import junit.framework.TestCase;
 
 public class EngineTest extends TestCase {
@@ -16,14 +18,14 @@ public class EngineTest extends TestCase {
 										 null,
 										 null); 
 		
-		Class[]  list = Engine.classesToMigrate();
+		List<Class<? extends Migration>> list = Engine.classesToMigrate();
 		assertNotNull(list);
-		assertEquals(5, list.length);
-		assertEquals("com.eroi.migrate.testpackage.Migration_1", list[0].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_2", list[1].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_3", list[2].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_4", list[3].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_5", list[4].getName());
+		assertEquals(5, list.size());
+		assertEquals("com.eroi.migrate.testpackage.Migration_1", list.get(0).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_2", list.get(1).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_3", list.get(2).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_4", list.get(3).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_5", list.get(4).getName());
 		
 	}
 	
@@ -39,9 +41,9 @@ public class EngineTest extends TestCase {
 								null,
 								null);  
 		
-		Class[]  list = Engine.classesToMigrate();
+		List<Class<? extends Migration>> list = Engine.classesToMigrate();
 		assertNotNull(list);
-		assertEquals(0, list.length);
+		assertEquals(0, list.size());
 	}
 	
 	public void testClassesToMigrate_UsingCustomSeparator() {
@@ -56,81 +58,81 @@ public class EngineTest extends TestCase {
 								null,
 								null);  
 		
-		Class[]  list = Engine.classesToMigrate();
+		List<Class<? extends Migration>> list = Engine.classesToMigrate();
 		assertNotNull(list);
-		assertEquals(2, list.length);
-		assertEquals("com.eroi.migrate.testpackage.DataChangeVersion1", list[0].getName());
-		assertEquals("com.eroi.migrate.testpackage.DataChangeVersion2", list[1].getName());
+		assertEquals(2, list.size());
+		assertEquals("com.eroi.migrate.testpackage.DataChangeVersion1", list.get(0).getName());
+		assertEquals("com.eroi.migrate.testpackage.DataChangeVersion2", list.get(1).getName());
 		
 	}
 	
 	public void testOrderMigrations_GoUpFrom3() {
 
-		Class[] migrations = getClassesToMigrate();
+		List<Class<? extends Migration>> migrations = getClassesToMigrate();
 		
 		//Full ugrade with current db at 3
-		Class[] list = Engine.orderMigrations(migrations, 3, Integer.MAX_VALUE);
+		List<Class<? extends Migration>> list = Engine.orderMigrations(migrations, 3, Integer.MAX_VALUE);
 		assertNotNull(list);
-		assertEquals(2, list.length);
-		assertEquals("com.eroi.migrate.testpackage.Migration_4", list[0].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_5", list[1].getName());
+		assertEquals(2, list.size());
+		assertEquals("com.eroi.migrate.testpackage.Migration_4", list.get(0).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_5", list.get(1).getName());
 		
 	}
 	
 	public void testOrderMigrations_GoUpFrom1To4() {
 		
-		Class[] migrations = getClassesToMigrate();
+		List<Class<? extends Migration>> migrations = getClassesToMigrate();
 		
-		Class[] list = Engine.orderMigrations(migrations, 1, 4);
+		List<Class<? extends Migration>> list = Engine.orderMigrations(migrations, 1, 4);
 		assertNotNull(list);
-		assertEquals(3, list.length);
-		assertEquals("com.eroi.migrate.testpackage.Migration_2", list[0].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_3", list[1].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_4", list[2].getName());
+		assertEquals(3, list.size());
+		assertEquals("com.eroi.migrate.testpackage.Migration_2", list.get(0).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_3", list.get(1).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_4", list.get(2).getName());
 		
 	}
 	
 	public void testOrderMigrations_GoUpFrom2To3() {
 		
-		Class[] migrations = getClassesToMigrate();
+		List<Class<? extends Migration>> migrations = getClassesToMigrate();
 		
-		Class[] list = Engine.orderMigrations(migrations, 2, 3);
-		assertEquals(1, list.length);
-		assertEquals("com.eroi.migrate.testpackage.Migration_3", list[0].getName());
+		List<Class<? extends Migration>> list = Engine.orderMigrations(migrations, 2, 3);
+		assertEquals(1, list.size());
+		assertEquals("com.eroi.migrate.testpackage.Migration_3", list.get(0).getName());
 		
 	}
 	
 	public void testOrderMigrations_GoDownFrom3() {
 
-		Class[] migrations = getClassesToMigrate();
+		List<Class<? extends Migration>> migrations = getClassesToMigrate();
 
-		Class[] list = Engine.orderMigrations(migrations, 3, 0);
-		assertEquals(3, list.length);
-		assertEquals("com.eroi.migrate.testpackage.Migration_3", list[0].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_2", list[1].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_1", list[2].getName());
+		List<Class<? extends Migration>> list = Engine.orderMigrations(migrations, 3, 0);
+		assertEquals(3, list.size());
+		assertEquals("com.eroi.migrate.testpackage.Migration_3", list.get(0).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_2", list.get(1).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_1", list.get(2).getName());
 		
 	}
 	
 	public void testOrderMigrations_GoDownFrom4To1() {
 
-		Class[] migrations = getClassesToMigrate();
+		List<Class<? extends Migration>> migrations = getClassesToMigrate();
 		
-		Class[] list = Engine.orderMigrations(migrations, 4, 1);
-		assertEquals(3, list.length);
-		assertEquals("com.eroi.migrate.testpackage.Migration_4", list[0].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_3", list[1].getName());
-		assertEquals("com.eroi.migrate.testpackage.Migration_2", list[2].getName());
+		List<Class<? extends Migration>> list = Engine.orderMigrations(migrations, 4, 1);
+		assertEquals(3, list.size());
+		assertEquals("com.eroi.migrate.testpackage.Migration_4", list.get(0).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_3", list.get(1).getName());
+		assertEquals("com.eroi.migrate.testpackage.Migration_2", list.get(2).getName());
 		
 	}
 	
 	public void testOrderMigrations_GoDownFrom3To2() {
 
-		Class[] migrations = getClassesToMigrate();
+		List<Class<? extends Migration>> migrations = getClassesToMigrate();
 		
-		Class[] list = Engine.orderMigrations(migrations, 3, 2);
-		assertEquals(1, list.length);
-		assertEquals("com.eroi.migrate.testpackage.Migration_3", list[0].getName());
+		List<Class<? extends Migration>> list = Engine.orderMigrations(migrations, 3, 2);
+		assertEquals(1, list.size());
+		assertEquals("com.eroi.migrate.testpackage.Migration_3", list.get(0).getName());
 		
 	}
 	
@@ -159,7 +161,7 @@ public class EngineTest extends TestCase {
 	
 /* ----------------- Helper Methods ---------------*/
 	
-	private Class[] getClassesToMigrate() {
+	private List<Class<? extends Migration>> getClassesToMigrate() {
 		Configure.configure("jdbc:mysql://localhost:3306/mydb", 
 								   "com.mysql.jdbc.Driver",
 								   "user",

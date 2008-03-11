@@ -30,25 +30,25 @@ public class MySQLGeneratorTest extends TestCase {
     }
 
     public void testMakeColumnString_SimpleColumn() {
-        Column column = Define.column("basic", Types.INTEGER);
+        Column column = new Column("basic", Types.INTEGER);
         String columnString = generator.makeColumnString(column, false);
         assertEquals("`basic` INT NULL", columnString);
     }
 
     public void testMakeColumnString_PrimaryKeyNonIncrementing() {
-        Column column = Define.column("basic", Types.INTEGER, -1, true, false, null, false);
+        Column column = new Column("basic", Types.INTEGER, -1, true, false, null, false);
         String columnString = generator.makeColumnString(column, false);
         assertEquals("`basic` INT NOT NULL PRIMARY KEY", columnString);
     }
 
     public void testMakeColumnString_PrimaryKeyIncrementing() {
-        Column column = Define.column("basic", Types.INTEGER, -1, true, false, null, true);
+        Column column = new Column("basic", Types.INTEGER, -1, true, false, null, true);
         String columnString = generator.makeColumnString(column, false);
         assertEquals("`basic` INT NOT NULL AUTO_INCREMENT PRIMARY KEY", columnString);
     }
 
     public void testMakeColumnString_VarcharWithDefault() {
-        Column column = Define.column("basic", Types.VARCHAR, 50, false, false, "NA", false);
+        Column column = new Column("basic", Types.VARCHAR, 50, false, false, "NA", false);
         String columnString = generator.makeColumnString(column, false);
         assertEquals("`basic` VARCHAR(50) NOT NULL DEFAULT 'NA'", columnString);
     }
@@ -110,8 +110,8 @@ public class MySQLGeneratorTest extends TestCase {
         String expected = "create table if not exists `sample` (`id` INT NOT NULL PRIMARY KEY, `desc` VARCHAR(50) NOT NULL);";
 
         Column[] columns = new Column[2];
-        columns[0] = Define.column("id", Types.INTEGER, -1, true, false, null, false);
-        columns[1] = Define.column("desc", Types.VARCHAR, 50, false, false, null, false);
+        columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, false);
+        columns[1] = new Column("desc", Types.VARCHAR, 50, false, false, null, false);
         Table table = Define.table("sample", columns);
         String tableString = generator.createTableStatement(table);
         assertEquals(expected, tableString);
@@ -125,8 +125,8 @@ public class MySQLGeneratorTest extends TestCase {
                 "(`id` INT NOT NULL PRIMARY KEY, `desc` VARCHAR(50) NOT NULL) " +
                 "Engine = InnoDB;";
         Column[] columns = new Column[2];
-        columns[0] = Define.column("id", Types.INTEGER, -1, true, false, null, false);
-        columns[1] = Define.column("desc", Types.VARCHAR, 50, false, false, null, false);
+        columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, false);
+        columns[1] = new Column("desc", Types.VARCHAR, 50, false, false, null, false);
         Table table = Define.table("sample", columns);
         String tableString = generator.createTableStatement(table, "Engine = InnoDB");
         assertEquals(expected, tableString);
@@ -203,7 +203,7 @@ public class MySQLGeneratorTest extends TestCase {
         columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
         Table table = Define.table("sample", columns);
         String expected = "drop table if exists `sample`;";
-        String result = generator.dropTableStatement(table);
+        String result = generator.dropTableStatement(table.getTableName());
         assertEquals(expected, result);
     }
 
@@ -211,12 +211,12 @@ public class MySQLGeneratorTest extends TestCase {
      * Test of addForeignKey method, of class MySQLGenerator.
      */
     public void testAddForeignKey() {
-        ForeignKey foreignKey = new ForeignKey("product",
+        ForeignKey foreignKey = new ForeignKey("name", "product",
                 new String[]{"category", "id"}, "product_order",
                 new String[]{"product_category", "product_id"});
         ;
         String expected = "alter table `product_order` add constraint " +
-                "`fky_produ_cate_id_produ` foreign key (`product_category`, " +
+                "`name` foreign key (`product_category`, " +
                 "`product_id`) references `product` (`category`, `id`);";
         String result = generator.addForeignKey(foreignKey);
         assertEquals(expected, result);
@@ -226,12 +226,12 @@ public class MySQLGeneratorTest extends TestCase {
      * Test of dropForeignKey method, of class MySQLGenerator.
      */
     public void testDropForeignKey() {
-        ForeignKey foreignKey = new ForeignKey("product",
+        ForeignKey foreignKey = new ForeignKey("name", "product",
                 new String[]{"category", "id"}, "product_order",
                 new String[]{"product_category", "product_id"});
         ;
         String expected = "alter table `product_order` drop foreign key " +
-                "`fky_produ_cate_id_produ`;";
+                "`name`;";
         String result = generator.dropForeignKey(foreignKey);
         assertEquals(expected, result);
     }

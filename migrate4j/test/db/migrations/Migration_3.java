@@ -20,6 +20,6 @@ public class Migration_3 implements Migration {
 	}
 
 	public static Index getIndex() {
-		return Define.index(Migration_1.getTable().getTableName(), Migration_2.getColumn().getColumnName());
+		return Define.index("idx_basictab_status", Migration_1.getTable().getTableName(), Migration_2.getColumn().getColumnName());
 	}
 }

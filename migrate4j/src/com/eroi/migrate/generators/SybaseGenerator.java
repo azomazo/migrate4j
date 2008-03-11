@@ -6,6 +6,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Types;
+import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -13,22 +14,82 @@ import org.apache.commons.logging.LogFactory;
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
+import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
-public class SybaseGenerator extends AbstractGenerator {
+public class SybaseGenerator extends GenericGenerator {
 
 	private static final Log log = LogFactory.getLog(SybaseGenerator.class);
-	
-	public String createTableStatement(Table table, String options) {
-		return createTableStatement(table);
-	}
 	
 	public String addColumnStatement(Column column, Table table, int position) {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public String addColumnStatement(Column column, String tableName,
+			int position) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public String addColumnStatement(Column column, String tableName,
+			String afterColumn) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public boolean columnExists(String columnName, String tableName) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public String dropColumnStatement(String columnName, String tableName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public String dropForeignKey(String foreignKeyName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public String dropIndex(String indexName) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+	
+	public boolean exists(String columnName, String tableName) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public boolean foreignKeyExists(String foreignKeyName) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public boolean foreignKeyExists(String parentTableName,
+			List<String> parentColumnNames, String childTable,
+			List<String> childColumnNames) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public boolean indexExists(String indexName, String tableName) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public boolean tableExists(String tableName) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+	
+	public String createTableStatement(Table table, String options) {
+		return createTableStatement(table);
 	}
 	
 	public String addIndex(Index index) {
@@ -269,14 +330,12 @@ public class SybaseGenerator extends AbstractGenerator {
 	    
 	}
 
-	public String dropTableStatement(Table table) {
-		if (table == null) {
-			throw new SchemaMigrationException("Table must not be null");
-		}
+	public String dropTableStatement(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
 		
 		StringBuffer retVal = new StringBuffer();
 		retVal.append("DROP TABLE ")
-			  .append(wrapName(table.getTableName()));
+			  .append(wrapName(tableName));
 	
 		return retVal.toString();
 	}
