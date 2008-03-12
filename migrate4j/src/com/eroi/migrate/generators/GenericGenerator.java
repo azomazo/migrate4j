@@ -502,16 +502,9 @@ public class GenericGenerator implements Generator {
 
 	public String dropColumnStatement(Column column, Table table) {
 	
-	    if (column == null) {
-	    	log.debug("Could not locate Column in AbstractGenerator.dropColumnStatement()");
-	        throw new SchemaMigrationException("Must include a non-null column");
-	    }
-	    
-	    if (table == null) {
-	    	log.debug("Could not locate Table in AbstractGenerator.dropColumnStatement()");
-	        throw new SchemaMigrationException ("Must provide a table to drop the column from");
-	    }
-	    
+		Validator.notNull(column, "Column cannot be null");
+		Validator.notNull(table, "Table cannot be null");
+		
 	    StringBuffer query = new StringBuffer();
 	    
 	    query.append("alter table ")
