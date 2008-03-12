@@ -1,7 +1,5 @@
 package com.eroi.migrate.generators;
 
-import java.util.List;
-
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
@@ -22,9 +20,7 @@ public interface Generator {
 	
 	public boolean exists(Index index);
 	
-	public boolean foreignKeyExists(String foreignKeyName);
-	
-	public boolean foreignKeyExists(String parentTableName, List<String> parentColumnNames, String childTable, List<String> childColumnNames);
+	public boolean foreignKeyExists(String foreignKeyName, String childTableName);
 	
 	public boolean exists(ForeignKey foreignKey);
 	

@@ -5,7 +5,6 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.logging.Log;
@@ -282,26 +281,13 @@ public class GenericGenerator implements Generator {
 	public boolean exists(ForeignKey foreignKey) {
 		
 		Validator.notNull(foreignKey, "Foreign key can not be null");
-		Validator.notNull(foreignKey.getParentColumns(), "Foreign key must include parent columns");
-		Validator.notNull(foreignKey.getChildColumns(), "Foreign key must include child columns");
 		
-		List<String> parentColumnNames = Arrays.asList(foreignKey.getParentColumns());
-		List<String> childColumnNames = Arrays.asList(foreignKey.getChildColumns());
-		
-		return foreignKeyExists(foreignKey.getParentTable(), parentColumnNames, foreignKey.getChildTable(), childColumnNames);
+		return foreignKeyExists(foreignKey.getName(), foreignKey.getChildTable());
 	}
 	
-	public boolean foreignKeyExists(String parentTableName,
-			List<String> parentColumnNames, String childTable,
-			List<String> childColumnNames) {
-		
-		Validator.notNull(parentTableName, "Parent table name can not be null");
-		Validator.notNull(childTable, "Child table name can not be null");
-		Validator.isTrue(parentColumnNames.size() == 1, "Currently, migrate4j only supports foreign keys with single columns for this database");
-		Validator.isTrue(parentColumnNames.size() == childColumnNames.size(), "Parent and child column count can not be different");
-		
-		String parentColumnName = parentColumnNames.get(0);
-		String childColumnName = childColumnNames.get(0);
+	public boolean foreignKeyExists(String foreignKeyName, String childTableName) {
+		Validator.notNull(foreignKeyName, "Foreign key name can not be null");
+		Validator.notNull(childTableName, "Child table name can not be null");
 		
 		try {
 			Connection connection = Configure.getConnection();
@@ -311,17 +297,13 @@ public class GenericGenerator implements Generator {
 			
 				DatabaseMetaData databaseMetaData = connection.getMetaData();
 			
-				resultSet = databaseMetaData.getImportedKeys(null, null, childTable);
+				resultSet = databaseMetaData.getImportedKeys(null, null, childTableName);
 				
 				if (resultSet != null) {
 					while (resultSet.next()) {
-						String parentTable = resultSet.getString("PKTABLE_NAME");
-						String parentColumn = resultSet.getString("PKCOLUMN_NAME");
-						String childColumn = resultSet.getString("FKCOLUMN_NAME");
+						String parentTable = resultSet.getString("FK_NAME");
 						
-						if (parentTableName.equalsIgnoreCase(parentTable) &&
-								parentColumnName.equalsIgnoreCase(parentColumn) &&
-								childColumnName.equalsIgnoreCase(childColumn)) {
+						if (foreignKeyName.equalsIgnoreCase(parentTable)) {
 							return true;
 						}
 						
@@ -336,11 +318,6 @@ public class GenericGenerator implements Generator {
                        log.error("Error occoured in H2Generator.exsists(ForeignKey)",exception);
 			throw new SchemaMigrationException(exception);
 		}
-	}
-	
-	public boolean foreignKeyExists(String foreignKeyName) {
-		// TODO Auto-generated method stub
-		return false;
 	}
 	
 	

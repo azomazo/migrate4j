@@ -9,8 +9,6 @@ import java.sql.Statement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.eroi.migrate.Configure;
-import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
@@ -610,42 +608,6 @@ public class MySQLGenerator extends GenericGenerator {
 	    retVal.append(";");
 
 	    return retVal.toString();
-	}
-	
-	/**
-	  * <p>exists tests for whether or not a foreign key exists.</p>
-	  * @param foreignKey the foreign key to be checked
-	  * @return boolean indicating the existence of the foreign key
-	  */
-	public boolean exists(ForeignKey foreignKey) {
-	    try {
-		Connection connection = Configure.getConnection();
-		ResultSet resultSet = null;
-
-		try {
-		    DatabaseMetaData databaseMetaData = connection.getMetaData();
-		    resultSet = databaseMetaData.getImportedKeys(null, "", foreignKey.getChildTable());
-
-		    if (resultSet != null) {
-			while (resultSet.next()) {
-			    String parentTable = resultSet.getString("PKTABLE_NAME");
-			    String parentColumn = resultSet.getString("PKCOLUMN_NAME");
-			    String childColumn = resultSet.getString("FKCOLUMN_NAME");
-			    if (foreignKey.getParentTable().equals(parentTable) && foreignKey.getParentColumns()[0].equals(parentColumn) && foreignKey.getChildColumns()[0].equals(childColumn)) {
-				return true;
-			    }
-			}
-		    }
-		}
-		finally {
-		    Closer.close(resultSet);
-		}
-		return false;
-	    }
-	    catch (SQLException exception) {
-		log.error("Error occurred on MySQLGenerator.exists(ForeignKey)", exception);
-		throw new SchemaMigrationException(exception);
-	    }
 	}
 	
 	public static class MySQLTable extends Table {
