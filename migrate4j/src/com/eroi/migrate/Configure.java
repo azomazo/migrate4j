@@ -10,6 +10,7 @@ import java.util.Properties;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import com.eroi.migrate.misc.Closer;
+import com.eroi.migrate.misc.Validator;
 
 public class Configure {
 
@@ -251,10 +252,7 @@ public class Configure {
 	private static void checkConnection() throws SQLException {
 		if (connection == null || connection.isClosed()) {
 			
-			if (driver == null) {
-				log.error("No driver name found!  Make sure you call Configure.configure()");
-				throw new RuntimeException("No driver name found!  Make sure you call Configure.configure().");
-			}
+			Validator.notNull(driver, "No driver name found!  Make sure you call Configure.configure()");
 			
 			ownConnection = true;
 			log.debug("JDBC Driver  "+ driver);

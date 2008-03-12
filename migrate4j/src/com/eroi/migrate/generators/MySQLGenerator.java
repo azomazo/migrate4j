@@ -31,15 +31,13 @@ public class MySQLGenerator extends GenericGenerator {
 	  * @return String that is the alter table statement
 	  */
 	public String addIndex(Index index) {
-	    if (index == null) {
-		log.debug("Null Index located in MySqlGenerator.addIndex(Index)!! Must include a non-null index");
-		throw new SchemaMigrationException("Must include a non-null index");
-	    }
+		
+		Validator.notNull(index, "Index cannot be null");
 
-            if (index.isPrimaryKey()) {
-                return addPrimaryKey(index);
-            }
-            
+        if (index.isPrimaryKey()) {
+            return addPrimaryKey(index);
+        }
+        
 	    StringBuffer retVal = new StringBuffer();
 
 	    retVal.append("alter table ")
@@ -78,10 +76,7 @@ public class MySQLGenerator extends GenericGenerator {
 	  * @return String that is the alter table statement
 	  */
 	private String addPrimaryKey(Index index) {
-	    if (index == null) {
-		log.debug("Null Index located in MySqlGenerator.addPrimaryKey(Index)!! Must include a non-null index");
-		throw new SchemaMigrationException("Must include a non-null index");
-	    }
+		Validator.notNull(index, "Index cannot be null");
 
 	    StringBuffer retVal = new StringBuffer();
 
@@ -116,14 +111,11 @@ public class MySQLGenerator extends GenericGenerator {
 	  * @return String that is the alter table statement
 	  */
 	public String dropIndex(Index index) {
-	    if (index == null) {
-		log.debug("Null Index located in MySqlGenerator.dropIndex(Index)!! Must include a non-null index");
-		throw new SchemaMigrationException("Must include a non-null index");
-	    }
+		Validator.notNull(index, "Index cannot be null");
 
-            if(index.isPrimaryKey()) {
-                return dropPrimaryKey(index);
-            }
+        if(index.isPrimaryKey()) {
+            return dropPrimaryKey(index);
+        }
             
 	    StringBuffer retVal = new StringBuffer();
 
@@ -147,10 +139,7 @@ public class MySQLGenerator extends GenericGenerator {
 	  * @return String that is the alter table statement
 	  */
 	private String dropPrimaryKey(Index index) {
-	    if (index == null) {
-		log.debug("Null Index located in MySqlGenerator.dropPrimaryKey(Index)!! Must include a non-null index");
-		throw new SchemaMigrationException("Must include a non-null index");
-	    }
+		Validator.notNull(index, "Index cannot be null");
 
 	    StringBuffer retVal = new StringBuffer();
 
@@ -265,24 +254,18 @@ public class MySQLGenerator extends GenericGenerator {
       */
     public String addColumnStatement(Column column, Table table) {
 
-	if (column == null) {
-		log.debug("Null Column located in MySqlGenerator.addColumnStatement(Column, Table)!! Must include a non-null column");
-	    throw new SchemaMigrationException("Must include a non-null column");
-	}
+    	Validator.notNull(column, "Column cannot be null");
 
-	if (table == null) {
-	    log.debug("Null Table located in MySqlGenerator.addColumnStatement(Column, Table)!! Must include a non-null Table");
-	    throw new SchemaMigrationException ("Must provide a table to add the column to");
-	}
+    	Validator.notNull(table, "Table cannot be null");
 
-	StringBuffer retVal = new StringBuffer();
-
-	retVal.append("alter table ")
-	      .append(wrapName(table.getTableName()))
-	      .append(" add ")
-	      .append(makeColumnString(column, false) + ";");
-
-	return retVal.toString();
+		StringBuffer retVal = new StringBuffer();
+	
+		retVal.append("alter table ")
+		      .append(wrapName(table.getTableName()))
+		      .append(" add ")
+		      .append(makeColumnString(column, false) + ";");
+	
+		return retVal.toString();
     }
 
     /**
@@ -294,25 +277,19 @@ public class MySQLGenerator extends GenericGenerator {
       */
     public String addColumnFirstStatement(Column column, Table table) {
 
-	if (column == null) {
-		log.debug("Null Column located in MySqlGenerator.addColumnFirstStatement(Column, Table)!! Must include a non-null column");
-	    throw new SchemaMigrationException("Must include a non-null column");
-	}
-
-	if (table == null) {
-		log.debug("Null Table located in MySqlGenerator.addColumnFirstStatement(Column, Table)!! Must include a non-null Table");
-	    throw new SchemaMigrationException ("Must provide a table to add the column too");
-	}
-
-	StringBuffer retVal = new StringBuffer();
-
-	retVal.append("alter table ")
-	      .append(wrapName(table.getTableName()))
-	      .append(" add ")
-	      .append(makeColumnString(column, false))
-	      .append(" FIRST;");
-
-	return retVal.toString();
+    	Validator.notNull(column, "Column cannot be null");
+	
+    	Validator.notNull(table, "Table cannot be null");
+	
+		StringBuffer retVal = new StringBuffer();
+	
+		retVal.append("alter table ")
+		      .append(wrapName(table.getTableName()))
+		      .append(" add ")
+		      .append(makeColumnString(column, false))
+		      .append(" FIRST;");
+	
+		return retVal.toString();
     }
 
     /**
@@ -326,27 +303,21 @@ public class MySQLGenerator extends GenericGenerator {
       */
     public String addColumnAfterStatement(Column column, Table table, String afterColumn) {
 
-	if (column == null) {
-		log.debug("Null Column located in MySqlGenerator.addColumnAfterStatement(Column, Table,String)!! Must include a non-null column");
-	    throw new SchemaMigrationException("Must include a non-null column");
-	}
-
-	if (table == null) {
-		log.debug("Null Table located in MySqlGenerator.addColumnAfterStatement(Column, Table,String)!! Must include a non-null Table");
-	    throw new SchemaMigrationException ("Must provide a table to add the column too");
-	}
-
-	StringBuffer retVal = new StringBuffer();
-
-	retVal.append("alter table ")
-	      .append(wrapName(table.getTableName()))
-	      .append(" add ")
-	      .append(makeColumnString(column, false))
-	      .append(" AFTER ")
-	      .append(wrapName(afterColumn))
-	      .append(";");
-
-	return retVal.toString();
+    	Validator.notNull(column, "Column cannot be null");
+    	
+    	Validator.notNull(table, "Table cannot be null");
+	
+		StringBuffer retVal = new StringBuffer();
+	
+		retVal.append("alter table ")
+		      .append(wrapName(table.getTableName()))
+		      .append(" add ")
+		      .append(makeColumnString(column, false))
+		      .append(" AFTER ")
+		      .append(wrapName(afterColumn))
+		      .append(";");
+	
+		return retVal.toString();
     }
      
     /**
@@ -357,21 +328,19 @@ public class MySQLGenerator extends GenericGenerator {
      * @return String that is the MySQL statement to alter the storage engine
      */
     public String alterEngine(Table table, String engineName) {
-	if (table == null) {
-	    log.debug("Null table located at MySqlGenerator.alterEngine(Table,String) !! Table should not be null");
-	    throw new SchemaMigrationException("Table must not be null");
-	}
-
-	StringBuffer retVal = new StringBuffer();
+    	
+    	Validator.notNull(table, "Table cannot be null");
 	
-	retVal.append("alter table ")
-	      .append(wrapName(table.getTableName()))
- 	      .append(" engine = ")
- 	      .append(wrapName(engineName))
- 	      .append(";");
-	
-	return retVal.toString();
-     }
+		StringBuffer retVal = new StringBuffer();
+		
+		retVal.append("alter table ")
+		      .append(wrapName(table.getTableName()))
+	 	      .append(" engine = ")
+	 	      .append(wrapName(engineName))
+	 	      .append(";");
+		
+		return retVal.toString();
+    }
 
     /**
       * <p>alterAutoincrement generates a MySQL statement that changes the 
@@ -383,20 +352,18 @@ public class MySQLGenerator extends GenericGenerator {
       * value
       */
     public String alterAutoincrement(Table table, int value) {
-	if (table == null) {
-           log.debug("Null table located at MySqlGenerator.alterAutoincrement(Table, int) !! Table should not be null");
-	    throw new SchemaMigrationException("Table must not be null");
-	}
-
-	StringBuffer retVal = new StringBuffer();
+    	
+    	Validator.notNull(table, "Table cannot be null");
 	
-	retVal.append("alter table ")
-	      .append(wrapName(table.getTableName()))
- 	      .append(" auto_increment = ")
- 	      .append(value)
- 	      .append(";");
-	
-	return retVal.toString();
+		StringBuffer retVal = new StringBuffer();
+		
+		retVal.append("alter table ")
+		      .append(wrapName(table.getTableName()))
+	 	      .append(" auto_increment = ")
+	 	      .append(value)
+	 	      .append(";");
+		
+		return retVal.toString();
     }
 
     public String dropTableStatement(String tableName) {
@@ -590,10 +557,8 @@ public class MySQLGenerator extends GenericGenerator {
 	  * @return String that is the alter table statement
 	  */
 	public String dropForeignKey(ForeignKey foreignKey) {
-	    if (foreignKey == null) {
-		log.debug("Null ForeignKey located in MySQLGenerator.dropForeignKey(ForeignKey)!! Foreign Key must not be null");
-		throw new SchemaMigrationException("Must include a non-null foreign key object");
-	    }
+		
+		Validator.notNull(foreignKey, "ForeignKey cannot be null");
 
 	    StringBuffer retVal = new StringBuffer();
 
@@ -603,7 +568,7 @@ public class MySQLGenerator extends GenericGenerator {
 
 	    String foreignKeyName = foreignKey.getName();
 	    if (foreignKeyName != null && foreignKeyName.length() > 0) {
-		retVal.append(wrapName(foreignKeyName));
+	    	retVal.append(wrapName(foreignKeyName));
 	    }
 	    retVal.append(";");
 

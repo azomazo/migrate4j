@@ -1,5 +1,7 @@
 package com.eroi.migrate.schema;
 
+import com.eroi.migrate.misc.Validator;
+
 
 public class Table {
 
@@ -8,9 +10,7 @@ public class Table {
 
 	public Table(String tableName, Column[] columns){
 		
-		if (tableName == null) {
-			throw new RuntimeException("Table must not have a null name");
-		}
+		Validator.notNull(tableName, "String tableName cannot be null");
 
 		if (columns == null || columns.length == 0) {
 			throw new RuntimeException("Table must have at least one column");

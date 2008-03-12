@@ -94,9 +94,7 @@ public class SybaseGenerator extends GenericGenerator {
 	
 	public String addIndex(Index index) {
 		
-	    if (index == null) {
-	        throw new SchemaMigrationException("Must include a non-null index");
-	    }
+		Validator.notNull(index, "Index cannot be null");
 	    
 	    StringBuffer retVal = new StringBuffer();
 	    
@@ -311,14 +309,10 @@ public class SybaseGenerator extends GenericGenerator {
 
 	public String addColumnStatement(Column column, Table table, String afterColumn) {
 		
-	    if (column == null) {
-	        throw new SchemaMigrationException("Must include a non-null column");
-	    }
+		Validator.notNull(column, "Column cannot be null");
 	    
-	    if (table == null) {
-	        throw new SchemaMigrationException ("Must provide a table to add the column too");
-	    }
-	    
+		Validator.notNull(table, "Table cannot be null");
+		
 	    StringBuffer retVal = new StringBuffer();
 	    
 	    retVal.append("alter table ")
@@ -396,9 +390,7 @@ public class SybaseGenerator extends GenericGenerator {
 
 	public String addForeignKey(ForeignKey foreignKey) {
 		
-		if (foreignKey == null) {
-	        throw new SchemaMigrationException("Must include a non-null foreign key object");
-	    }
+		Validator.notNull(foreignKey, "ForeignKey cannot be null");
 	    
 	    StringBuffer retVal = new StringBuffer();
 	    
