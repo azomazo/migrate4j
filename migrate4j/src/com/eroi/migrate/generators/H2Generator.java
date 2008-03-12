@@ -12,6 +12,7 @@ import org.apache.commons.logging.LogFactory;
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
+import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Table;
@@ -76,16 +77,9 @@ public class H2Generator extends GenericGenerator {
 
 	public String addColumnStatement(Column column, Table table, String afterColumn) {
 		
-	    if (column == null) {
-	    	log.debug("Null Column located in H2Generated.addColumnStatement(Column,Table,String) !! Must include a non-null column" );
-	        throw new SchemaMigrationException("Must include a non-null column");
-	    }
-	    
-	    if (table == null) {
-	    	log.debug("Null Table located in H2Generated.addColumnStatement(Column,Table,String)!! Must provide a table to add the column too " );
-	        throw new SchemaMigrationException ("Must provide a table to add the column too");
-	    }
-	    
+		Validator.notNull(column, "Column cannot be null");
+		Validator.notNull(table, "Table cannot be null");
+			    
 	    StringBuffer retVal = new StringBuffer();
 	    
 	    retVal.append("alter table ")
@@ -99,11 +93,8 @@ public class H2Generator extends GenericGenerator {
 	
 	public String addForeignKey(ForeignKey foreignKey) {
 
-		if (foreignKey == null) {
-                log.debug("Null ForeignKey located in H2Generator.aaForeignKey(ForeignKey) !! Foreign Key must not be null");
-	        throw new SchemaMigrationException("Must include a non-null foreign key object");
-	    }
-	    
+		Validator.notNull(foreignKey, "ForeignKey cannot be null");
+		
 	    StringBuffer retVal = new StringBuffer();
 	    
 	    String[] childColumns = wrapStrings(foreignKey.getChildColumns());
