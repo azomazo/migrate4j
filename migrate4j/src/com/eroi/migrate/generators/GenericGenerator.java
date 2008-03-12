@@ -29,8 +29,7 @@ public class GenericGenerator implements Generator {
 		return null;
 	}
 	
-	public String addColumnStatement(Column column, String tableName,
-			String afterColumn) {
+	public String addColumnStatement(Column column, String tableName, String afterColumn) {
 
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(tableName, "Table name can not be null");
@@ -322,8 +321,8 @@ public class GenericGenerator implements Generator {
 	
 	
 	public boolean indexExists(String indexName, String tableName) {
-		Validator.notNull(indexName, "Index name can not be null");
-		Validator.notNull(tableName, "Table name can not be null");
+		Validator.notNull(indexName, "Index name cannot be null");
+		Validator.notNull(tableName, "Table name cannot be null");
 		
 		try {
 			Connection connection = Configure.getConnection();
@@ -517,11 +516,8 @@ public class GenericGenerator implements Generator {
 	
 	public String dropIndex(Index index) {
 		
-	    if (index == null) {
-                  log.debug("Null Index located in AbstractGenerator.dropIndex(Index)");
-	        throw new SchemaMigrationException("Must include a non-null index");
-	    }
-	    
+		Validator.notNull(index, "Index cannot be null");
+		
 	    StringBuffer query = new StringBuffer();
 	    
 	    query.append("drop index ")
