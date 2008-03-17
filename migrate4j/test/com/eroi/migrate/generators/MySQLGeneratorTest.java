@@ -4,13 +4,11 @@
  */
 package com.eroi.migrate.generators;
 
-import com.eroi.migrate.Define;
-import com.eroi.migrate.schema.Column;
-import com.eroi.migrate.schema.ForeignKey;
-import com.eroi.migrate.schema.Index;
-import com.eroi.migrate.schema.Table;
-import junit.framework.TestCase;
 import java.sql.Types;
+
+import junit.framework.TestCase;
+
+import com.eroi.migrate.schema.Column;
 
 public class MySQLGeneratorTest extends TestCase {
 
@@ -53,19 +51,14 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals("`basic` VARCHAR(50) NOT NULL DEFAULT 'NA'", columnString);
     }
 
-    /**
-     * Test of addIndex method, of class MySQLGenerator.
-     */
-    public void testAddIndex() {
+    
+    /*public void testAddIndex() {
         String expected = "alter table `Person` add index `idx_Person_id_name` (`id`, `name`);";
         Index index = new Index("Person", new String[]{"id", "name"});
         String result = generator.addIndex(index);
         assertEquals(expected, result);
     }
 
-    /**
-     * Test of addIndex method, of class MySQLGenerator.
-     */
     public void testAddIndex_Unique() {
         String expected = "alter table `Person` add unique index `index1` (`id`, `name`);";
         Index index = new Index("index1", "Person", new String[]{"id", "name"}, true, false);
@@ -73,9 +66,6 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals(expected, result);
     }
 
-    /**
-     * Test of addPrimaryKey method, of class MySQLGenerator.
-     */
     public void testAddPrimaryKey() {
         Index index = new Index("primaryIndex", "Person", new String[]{"id", "name"}, false, true);
         String expected = "alter table `Person` add constraint `primaryIndex` PRIMARY KEY(`id`, `name`);";
@@ -83,9 +73,6 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals(expected, result);
     }
 
-    /**
-     * Test of dropIndex method, of class MySQLGenerator.
-     */
     public void testDropIndex() {
         Index index = new Index("Person", new String[]{"id", "name"});
         String expected = "alter table `Person` drop INDEX `idx_Person_id_name`;";
@@ -93,9 +80,6 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals(expected, result);
     }
 
-    /**
-     * Test of dropPrimaryKey method, of class MySQLGenerator.
-     */
     public void testDropPrimaryKey() {
         Index index = new Index("primaryIndex", "Person", new String[]{"id", "name"}, false, true);
         String expected = "alter table `Person` drop PRIMARY KEY;";
@@ -103,9 +87,6 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals(expected, result);
     }
 
-    /**
-     * Test of createTableStatement method, of class MySQLGenerator.
-     */
     public void testCreateTableStatement() {
         String expected = "create table if not exists `sample` (`id` INT NOT NULL PRIMARY KEY, `desc` VARCHAR(50) NOT NULL);";
 
@@ -117,9 +98,6 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals(expected, tableString);
     }
 
-    /**
-     * Test of createTableStatement method, of class MySQLGenerator.
-     */
     public void testCreateTableStatement_Options() {
         String expected = "create table if not exists `sample` " +
                 "(`id` INT NOT NULL PRIMARY KEY, `desc` VARCHAR(50) NOT NULL) " +
@@ -132,72 +110,6 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals(expected, tableString);
     }
 
-    /**
-     * Test of addColumnStatement method, of class MySQLGenerator.
-     */
-    public void testAddColumnStatement() {
-        Column[] columns = new Column[1];
-        columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
-        Column column = new Column("desc", Types.VARCHAR, 100, false, true, null, false);
-        Table table = Define.table("sample", columns);
-        String expected = "alter table `sample` add `desc` VARCHAR(100) NULL;";
-        String result = generator.addColumnStatement(column, table);
-        assertEquals(expected, result);
-    }
-
-    /**
-     * Test of addColumnFirstStatement method, of class MySQLGenerator.
-     */
-    public void testAddColumnFirstStatement() {
-        Column[] columns = new Column[1];
-        columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
-        Column column = new Column("desc", Types.VARCHAR, 100, false, true, null, false);
-        Table table = Define.table("sample", columns);
-        String expected = "alter table `sample` add `desc` VARCHAR(100) NULL FIRST;";
-        String result = generator.addColumnFirstStatement(column, table);
-        assertEquals(expected, result);
-    }
-
-    /**
-     * Test of addColumnAfterStatement method, of class MySQLGenerator.
-     */
-    public void testAddColumnAfterStatement() {
-        Column[] columns = new Column[1];
-        columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
-        Column column = new Column("desc", Types.VARCHAR, 100, false, true, null, false);
-        Table table = Define.table("sample", columns);
-        String expected = "alter table `sample` add `desc` VARCHAR(100) NULL AFTER `id`;";
-        String result = generator.addColumnAfterStatement(column, table, "id");
-        assertEquals(expected, result);
-    }
-
-    /**
-     * Test of alterEngine method, of class MySQLGenerator.
-     */
-    public void testAlterEngine() {
-        Column[] columns = new Column[1];
-        columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
-        Table table = Define.table("sample", columns);
-        String expected = "alter table `sample` engine = `InnoDB`;";
-        String result = generator.alterEngine(table, "InnoDB");
-        assertEquals(expected, result);
-    }
-
-    /**
-     * Test of alterAutoincrement method, of class MySQLGenerator.
-     */
-    public void testAlterAutoincrement() {
-        Column[] columns = new Column[1];
-        columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
-        Table table = Define.table("sample", columns);
-        String expected = "alter table `sample` auto_increment = 101;";
-        String result = generator.alterAutoincrement(table, 101);
-        assertEquals(expected, result);
-    }
-
-    /**
-     * Test of dropTableStatement method, of class MySQLGenerator.
-     */
     public void testDropTableStatement() {
         Column[] columns = new Column[1];
         columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, true);
@@ -207,9 +119,6 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals(expected, result);
     }
 
-    /**
-     * Test of addForeignKey method, of class MySQLGenerator.
-     */
     public void testAddForeignKey() {
         ForeignKey foreignKey = new ForeignKey("name", "product",
                 new String[]{"category", "id"}, "product_order",
@@ -222,9 +131,6 @@ public class MySQLGeneratorTest extends TestCase {
         assertEquals(expected, result);
     }
 
-    /**
-     * Test of dropForeignKey method, of class MySQLGenerator.
-     */
     public void testDropForeignKey() {
         ForeignKey foreignKey = new ForeignKey("name", "product",
                 new String[]{"category", "id"}, "product_order",
@@ -234,5 +140,5 @@ public class MySQLGeneratorTest extends TestCase {
                 "`name`;";
         String result = generator.dropForeignKey(foreignKey);
         assertEquals(expected, result);
-    }
+    }*/
 }

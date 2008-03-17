@@ -51,7 +51,7 @@ public class GenericGeneratorTest extends TestCase {
 	}
 	
 	public void testCreateTableStatement() {
-		String expected = "create table \"sample\" (\"id\" INT NOT NULL PRIMARY KEY, \"desc\" VARCHAR(50) NOT NULL);";
+		String expected = "CREATE TABLE \"sample\" (\"id\" INT NOT NULL PRIMARY KEY, \"desc\" VARCHAR(50) NOT NULL);";
 		
 		Column[] columns = new Column[2];
 		columns[0] = new Column("id", Types.INTEGER, -1, true, false, null, false);
