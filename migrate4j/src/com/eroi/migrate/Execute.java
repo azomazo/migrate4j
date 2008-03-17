@@ -27,17 +27,7 @@ public class Execute {
 	public static boolean exists(Index index) {
 		Validator.notNull(index, "Index can not be null");
 		
-		try {
-			Connection connection = Configure.getConnection();
-		
-			Generator generator = GeneratorFactory.getGenerator(connection);
-			
-			return generator.exists(index);
-			
-		} catch (SQLException e) {
-            log.error("Unable to check index " + index.getName() + " on table " + index.getTableName(), e);
-			throw new SchemaMigrationException("Unable to check index " + index.getName() + " on table " + index.getTableName(), e);
-		} 
+		return indexExists(index.getName(), index.getTableName());
 	}
 	
 	public static boolean indexExists(String indexName, String tableName) {
@@ -83,18 +73,18 @@ public class Execute {
 		Validator.notNull(table, "Table can not be null");
 		Validator.notNull(column, "Column can not be null");
 		
-		return exists(column.getColumnName(), table.getTableName());
+		return columnExists(column.getColumnName(), table.getTableName());
 		
 	}
 	
 	public static boolean exists(Column column, String tableName) {
 		Validator.notNull(column, "Column can not be null");
 		
-		return exists(column.getColumnName(), tableName);
+		return columnExists(column.getColumnName(), tableName);
 		
 	}
 	
-	public static boolean exists(String columnName, String tableName) {
+	public static boolean columnExists(String columnName, String tableName) {
 		Validator.notNull(tableName, "Table Name can not be null");
 		Validator.notNull(columnName, "Column Name can not be null");
 		
@@ -202,7 +192,7 @@ public class Execute {
 		Validator.notNull(table, "Table can not be null");
 		Validator.isTrue(exists(table), "Table does not exist");
 		
-		if (!exists(column.getColumnName(), table.getTableName())) {
+		if (!columnExists(column.getColumnName(), table.getTableName())) {
 			return;
 		}
 		

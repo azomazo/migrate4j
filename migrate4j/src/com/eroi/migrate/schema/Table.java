@@ -11,11 +11,9 @@ public class Table {
 	public Table(String tableName, Column[] columns){
 		
 		Validator.notNull(tableName, "String tableName cannot be null");
-
-		if (columns == null || columns.length == 0) {
-			throw new RuntimeException("Table must have at least one column");
-		}
-
+		Validator.notNull(columns, "Columns can not be null");
+		Validator.isTrue(columns.length > 0, "Must include at least one column");
+		
 		this.tableName = tableName;
 		this.columns = columns;
 	}

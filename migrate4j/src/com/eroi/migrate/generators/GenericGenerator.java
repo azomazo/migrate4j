@@ -19,26 +19,43 @@ import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
+/**
+ * Default Generator for migrate4j.  Designed to work specifically for
+ * H2 databases.
+ *
+ */
 public class GenericGenerator implements Generator {
 
 	private static Log log = LogFactory.getLog(GenericGenerator.class);
 
 	public String addColumnStatement(Column column, String tableName,
 			int position) {
-		// TODO Auto-generated method stub
-		return null;
+		// TODO Implement this!
+		
+		throw new SchemaMigrationException("This method has not been implemented for your database yet");
 	}
 	
-	public String addColumnStatement(Column column, String tableName, String afterColumn) {
+	/**
+	 * ALTER TABLE <tableName> ADD <column.name> <column.type>[(<column.length>)] 
+	 * 		[NOT] NULL [AUTO_INCREMENT] [PRIMARY KEY] [DEFAULT <column.default>]
+	 * 		[BEFORE <existingcolumn>]
+	 * 
+	 * <p>Determines column placement based on existing columns.  Uses JDBC to find 
+	 * the <code>afterColumn</code>, then selects the next column to be used in the
+	 * <code>BEFORE</code> clause.  Obviously, Generators for databases that support 
+	 * an actual <code>AFTER</code> clause must override this method.
+	 */
+	public String addColumnStatement(Column column, String tableName,
+			String afterColumn) {
 
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(tableName, "Table name can not be null");
 	    
 	    StringBuffer retVal = new StringBuffer();
 	    
-	    retVal.append("alter table ")
+	    retVal.append("ALTER TABLE ")
 	          .append(wrapName(tableName))
-	          .append(" add ")
+	          .append(" ADD ")
 	          .append(makeColumnString(column));
 	    
 	    //This is based on having to pass a "before"
@@ -67,7 +84,7 @@ public class GenericGenerator implements Generator {
 	    	
 	    	if (before.trim().length() > 0){
 	    	
-	    		retVal.append(" before ")
+	    		retVal.append(" BEFORE ")
 	    			.append(before);
 	    	}
 	    }
@@ -76,38 +93,11 @@ public class GenericGenerator implements Generator {
 	    
 	}
 	
-	private List<String> getExistingColumnNames(String tableName) {
-		
-		List<String> columnNames = new ArrayList<String>();
-		
-		try {
-			Connection connection = Configure.getConnection();
-			
-			ResultSet resultSet = null;
-			
-			try {
-			
-				DatabaseMetaData databaseMetaData = connection.getMetaData();
-			
-				resultSet = databaseMetaData.getColumns(null, null, tableName, "%");
-				
-				if (resultSet != null) {
-					while (resultSet.next()) {
-						columnNames.add(resultSet.getString("COLUMN_NAME"));
-					}
-				}
-			} finally {
-				Closer.close(resultSet);
-			}
-			
-		} catch (SQLException exception) {
-			log.error(exception.getMessage(), exception);
-			throw new SchemaMigrationException("Failed to get existing columns: " + exception.getMessage(), exception);
-		}
-		
-		return columnNames; 
-	}
-	
+	/**
+	 * ALTER TABLE <foreignKey.childTable> ADD CONSTRAINT <foreignKey.name>
+	 * 		FOREIGN KEY (foreignKey.childColumn[,...]) REFERENCES 
+	 * 		<foreignKey.parentTable> (foreignKey.parentColumn[,...])
+	 */
 	public String addForeignKey(ForeignKey foreignKey) {
 		Validator.notNull(foreignKey, "Foreign key can not be null");
 	    
@@ -117,43 +107,42 @@ public class GenericGenerator implements Generator {
 	    String[] parentColumns = wrapStrings(foreignKey.getParentColumns());
 	    
 	    
-	    retVal.append("alter table ")
+	    retVal.append("ALTER TABLE ")
 	    	  .append(wrapName(foreignKey.getChildTable()))
-	          .append(" add constraint ")
+	          .append(" ADD CONSTRAINT ")
 	          .append(wrapName(foreignKey.getName()))
-	          .append(" foreign key  (")
+	          .append(" FOREIGN KEY  (")
 	          .append(GeneratorHelper.makeStringList(childColumns))
-	          .append(") references ")
+	          .append(") REFERENCES ")
 	          .append(wrapName(foreignKey.getParentTable()))
 	          .append(" (")
 	          .append(GeneratorHelper.makeStringList(parentColumns))
 	          .append(")");
 	    
 	    return retVal.toString();
-	}
-	
+	}	
 	
 	/**
-	 * create [unique] index <name> [primary key] on <table>(<column>[,<column>...])
+	 * CREATE [UNIQUE] INDEX <name> [PRIMARY KEY] ON <index.table>(<index.columnName>[,...])
 	 */
 	public String addIndex(Index index) {
 		Validator.notNull(index, "Index can not be null");
 		
-		StringBuffer query = new StringBuffer("create ");
+		StringBuffer query = new StringBuffer("CREATE ");
 		
 		if (index.isUnique()) {
-			query.append("unique ");
+			query.append("UNIQUE ");
 		}
 		
-		query.append("index ")
+		query.append("INDEX ")
 			.append(wrapName(index.getName()))
 			.append(" ");
 		
 		if (index.isPrimaryKey()) {
-			query.append("primary key ");
+			query.append("PRIMARY KEY ");
 		}
 		
-		query.append("on ")
+		query.append("ON ")
 			.append(wrapName(index.getTableName()))
 			.append("(");
 			
@@ -171,9 +160,15 @@ public class GenericGenerator implements Generator {
 		
 		return query.toString();
 	}
+		
 	
-	
+	/**
+	 * Uses JDBC meta data to determine column existence	 
+	 */
 	public boolean columnExists(String columnName, String tableName) {
+		Validator.notNull(columnName, "Column name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
 		try {
 			Connection connection = Configure.getConnection();
 			
@@ -198,11 +193,16 @@ public class GenericGenerator implements Generator {
 		
 		return false;
 	}
-
+	
 	public String createTableStatement(Table table, String options) {
 		return createTableStatement(table);
 	}
 	
+	
+	/**
+	 * CREATE TABLE <table.name> (<column.name> <column.type>[(<column.length>)] 
+	 * 		[NOT] NULL [AUTO_INCREMENT] [PRIMARY KEY] [DEFAULT <column.default>][,...])
+	 */
 	public String createTableStatement(Table table) {
 		
 		StringBuffer retVal = new StringBuffer();
@@ -218,7 +218,7 @@ public class GenericGenerator implements Generator {
 		
 		Validator.isTrue(numberOfAutoIncrementColumns <=1, "Can not have more than one autoincrement key");
 				
-		retVal.append("create table ")
+		retVal.append("CREATE TABLE ")
 			  .append(wrapName(table.getTableName()))
 			  .append(" (");
 		
@@ -241,6 +241,9 @@ public class GenericGenerator implements Generator {
 		return retVal.toString().trim() + ");";
 	}
 	
+	/**
+	 * ALTER TABLE <tableName> drop <columnName>
+	 */
 	public String dropColumnStatement(String columnName, String tableName) {
 
 		Validator.notNull(columnName, "Column name can not be null");
@@ -248,25 +251,42 @@ public class GenericGenerator implements Generator {
 		
 	    StringBuffer query = new StringBuffer();
 	    
-	    query.append("alter table ")
+	    query.append("ALTER TABLE ")
 	    	.append(wrapName(tableName))
-	    	.append(" drop ")
+	    	.append(" DROP ")
 	    	.append(wrapName(columnName));
 	    
 		return query.toString();
 	}
 	
-	public String dropForeignKey(String foreignKeyName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public String dropIndex(String indexName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
+	/**
+	 * DROP INDEX <indexName>
+	 */
+	public String dropIndex(String indexName, String tableName) {
 
+	    Validator.notNull(indexName, "Index name can not be null");
+	    
+	    StringBuffer query = new StringBuffer();
+	    
+	    query.append("DROP INDEX ")
+	    	.append(wrapName(indexName));
+	    
+		return query.toString();
+	}
 	
+	/**
+	 * DROP INDEX <indexName>
+	 */
+	public String dropIndex(Index index) {
+		Validator.notNull(index, "Index can not be null");
+		
+		return dropIndex(index.getName(), index.getTableName());
+	    
+	}
+		
+	/**
+	 * DROP TABLE <tableName>
+	 */
 	public String dropTableStatement(String tableName) {
 		Validator.notNull(tableName, "Table name must not be null");
 		
@@ -277,6 +297,9 @@ public class GenericGenerator implements Generator {
 		return retVal.toString();
 	}
 	
+	/**
+	 * Uses JDBC meta data to determine foreignKey existence	 
+	 */
 	public boolean exists(ForeignKey foreignKey) {
 		
 		Validator.notNull(foreignKey, "Foreign key can not be null");
@@ -284,6 +307,9 @@ public class GenericGenerator implements Generator {
 		return foreignKeyExists(foreignKey.getName(), foreignKey.getChildTable());
 	}
 	
+	/**
+	 * Uses JDBC meta data to determine foreignKey existence	 
+	 */
 	public boolean foreignKeyExists(String foreignKeyName, String childTableName) {
 		Validator.notNull(foreignKeyName, "Foreign key name can not be null");
 		Validator.notNull(childTableName, "Child table name can not be null");
@@ -319,10 +345,12 @@ public class GenericGenerator implements Generator {
 		}
 	}
 	
-	
+	/**
+	 * Uses JDBC meta data to determine index existence	 
+	 */
 	public boolean indexExists(String indexName, String tableName) {
-		Validator.notNull(indexName, "Index name cannot be null");
-		Validator.notNull(tableName, "Table name cannot be null");
+		Validator.notNull(indexName, "Index name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
 		
 		try {
 			Connection connection = Configure.getConnection();
@@ -354,68 +382,9 @@ public class GenericGenerator implements Generator {
 		return false;
 	}
 	
-	public static boolean doesTableExist(Connection connection, String tableName) throws SQLException {
-		ResultSet resultSet = null;
-		
-		try {
-		
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-		
-			resultSet = databaseMetaData.getTables(null, null, tableName, null);
-			
-			if (resultSet != null && resultSet.next()) {
-				return true;
-			}
-		} finally {
-			Closer.close(resultSet);
-		}
-		
-		return false;
-	}
-	
-	public static boolean doesColumnExist(Connection connection, String columnName, String tableName) throws SQLException {
-		ResultSet resultSet = null;
-		
-		try {
-		
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-		
-			resultSet = databaseMetaData.getColumns(null, null, tableName, columnName);
-			
-			if (resultSet != null && resultSet.next()) {
-				return true;
-			}
-		} finally {
-			Closer.close(resultSet);
-		}
-		
-		return false;
-	}
-	
-	public static boolean doesIndexExist(Connection connection, String indexName, String tableName) throws SQLException {
-		ResultSet resultSet = null;
-		
-		try {
-		
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-		
-			resultSet = databaseMetaData.getIndexInfo(null, null, tableName, false, false);
-			
-			if (resultSet != null) {
-				while (resultSet.next()) {
-					String name = resultSet.getString("INDEX_NAME");
-					if (name != null & name.equals(indexName)) {
-						return true;
-					}
-				}
-			}
-		} finally {
-			Closer.close(resultSet);
-		}
-		
-		return false;
-	}
-	
+	/**
+	 * Uses JDBC meta data to determine index existence	 
+	 */
 	public boolean exists(Index index) {
 		
 		if (index.getName() != null && index.getName().trim().length() > 0) {
@@ -425,40 +394,9 @@ public class GenericGenerator implements Generator {
 		throw new SchemaMigrationException("Can't determine if index exists without knowing it's name");
 	}
 	
-	public boolean exists(String columnName, String tableName) {
-		try {
-			Connection connection = Configure.getConnection();
-			ResultSet resultSet = null;
-			
-			try {
-			
-				DatabaseMetaData databaseMetaData = connection.getMetaData();
-			
-				resultSet = databaseMetaData.getColumns(null, null, tableName, columnName);
-				
-				if (resultSet != null) {
-					while (resultSet.next()) {
-						String table = resultSet.getString("TABLE_NAME");
-						String column = resultSet.getString("COLUMN_NAME");
-						
-						if (tableName.equalsIgnoreCase(table) &&
-								columnName.equalsIgnoreCase(column)) {
-							return true;
-						}
-						
-					}
-				}
-			} finally {
-				Closer.close(resultSet);
-			}
-			
-			return false;
-		} catch (SQLException exception) {
-			log.error("Error occoured in H2Generator.exsists(ForeignKey)",exception);
-			throw new SchemaMigrationException(exception);
-		}
-	}
-	
+	/**
+	 * Uses JDBC meta data to determine table existence	 
+	 */
 	public boolean tableExists(String tableName) {
 		try {
 			Connection connection = Configure.getConnection();
@@ -487,57 +425,33 @@ public class GenericGenerator implements Generator {
 			throw new SchemaMigrationException(exception);
 		}
 	}
-	
-	public boolean exists(Column column, Table table) {
-		try {
-			Connection connection = Configure.getConnection();
-			
-			return GeneratorHelper.doesColumnExist(connection, column.getColumnName(), table.getTableName());
-		} catch (SQLException exception) {
-			log.error("Exception occoured in AbstractGenerator.exists(Column , Table )!!",exception);
-			throw new SchemaMigrationException(exception);
-		}
+
+	/**
+	 * ALTER TABLE <childTable> DROP CONSTRAINT <foreignKeyName>
+	 */
+	public String dropForeignKey(ForeignKey foreignKey) {
+		Validator.notNull(foreignKey, "Foreign key can not be null");		
+		
+		return dropForeignKey(foreignKey.getName(), foreignKey.getChildTable());
 	}
 
-	public String dropColumnStatement(Column column, Table table) {
-	
-		Validator.notNull(column, "Column cannot be null");
-		Validator.notNull(table, "Table cannot be null");
-		
-	    StringBuffer query = new StringBuffer();
-	    
-	    query.append("alter table ")
-	    	.append(wrapName(table.getTableName()))
-	    	.append(" drop ")
-	    	.append(wrapName(column.getColumnName()));
-	    
-		return query.toString();
-	}
-	
-	public String dropIndex(Index index) {
-		
-		Validator.notNull(index, "Index cannot be null");
-		
-	    StringBuffer query = new StringBuffer();
-	    
-	    query.append("drop index ")
-	    	.append(wrapName(index.getName()));
-	    
-		return query.toString();
-	}
-	
-	public String dropForeignKey(ForeignKey foreignKey) {
+	/**
+	 * ALTER TABLE <childTable> DROP CONSTRAINT <foreignKeyName>
+	 */
+	public String dropForeignKey(String foreignKeyName, String childTable) {
+		Validator.notNull(foreignKeyName, "Foreign key name can not be null");
+		Validator.notNull(childTable, "Child table name can not be null");
 		
 		StringBuffer retVal = new StringBuffer();
 		
-		retVal.append("alter table ")
-			.append(wrapName(foreignKey.getChildTable()))
-			.append(" drop constraint ")
-			.append(wrapName(foreignKey.getName()));
+		retVal.append("ALTER TABLE ")
+			.append(wrapName(childTable))
+			.append(" DROP CONSTRAINT ")
+			.append(wrapName(foreignKeyName));
 		
 		return retVal.toString();
 	}
-
+	
 	public String wrapName(String name) {
 		StringBuffer wrap = new StringBuffer();
 		
@@ -602,5 +516,36 @@ public class GenericGenerator implements Generator {
 		
 		return retVal.toString().trim();
 	}
-
+	
+	private List<String> getExistingColumnNames(String tableName) {
+		
+		List<String> columnNames = new ArrayList<String>();
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			ResultSet resultSet = null;
+			
+			try {
+			
+				DatabaseMetaData databaseMetaData = connection.getMetaData();
+			
+				resultSet = databaseMetaData.getColumns(null, null, tableName, "%");
+				
+				if (resultSet != null) {
+					while (resultSet.next()) {
+						columnNames.add(resultSet.getString("COLUMN_NAME"));
+					}
+				}
+			} finally {
+				Closer.close(resultSet);
+			}
+			
+		} catch (SQLException exception) {
+			log.error(exception.getMessage(), exception);
+			throw new SchemaMigrationException("Failed to get existing columns: " + exception.getMessage(), exception);
+		}
+		
+		return columnNames; 
+	}
 }

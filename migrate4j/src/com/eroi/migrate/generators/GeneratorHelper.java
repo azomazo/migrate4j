@@ -1,16 +1,11 @@
 package com.eroi.migrate.generators;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.schema.Column;
 
 /**
@@ -115,56 +110,6 @@ public class GeneratorHelper {
 		}
 		
 		return retVal;
-	}
-	
-	public static boolean doesColumnExist(Connection connection, String columnName, String tableName) throws SQLException {
-		ResultSet resultSet = null;
-		
-		try {
-		
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-		
-			String catalog = getCatalog(connection);
-			resultSet = databaseMetaData.getColumns(catalog, "", tableName, columnName);
-			
-			if (resultSet != null && resultSet.next()) {
-				return true;
-			}
-		} finally {
-			Closer.close(resultSet);
-		}
-		
-		return false;
-	}
-	
-	public static boolean doesIndexExist(Connection connection, String indexName, String tableName) throws SQLException {
-		ResultSet resultSet = null;
-		
-		try {
-		
-			DatabaseMetaData databaseMetaData = connection.getMetaData();
-		
-			String catalog = getCatalog(connection);
-			resultSet = databaseMetaData.getIndexInfo(catalog, "", tableName, false, false);
-			
-			if (resultSet != null) {
-				while (resultSet.next()) {
-					String name = resultSet.getString("INDEX_NAME");
-					if (name != null & name.equals(indexName)) {
-						return true;
-					}
-				}
-			}
-		} finally {
-			Closer.close(resultSet);
-		}
-		
-		return false;
-	}
-	
-		
-	private static String getCatalog(Connection connection) throws SQLException {
-		return connection.getCatalog();
 	}
 	
 	public static String makeStringList(String[] strings) {

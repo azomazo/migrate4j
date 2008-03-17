@@ -12,6 +12,12 @@ import com.eroi.migrate.schema.Table;
  */
 public interface Generator {
 
+	/**
+	 * Determines whether a table named <code>tableName</code> exists
+	 * 
+	 * @param tableName String name of table
+	 * @return true if table exists, otherwise false
+	 */
 	public boolean tableExists(String tableName);
 	
 	public boolean columnExists(String columnName, String tableName);
@@ -40,11 +46,11 @@ public interface Generator {
 	
 	public String dropIndex(Index index);
 	
-	public String dropIndex(String indexName);
+	public String dropIndex(String indexName, String tableName);
 	
 	public String addForeignKey(ForeignKey foreignKey);
 	
 	public String dropForeignKey(ForeignKey foreignKey);
 	
-	public String dropForeignKey(String foreignKeyName);
+	public String dropForeignKey(String foreignKeyName, String childTable);
 }
