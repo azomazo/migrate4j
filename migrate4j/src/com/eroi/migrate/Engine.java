@@ -23,6 +23,8 @@ public class Engine {
 	
 	public static void migrate(int version) {
 		
+		log.debug("Migrating to version " + version);
+		
 		List<Class<? extends Migration>> migrationClasses = classesToMigrate();
 		if (migrationClasses == null || migrationClasses.size() <= 0) {
 			log.debug("No migration classes match " + Configure.getBaseClassName());
@@ -34,6 +36,8 @@ public class Engine {
 		try {
 			Connection connection = Configure.getConnection();
 			currentVersion = getCurrentVersion(connection);
+			
+			log.debug("Current version is " + currentVersion);
 		} catch (SQLException e) {
 			log.error("Failed to get current version from the database", e);
 			throw new SchemaMigrationException("Failed to get current version from the database", e);
@@ -50,7 +54,14 @@ public class Engine {
 			//Execute each migration
 
 			try {
-				lastVersion = runMigration(classesToMigrate.get(x), isUp);
+				Class<? extends Migration> migrationClass = classesToMigrate.get(x);
+				
+				if (log.isDebugEnabled()) {
+					String direction = isUp ? "Running " : "Rolling back";
+					log.debug(direction + " migration " + migrationClass.getName());
+				}
+				
+				lastVersion = runMigration(migrationClass, isUp);
 			} catch (Exception e) {
 				exception = e;
 				break;
@@ -70,6 +81,8 @@ public class Engine {
 			log.error("Migration failed",exception);
 			throw new SchemaMigrationException("Migration failed", exception);
 		}
+		
+		log.debug("Migration complete");
 	}
 
 	private static int runMigration(Class<? extends Migration> classToMigrate, boolean isUp) {
@@ -153,10 +166,15 @@ public class Engine {
 		while (true) {
 			String classname = baseName + item;
 			
+			log.debug("Looking for classname " + classname);
+			
 			try {
 				Class clazz = Class.forName(classname);
 				retVal.add(clazz);
+				
+				log.debug("Found classname " + classname);
 			} catch (Exception e) {
+				log.debug("Assuming there are no files including or beyond " + classname);
 				break;
 			}
 			item++;
