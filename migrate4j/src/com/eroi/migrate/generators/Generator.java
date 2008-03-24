@@ -53,4 +53,6 @@ public interface Generator {
 	public String dropForeignKey(ForeignKey foreignKey);
 	
 	public String dropForeignKey(String foreignKeyName, String childTable);
+	
+	public String wrapName(String name);
 }

@@ -85,7 +85,7 @@ public class GenericGenerator implements Generator {
 	    	if (before.trim().length() > 0){
 	    	
 	    		retVal.append(" BEFORE ")
-	    			.append(before);
+	    			.append(wrapName(before));
 	    	}
 	    }
 	    

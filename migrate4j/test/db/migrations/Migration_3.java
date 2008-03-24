@@ -7,8 +7,10 @@ import com.eroi.migrate.schema.Index;
 
 public class Migration_3 implements Migration {
 	
+	private static final String INDEX_NAME = "idx_basictab_status";
+	
 	public void down() {
-		Execute.dropIndex(getIndex());
+		Execute.dropIndex(INDEX_NAME, Migration_1.TABLE_NAME);
 	}
 
 	public String getDescription() {
@@ -20,6 +22,6 @@ public class Migration_3 implements Migration {
 	}
 
 	public static Index getIndex() {
-		return Define.index("idx_basictab_status", Migration_1.getTable().getTableName(), Migration_2.getColumn().getColumnName());
+		return Define.index(INDEX_NAME, Migration_1.TABLE_NAME, Migration_2.getColumn().getColumnName());
 	}
 }

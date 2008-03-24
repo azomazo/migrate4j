@@ -100,6 +100,23 @@ public class Execute {
 		} 
 	}
 	
+	public static boolean foreignKeyExists(String foreignKeyName, String childTableName) {
+		Validator.notNull(foreignKeyName, "Foreign key name can not be null");
+		Validator.notNull(childTableName, "Child table name can not be null");
+		
+		try {
+			Connection connection = Configure.getConnection();
+		
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			return generator.foreignKeyExists(foreignKeyName, childTableName);
+			
+		} catch (SQLException e) {
+			log.error("Unable to check foreign key " + foreignKeyName + " on table " + childTableName, e);
+			throw new SchemaMigrationException("Unable to check foreign key " + foreignKeyName + " on table " + childTableName, e);
+		} 
+	}
+	
 	public static boolean exists(ForeignKey foreignKey) {
 		Validator.notNull(foreignKey, "Foreign key can not be null");
 		
@@ -168,31 +185,53 @@ public class Execute {
 		} 
 	}
 	
-	public static void addColumn(Column column, Table table) {
+	public static void addColumn(Column column, String tableName) {
+		addColumn(column, tableName, null);
+	}
+	
+	public static void addColumn(Column column, String table, String afterColumn) {
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(table, "Table can not be null");
-		Validator.isTrue(exists(table), "Table does not exist");
+		Validator.isTrue(tableExists(table), "Table does not exist");
 		
 		try {
 			Connection connection = Configure.getConnection();
 			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			String query = generator.addColumnStatement(column, table.getTableName(), null);
+			String query = generator.addColumnStatement(column, table, afterColumn);
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
-			log.error("Unable to alter table " + table.getTableName() + " and add column " + column.getColumnName(), e);
-			throw new SchemaMigrationException("Unable to alter table " + table.getTableName() + " and add column " + column.getColumnName(), e);
+			log.error("Unable to alter table " + table + " and add column " + column.getColumnName(), e);
+			throw new SchemaMigrationException("Unable to alter table " + table + " and add column " + column.getColumnName(), e);
 		}
 	}
 	
-	public static void dropColumn(Column column, Table table) {
+	public static void addColumn(Column column, String table, int position) {
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(table, "Table can not be null");
-		Validator.isTrue(exists(table), "Table does not exist");
+		Validator.isTrue(tableExists(table), "Table does not exist");
 		
-		if (!columnExists(column.getColumnName(), table.getTableName())) {
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.addColumnStatement(column, table, position);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			log.error("Unable to alter table " + table + " and add column " + column.getColumnName(), e);
+			throw new SchemaMigrationException("Unable to alter table " + table + " and add column " + column.getColumnName(), e);
+		}
+	}
+	public static void dropColumn(String columnName, String tableName) {
+		Validator.notNull(columnName, "Column can not be null");
+		Validator.notNull(tableName, "Table can not be null");
+		Validator.isTrue(tableExists(tableName), "Table does not exist");
+		
+		if (!columnExists(columnName, tableName)) {
 			return;
 		}
 		
@@ -201,12 +240,12 @@ public class Execute {
 			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			String query = generator.dropColumnStatement(column.getColumnName(), table.getTableName());
+			String query = generator.dropColumnStatement(columnName, tableName);
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
-			log.error("Unable to alter table " + table.getTableName() + " and drop column " + column.getColumnName(), e);
-			throw new SchemaMigrationException("Unable to alter table " + table.getTableName() + " and drop column " + column.getColumnName(), e);
+			log.error("Unable to alter table " + tableName + " and drop column " + columnName, e);
+			throw new SchemaMigrationException("Unable to alter table " + tableName + " and drop column " + columnName, e);
 		}
 		
 	}
@@ -232,10 +271,10 @@ public class Execute {
 		}
 	}
 	
-	public static void dropIndex(Index index) {
-		Validator.notNull(index, "Index can not be null");
+	public static void dropIndex(String indexName, String tableName) {
+		Validator.notNull(indexName, "Index can not be null");
 		
-		if (!exists(index)) {
+		if (!indexExists(indexName, tableName)) {
 			return;
 		}
 		
@@ -244,12 +283,12 @@ public class Execute {
 			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			String query = generator.dropIndex(index);
+			String query = generator.dropIndex(indexName, tableName);
 			
 			executeStatement(connection, query);
 		} catch (SQLException e) {
-			log.error("Unable to drop index " + index.getName() + " from table " + index.getTableName(), e);
-			throw new SchemaMigrationException("Unable to drop index " + index.getName() + " from table " + index.getTableName(), e);
+			log.error("Unable to drop index " + indexName + " from table " + tableName, e);
+			throw new SchemaMigrationException("Unable to drop index " + indexName + " from table " + tableName, e);
 		}
 	}
 	
@@ -293,6 +332,28 @@ public class Execute {
 			log.error("Unable to drop foreign key " + foreignKey.getName() + " from table " + foreignKey.getParentTable(), e);
 			throw new SchemaMigrationException("Unable to drop foreign key " + foreignKey.getName() + " from table " + foreignKey.getParentTable(), e);
 		}
+	}
+	
+	public static void dropForeignKey(String foreignKeyName, String childTableName) {
+		Validator.notNull(foreignKeyName, "ForeignKey can not be null");
+		
+		if (!foreignKeyExists(foreignKeyName, childTableName)) {
+			return;
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.dropForeignKey(foreignKeyName, childTableName);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			log.error("Unable to drop foreign key " + foreignKeyName + " from table " + childTableName, e);
+			throw new SchemaMigrationException("Unable to drop foreign key " + foreignKeyName + " from table " + childTableName, e);
+		}
+		
 	}
 	
 	public static void statement(Connection connection, String query) throws SQLException {

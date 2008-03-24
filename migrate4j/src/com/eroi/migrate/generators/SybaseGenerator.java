@@ -4,9 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.sql.Types;
-import java.util.List;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -24,67 +22,43 @@ public class SybaseGenerator extends GenericGenerator {
 
 	private static final Log log = LogFactory.getLog(SybaseGenerator.class);
 	
-	public String addColumnStatement(Column column, Table table, int position) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	public String addColumnStatement(Column column, String tableName,
-			int position) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public String addColumnStatement(Column column, String tableName,
-			String afterColumn) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public boolean columnExists(String columnName, String tableName) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	public String dropColumnStatement(String columnName, String tableName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public String dropForeignKey(String foreignKeyName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public String dropIndex(String indexName) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
-	public boolean exists(String columnName, String tableName) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	public boolean foreignKeyExists(String foreignKeyName) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	public boolean foreignKeyExists(String parentTableName,
-			List<String> parentColumnNames, String childTable,
-			List<String> childColumnNames) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
 	public boolean indexExists(String indexName, String tableName) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-	
-	public boolean tableExists(String tableName) {
-		// TODO Auto-generated method stub
+		
+		Validator.notNull(indexName, "Index name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			String query = "select index_name from systable t " 
+				+ " inner join sysidx x on "
+				+ "t.table_id = x.table_id "
+				+ "where t.table_name = ? ";
+			
+			statement = connection.prepareStatement(query);
+			statement.setString(1, tableName);
+			
+			resultSet = statement.executeQuery();
+			
+			if (resultSet != null) {
+				while (resultSet.next()) {
+					String name = resultSet.getString(1);
+					if (name != null && name.equals(indexName)) {
+						return true;
+					}
+				}
+			}
+			
+		} catch (SQLException exception) {
+			throw new SchemaMigrationException(exception);
+		} finally {
+			Closer.close(resultSet);
+			Closer.close(statement);
+		}
+		
 		return false;
 	}
 	
@@ -125,7 +99,7 @@ public class SybaseGenerator extends GenericGenerator {
 	    		
 	}
 	
-	public boolean exists(Table table) {
+	public boolean tableExists(String tableName) {
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		
@@ -133,7 +107,54 @@ public class SybaseGenerator extends GenericGenerator {
 			Connection connection = Configure.getConnection();
 			
 			statement = connection.prepareStatement("select * from sysobjects where name = ?");
-			statement.setString(1, table.getTableName());
+			statement.setString(1, tableName);
+			
+			resultSet = statement.executeQuery();
+			
+			if (resultSet != null && resultSet.next()) {
+				return true;
+			}
+			
+		} catch (SQLException exception) {
+			throw new SchemaMigrationException(exception);
+		} finally {
+			Closer.close(resultSet);
+			Closer.close(statement);
+		}
+		
+		return false;
+	}
+	
+	public boolean exists(Table table) {
+		
+		Validator.notNull(table, "Table can not be null");
+		
+		return tableExists(table.getTableName());
+	}
+	
+
+	public boolean exists(String columnName, String tableName) {
+		return columnExists(columnName, tableName);
+	}
+	
+	public boolean columnExists(String columnName, String tableName) {
+		
+		Validator.notNull(columnName, "Column name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			String query = "select * from systable t inner join systabcol c "
+				+ "on t.table_id = c.table_id where table_name = ? and "
+				+ "column_name = ? ";
+			
+			statement = connection.prepareStatement(query);
+			statement.setString(1, tableName);
+			statement.setString(2, columnName);
 			
 			resultSet = statement.executeQuery();
 			
@@ -152,75 +173,25 @@ public class SybaseGenerator extends GenericGenerator {
 	}
 	
 	public boolean exists(Column column, Table table) {
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
 		
-		try {
-			Connection connection = Configure.getConnection();
-			
-			String query = "select * from systable t inner join systabcol c "
-				+ "on t.table_id = c.table_id where table_name = ? and "
-				+ "column_name = ? ";
-			
-			statement = connection.prepareStatement(query);
-			statement.setString(1, table.getTableName());
-			statement.setString(2, column.getColumnName());
-			
-			resultSet = statement.executeQuery();
-			
-			if (resultSet != null && resultSet.next()) {
-				return true;
-			}
-			
-		} catch (SQLException exception) {
-			throw new SchemaMigrationException(exception);
-		} finally {
-			Closer.close(resultSet);
-			Closer.close(statement);
-		}
+		Validator.notNull(column, "Column can not be null");
+		Validator.notNull(table, "Table can not be null");
 		
-		return false;
+		return columnExists(column.getColumnName(), table.getTableName());
 	}
 	
 	public boolean exists(Index index) {
-		PreparedStatement statement = null;
-		ResultSet resultSet = null;
 		
-		try {
-			Connection connection = Configure.getConnection();
-			
-			String query = "select index_name from systable t " 
-				+ " inner join sysidx x on "
-				+ "t.table_id = x.table_id "
-				+ "where t.table_name = ? ";
-			
-			statement = connection.prepareStatement(query);
-			statement.setString(1, index.getTableName());
-			
-			resultSet = statement.executeQuery();
-			
-			if (resultSet != null) {
-				while (resultSet.next()) {
-					String name = resultSet.getString(1);
-					if (name != null && name.equals(index.getName())) {
-						return true;
-					}
-				}
-			}
-			
-		} catch (SQLException exception) {
-			throw new SchemaMigrationException(exception);
-		} finally {
-			Closer.close(resultSet);
-			Closer.close(statement);
-		}
+		Validator.notNull(index, "Index can not be null");
 		
-		return false;
+		return indexExists(index.getName(), index.getTableName());
 
 	}
-	
 
-	public boolean exists(ForeignKey foreignKey) {
+	public boolean foreignKeyExists(String foreignKeyName, String childTableName) {
+		
+		Validator.notNull(foreignKeyName, "Foreign key name can not be null");
+		
 		PreparedStatement statement = null;
 		ResultSet resultSet = null;
 		
@@ -230,7 +201,7 @@ public class SybaseGenerator extends GenericGenerator {
 			String query = "select * from sysforeignkeys where role = ? ";
 			
 			statement = connection.prepareStatement(query);
-			statement.setString(1, foreignKey.getName());
+			statement.setString(1, foreignKeyName);
 			
 			resultSet = statement.executeQuery();
 			
@@ -247,7 +218,13 @@ public class SybaseGenerator extends GenericGenerator {
 		
 		return false;
 	}
-	//create table statement
+	
+	public boolean exists(ForeignKey foreignKey) {
+		
+		Validator.notNull(foreignKey, "Foreign key can not be null");
+		return foreignKeyExists(foreignKey.getName(), foreignKey.getChildTable());
+	}
+	
 	public String createTableStatement(Table table) {
 		
 		StringBuffer retVal = new StringBuffer();
@@ -308,21 +285,37 @@ public class SybaseGenerator extends GenericGenerator {
 	}
 
 	public String addColumnStatement(Column column, Table table, String afterColumn) {
-		
+		return addColumnStatement(column, table.getTableName(), null);
+	}
+	
+	public String addColumnStatement(Column column, Table table, int position) {
+		return addColumnStatement(column, table.getTableName(), null);
+	}
+
+	public String addColumnStatement(Column column, String tableName,
+			int position) {
+		return addColumnStatement(column, tableName, null);
+	}
+	
+	public String addColumnStatement(Column column, String tableName,
+			String afterColumn) {
+
 		Validator.notNull(column, "Column cannot be null");
 	    
-		Validator.notNull(table, "Table cannot be null");
+		Validator.notNull(tableName, "Table name cannot be null");
 		
 	    StringBuffer retVal = new StringBuffer();
 	    
 	    retVal.append("alter table ")
-	    	  .append(wrapName(table.getTableName()))
+	    	  .append(wrapName(tableName))
 	          .append(" add ")
 	          .append(makeColumnString(column, false));
 	    
-	    return retVal.toString();
+	    //After column doesn't seem to be an option for SQL Anywhere 10
 	    
+	    return retVal.toString();
 	}
+	
 
 	public String dropTableStatement(String tableName) {
 		Validator.notNull(tableName, "Table name can not be null");
@@ -334,13 +327,6 @@ public class SybaseGenerator extends GenericGenerator {
 		return retVal.toString();
 	}
 
-
-
-	public String getStatement(Statement statement) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-	
 	protected String makeColumnString(Column column, boolean suppressPrimaryKey) {
 		StringBuffer retVal = new StringBuffer();
 		

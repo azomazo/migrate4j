@@ -68,6 +68,21 @@ public class MySQLGenerator extends GenericGenerator {
 	    return retVal.toString();
 	}
 
+	@Override
+	public String addColumnStatement(Column column, String tableName,
+			String afterColumn) {
+		
+		StringBuffer alter = new StringBuffer();
+		alter.append(super.addColumnStatement(column, tableName, null));
+		
+		if (afterColumn != null) {
+			alter.append(" after ")
+				.append(wrapName(afterColumn));
+		}
+		
+		return alter.toString();
+	}
+	
 	public String createTableStatement(Table table) {
     	return createTableStatement(table, null);	
     }
