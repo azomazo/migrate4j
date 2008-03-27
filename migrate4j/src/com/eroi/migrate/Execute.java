@@ -356,10 +356,37 @@ public class Execute {
 		
 	}
 	
-	public static void statement(Connection connection, String query) throws SQLException {
-		executeStatement(connection, query);
+	public static void renameColumn(String newColumnName, String oldColumnName, String tableName) {
+		Validator.notNull(newColumnName, "New column name can not be null");
+		Validator.notNull(oldColumnName, "Old column name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		if (!columnExists(oldColumnName, tableName)) {
+			
+			//Is this already done?
+			if (!columnExists(newColumnName, tableName)) {
+				throw new SchemaMigrationException("Column " + oldColumnName + " does not exist in table " + tableName);
+			}
+			
+			//We must have already done this
+			return;
+		}
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.renameColumn(newColumnName, oldColumnName, tableName);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			String message = "Unable to rename column " + oldColumnName + " to " + newColumnName + " on table " + tableName;
+			log.error(message, e);
+			throw new SchemaMigrationException(message, e);
+		}
 	}
-	
+		
 	private static void executeStatement(Connection connection, String query) throws SQLException {
 		
 		Statement statement = null;

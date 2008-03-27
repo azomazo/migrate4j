@@ -26,6 +26,7 @@ import db.migrations.Migration_3;
 import db.migrations.Migration_4;
 import db.migrations.Migration_5;
 import db.migrations.Migration_6;
+import db.migrations.Migration_7;
 
 /**
  * Validates a Generators ability to perform DDL tasks.
@@ -305,6 +306,27 @@ public class GeneratorValidationTest extends TestCase {
 		writeTestPass();
 	}
 
+	public void testRenameColumn_Version6To7() throws Exception {
+		
+		writeTestStart("Rename column");
+		
+		Engine.migrate(6);
+		
+		assertTrue(Execute.columnExists(Migration_7.OLD_COLUMN_NAME, Migration_1.TABLE_NAME));
+		assertFalse(Execute.columnExists(Migration_7.NEW_COLUMN_NAME, Migration_1.TABLE_NAME));
+		
+		Engine.migrate(7);
+		
+		assertFalse(Execute.columnExists(Migration_7.OLD_COLUMN_NAME, Migration_1.TABLE_NAME));
+		assertTrue(Execute.columnExists(Migration_7.NEW_COLUMN_NAME, Migration_1.TABLE_NAME));
+		
+		Engine.migrate(6);
+		
+		assertTrue(Execute.columnExists(Migration_7.OLD_COLUMN_NAME, Migration_1.TABLE_NAME));
+		assertFalse(Execute.columnExists(Migration_7.NEW_COLUMN_NAME, Migration_1.TABLE_NAME));
+		
+		writeTestPass();
+	}
 	
 	/** ------------- Helper Methods ---------------- **/
 	private void insertDescIntoBasicTable() throws SQLException {

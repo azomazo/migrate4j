@@ -54,5 +54,7 @@ public interface Generator {
 	
 	public String dropForeignKey(String foreignKeyName, String childTable);
 	
+	public String renameColumn(String newColumnName, String oldColumnName, String tableName);
+	
 	public String wrapName(String name);
 }

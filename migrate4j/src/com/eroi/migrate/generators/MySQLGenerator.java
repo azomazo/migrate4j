@@ -196,4 +196,26 @@ public class MySQLGenerator extends GenericGenerator {
 	    return retVal.toString();
 	}
 	
+	@Override
+	public String renameColumn(String newColumnName, String oldColumnName,
+			String tableName) {
+
+		Validator.notNull(newColumnName, "New column name can not be null");
+		Validator.notNull(oldColumnName, "Old column name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		Column column = getExistingColumn(oldColumnName, tableName);
+		Column newColumn = new Column(newColumnName, column.getColumnType(), column.getLength(), column.isPrimaryKey(), column.isNullable(), column.getDefaultValue(), column.isAutoincrement());
+				
+		StringBuffer query = new StringBuffer();
+		
+		query.append("ALTER TABLE ")
+			.append(wrapName(tableName))
+			.append(" CHANGE COLUMN ")
+			.append(wrapName(oldColumnName))
+			.append(" ")
+			.append(makeColumnString(newColumn));
+		
+		return query.toString();
+	}
 }

@@ -517,7 +517,26 @@ public class GenericGenerator implements Generator {
 		return retVal.toString().trim();
 	}
 	
-	private List<String> getExistingColumnNames(String tableName) {
+	public String renameColumn(String newColumnName, String oldColumnName,
+			String tableName) {
+	
+		Validator.notNull(newColumnName, "New column name can not be null");
+		Validator.notNull(oldColumnName, "Old column name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		StringBuffer query = new StringBuffer();
+		
+		query.append("ALTER TABLE ")
+			.append(wrapName(tableName))
+			.append(" ALTER COLUMN ")
+			.append(wrapName(oldColumnName))
+			.append(" RENAME TO ")
+			.append(wrapName(newColumnName));
+		
+		return query.toString();
+	}
+	
+	protected List<String> getExistingColumnNames(String tableName) {
 		
 		List<String> columnNames = new ArrayList<String>();
 		
@@ -548,4 +567,85 @@ public class GenericGenerator implements Generator {
 		
 		return columnNames; 
 	}
+	
+	protected Column getExistingColumn(String columnName, String tableName) {
+		
+		int type = -1;
+		int length = -1;
+		boolean nullable = false;
+		Object defaultObject = null;
+		boolean isPrimaryKey = false;
+		boolean isAutoIncrement = false;
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			ResultSet resultSet = null;
+			
+			try {
+			
+				DatabaseMetaData databaseMetaData = connection.getMetaData();
+			
+				resultSet = databaseMetaData.getColumns(null, null, tableName, "%");
+				
+				if (resultSet != null) {
+					while (resultSet.next()) {
+						String col = resultSet.getString("COLUMN_NAME");
+						if (col != null && col.equalsIgnoreCase(columnName)) {
+							type = resultSet.getInt("DATA_TYPE");
+							length = resultSet.getInt("COLUMN_SIZE");
+							defaultObject = resultSet.getObject("COLUMN_DEF");
+							
+							int nullstate = resultSet.getInt("NULLABLE");
+							nullable = nullstate == DatabaseMetaData.columnNullable;
+							
+							if (defaultObject != null && defaultObject.toString().trim().length() == 0 && !GeneratorHelper.isStringType(type)) {
+								defaultObject = null;
+							}
+							
+							String remarks = resultSet.getString("REMARKS");
+							if (remarks != null) {
+								if (remarks.toLowerCase().contains("increm")) {
+									isAutoIncrement = true;
+								}
+							}
+							
+							break;
+						}
+					}
+					
+					resultSet.close();
+				}
+				
+				resultSet = databaseMetaData.getPrimaryKeys(null, null, tableName);
+				if (resultSet != null) {
+					while (resultSet.next()) {
+						String col = resultSet.getString("COLUMN_NAME");
+						if (col != null && col.equalsIgnoreCase(columnName)) {
+							isPrimaryKey = true;
+							break;
+						}
+					}
+					
+					resultSet.close();
+				}
+				
+				
+				
+			} finally {
+				Closer.close(resultSet);
+			}
+			
+		} catch (SQLException exception) {
+			log.error(exception.getMessage(), exception);
+			throw new SchemaMigrationException("Failed to get existing columns: " + exception.getMessage(), exception);
+		}
+		
+		if (type >= 0) {
+			return new Column(columnName, type, length, isPrimaryKey, nullable, defaultObject, isAutoIncrement);
+		} 
+		
+		throw new SchemaMigrationException("Could not locate column " + columnName + " in table " + tableName);
+	}
+	
 }

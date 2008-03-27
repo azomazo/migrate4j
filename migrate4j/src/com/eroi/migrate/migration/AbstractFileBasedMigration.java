@@ -7,12 +7,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Statement;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
-import com.eroi.migrate.Execute;
 import com.eroi.migrate.Migration;
+import com.eroi.migrate.misc.Closer;
 
 /**
  * Applies generic SQL scripts.  Script paths
@@ -45,14 +46,14 @@ public abstract class AbstractFileBasedMigration implements Migration {
 	public void up(Connection connection) throws SQLException {
 		String script = getFileContents(upScriptPath); 
 		
-		Execute.statement(connection, script);
+		executeStatement(connection, script);
 		
 	}
 	
 	public void down(Connection connection) throws SQLException {
 		String script = getFileContents(downScriptPath); 
 		
-		Execute.statement(connection, script);
+		executeStatement(connection, script);
 	}
 
 	private String getFileContents(String scriptPath) {
@@ -85,5 +86,17 @@ public abstract class AbstractFileBasedMigration implements Migration {
 		return retVal.toString();
 	}
 	
+	private static void executeStatement(Connection connection, String query) throws SQLException {
+		
+		Statement statement = null;
+		
+		try {
+			statement = connection.createStatement();
+			statement.executeUpdate(query);
+		} finally {
+			Closer.close(statement);
+		}
+		
+	}
 
 }
