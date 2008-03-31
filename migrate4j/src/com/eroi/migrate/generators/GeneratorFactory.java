@@ -16,6 +16,8 @@ public class GeneratorFactory {
             return new SybaseGenerator();
         } else if ("MySQL".equalsIgnoreCase(dbName)) {
             return new MySQLGenerator();
+        } else if ("Apache Derby".equalsIgnoreCase(dbName)) {
+        	return new DerbyGenerator();
         } else {
         	if (!dbName.equals("H2")) {
         		log.warn("No DDLGenerator found for \"" + dbName + "\".  You may need to write your own!  Defaulting to GenericGenerator.");
