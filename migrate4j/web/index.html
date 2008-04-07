@@ -16,14 +16,57 @@
 
 <br>
 <br />
-<div><b>migrate4j</b> strives to be Java's answer to the db:migrate rake task in
+<div><b>migrate4j</b> makes it possible to keep database schemas in sync across
+multiple machines.  It strives to be Java's answer to the db:migrate rake task in
 Rails. While it isn't a replacement or clone, it does provide simple
 configuration, flexibility and ease of use in a database migration tool.<br />
 <br />
 Status of migrate4j is available on our <a href="status.html">Status Page</a>.
 </div>
-
 <br />
+<h3>A Sample Migration</h3>
+<div>Normally, adding a table to a database involves logging into your database and
+issuing a DDL (Data Definition Language) command.  Repeat this for every developer, 
+test and production machine.  Every time your schema changes, you repeat the above steps.
+While it's uncommon to use databases from more than one vendor, or to switch from one
+database product to another, this obviously complicates this process. 
+</div>
+<br/>
+<div>
+With <b>migrate4j</b>, schema changes are applied through "Migrations".  For example, 
+to add a simple table, write a Java class such as:
+<pre>
+package db.migrations;
+
+import static com.eroi.migrate.Define.*;
+import static com.eroi.migrate.Execute.*;
+
+import com.eroi.migrate.Migration;
+
+public class Migration_0 implements Migration {
+
+	public void up() {
+		createTable(
+			table("simple_table", 
+				column("id", DataTypes.INTEGER, primarykey(), notnull()),
+				column("desc", DataTypes.VARCHAR, length(50), defaultValue("NA"))));
+	}
+
+	public void down() {
+		dropTable("simple_table");
+	}
+}
+</pre>
+</div>
+<br />
+<div>
+The above class can be applied on the command line, within code (like an initialization method)
+or an Ant task.  This allows automating schema changes so that when one developer makes a 
+change, all other developers have the changes applied to their systems on their next checkout.
+And if a change needs to get rolled back, <b>migrate4j</b> makes going back to a previous version
+trivial.
+</div>
+
 <h3>Why <b>migrate4j</b>?</h3>
 <div>
 <b>migrate4j</b> allows you to define Migrations, or database schema changes, in Java.  
@@ -37,14 +80,43 @@ to upgrade their schemas</li>
 as few, as you'd like</li>
 <li>Rollback changes with ease - reverting your source code back to a previous version and need the 
 database schema to match?  No problem!</li>
+<li>Changes can be applied through code, on the command line, or from an Ant script to
+automate schema synchronization.
 <ul>
 </div>
 <div>
-<b>migrate4j</b> allows you to put database changes in Java classes and then apply 
-them from code.  This allows you to push Migrations out with each upgrade and
+Schema changes in <b>migrate4j</b> are defined in "Migration" classes.  These are
+easy to read and write, and remove the need to research vendor specific DDL syntax.
+A sample migration, that adds a simple table, looks like:
+ <pre>
+package db.migrations;
+
+import static com.eroi.migrate.Define.*;
+import static com.eroi.migrate.Execute.*;
+
+import com.eroi.migrate.Migration;
+
+public class Migration_0 implements Migration {
+
+	public void up() {
+		createTable(
+			table("simple_table", 
+				column("id", DataTypes.INTEGER, primarykey(), notnull()),
+				column("desc", DataTypes.VARCHAR, length(50), defaultValue("NA"))));
+	}
+
+	public void down() {
+		dropTable("simple_table");
+	}
+}
+</pre>
+</div>
+<div>
+Migrations such as the above can be applied, or rolled back, from code, the command line
+or in Ant scripts. This allows you to push Migrations out with each upgrade and
 have them applied when the application starts up.  During development, while the
 schema is highly subject to change, your team can easily modify their schemas,
-including rolling back to previous state if needed.  And you'll have a convenient 
+including rolling back to a previous state if needed.  And you'll have a convenient 
 history of all your schema changes, right there in your source code!
 </div>
 
@@ -68,82 +140,66 @@ Or, roll all of them back (assuming they've been applied) by simply running:
 <pre>Engine.migrate(0)</pre>
 <br>
 </div>
-<a name="migrations" id="migrations" /><h3>Writing a Migration</h3>
+<a name="migrations" id="migrations"></a><h3>Writing a Migration</h3>
 <div>
 Writing a Migration class is easy.  There are only 2 methods that you need to worry about - "up" and "down".
 The "up" method is called when Migrations are applied and "down" is called when they're being rolled back.
-There is also a "getDescription" method that you can use to provide information about what the 
-Migration does (unfortunately, we don't have the flexibility to put this information in the name
-of the Migration, as you can in Ruby).
+To make things even easier, most migrations can be created by using just a couple of classes: Define and Execute.</div>
+<br />
+<div>
+Define provides methods that help you easily define schema elements (tables, columns, indexes, etc) in a vendor
+independent fashion.  Execute applies schema changes (add, change, rename, etc) to a database without having to
+worry about the syntax requirements of the target database.
 </div>
 <br />
 <div>
 A typical Migration that simply adds a table might look like:
 <pre>
-import java.sql.Types;
+package db.migrations;
 
-import com.eroi.migrate.Define;
-import com.eroi.migrate.Execute;
+import static com.eroi.migrate.Define.*;
+import static com.eroi.migrate.Execute.*;
+
 import com.eroi.migrate.Migration;
-import com.eroi.migrate.schema.Column;
-import com.eroi.migrate.schema.Table;
 
-public class Migration_1 implements Migration {
-	
-	public static final String TABLE_NAME = "simple_table";
-	public static final String COLUMN_ID_NAME = "id";
-	public static final String COLUMN_DESC_NAME = "description";
-	
-	public String getDescription() {
-		return "Creates a simple table";
-	}
+public class Migration_0 implements Migration {
 
 	public void up() {
-		Execute.createTable(buildTable());
+		createTable(
+			table("simple_table", 
+				column("id", DataTypes.INTEGER, primarykey(), notnull()),
+				column("desc", DataTypes.VARCHAR, length(50), defaultValue("NA"))));
 	}
 
 	public void down() {
-		Execute.dropTable(buildTable());
+		dropTable("simple_table");
 	}
-
-	private Table buildTable() {
-		Column[] columns = new Column[2];
-		
-		columns[0] = Define.column(COLUMN_ID_NAME, Types.INTEGER, -1, true, false, null, true);
-		columns[1] = Define.column("COLUMN_DESC_NAME", Types.VARCHAR, 100, false, false, "NA", false);
-		
-		return Define.table(TABLE_NAME, columns);
-	}
-	
 }
 </pre>
 </div>
 <br />
 <div>
-You only need to learn 2 classes:  Define and Execute, both of which have pretty intuitive methods.
-"Define" lets you define new schema elements like tables, columns, indexes, foreign keys, etc.  "Execute"
-lets you apply these new elements. 
-</div><br />
-<div>
-While you can look at the API for more information, let's take a quick look at the Define.column() method
-(after all, there are a lot of arguments there).  
-<pre>
-public static Column column(String columnName,
-            int columnType, 
-            int length, 
-            boolean primaryKey,
-            boolean nullable,
-            Object defaultValue, 
-            boolean autoincrement)
-</pre>
-If you've used DDL (Data Definition Language) to "CREATE TABLE" in SQL, this probably makes sense.  The columnName
-is  . . . well . . . the column name.  The "columnType" is an int that matches a java.sql.Types constant. 
-The "length", for types that need it (like char and varchar), sets the size of the field.
-If "primaryKey" is true, this will be set as a primary key.  If "nullable" is true, then "NOT NULL" is applied to the
-column.  Set a default value by providing a "defaultValue", or leave it null.  And finally, if the database is
-supposed to provide incremental values for the field, set "autoincrement" to true.  Pretty straightforward. 
+If you've used DDL (Data Definition Language) to "CREATE TABLE" in SQL, this probably makes sense.  
+Take a look at the API for more information on how to build and modify schemas to meet your needs.
 </div>
 <br />
+<a name="applymigrations" id="applymigrations"></a><h3>Configuring the database</h3>
+<div>
+Before <b>migrate4j</b> can modify your database's schema, it must know how to connect to it.
+It also needs a way to keep track of the state of your schema (and what better place to do that
+than in a database?). This means, you'll need to provide <b>migrate4j</b> some configuration
+information, as well as a table in your database to use for keeping track of it's work.
+</div>
+<div>
+While it's possible to configure <b>migrate4j</b> in code, the most flexible method is to 
+provide a configuration file in your classpath.  By default, <b>migrate4j</b> looks for a 
+file named "migrate4j.properties" 
+</div>
+<br />
+<div>
+Configuring <b>migrate4j</b> can be done programmatically, or with a configuration file.
+  
+</div>
 <h3>Current status</h3>
 <div>
 Having read all that, hopefully you're eager to get started using <b>migrate4j</b> in your project.  But before you

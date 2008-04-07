@@ -23,7 +23,7 @@
 	
 	<target name="build.release" depends="build.jar">
 		<zip destfile="migrate4j_v${version.number}.zip">
-			<zipfileset dir=".">
+			<zipfileset dir="." prefix="migrate4j">
 				<include name="migrate4j.jar" />
 				<include name="src/**" />
 				<include name="test/**" />

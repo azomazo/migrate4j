@@ -251,4 +251,27 @@ public class Engine {
 	private static boolean isUpMigration(int currentVersion, int targetVersion) {
 		return currentVersion < targetVersion;
 	}
+	
+	public static void main(String[] args) {
+		
+		Configure.configure();
+		
+		Integer version = null;
+		if (args.length > 0) {
+			try {
+				version = new Integer(args[0]);
+			} catch (NumberFormatException e) {
+				System.out.println(args[0] + " is not a valid version number");
+				throw new RuntimeException(e);
+			}
+		}
+		
+		if (version == null) {
+			Engine.migrate();
+		} else {
+			Engine.migrate(version.intValue());
+		}
+		
+		System.out.println("Done");
+	}
 }

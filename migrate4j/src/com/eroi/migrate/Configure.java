@@ -52,10 +52,26 @@ public class Configure {
 	private static Integer startIndex = DEFAULT_START_INDEX;
 	private static String versionTable = DEFAULT_VERSION_TABLE;
 	
+	/**
+	 * Default method to load properties from the
+	 * "migrate4j.properties" file, which must be
+	 * on the classpath.  The format for this file
+	 * is documented in a file named migrate4j.properties.sample
+	 * which come with migrate4j.
+	 * 
+	 */
 	public static final void configure() {
 		configure(DEFAULT_PROPERTIES_FILE);
 	}
 	
+	/**
+	 * Loads properties from a file on the classpath
+	 * in the same format as the "migrate4j.properties" 
+	 * file, but named <code>propertyFileName</code>
+	 * 
+	 * @param propertyFileName String file name to find
+	 * 		on the classpath
+	 */
 	public static final void configure(String propertyFileName) {
 		Properties properties = null;
 		
@@ -103,12 +119,36 @@ public class Configure {
 		}
 	}
 	
+	/**
+	 * Uses an existing connection instead of loading 
+	 * connection properties from a properties file.
+	 * Also requires the package name of the package
+	 * where the Migration classes are located.
+	 * 
+	 * @param connection Connection to connect to the database
+	 * @param packageName String name of the package where
+	 * 		Migration classes are located
+	 */
 	public static void configure(Connection connection, String packageName) {
 		Configure.connection = connection;
 		Configure.packageName = packageName;
 		Configure.ownConnection = false;
 	}
 	
+	/**
+	 * Allows providing specific configuration values programatically.
+	 * 
+	 * @param url String JDBC url connection string
+	 * @param driver String JDBC driver class name
+	 * @param username String name of user to use for connecting to the database
+	 * @param password  String password for the user
+	 * @param connectionArguments  String additional arguments for connecting to the database
+	 * @param packageName String package where Migration classes are located
+	 * @param classprefix  String beginning of the name of Migration classes
+	 * @param separator  String character separating classprefix and numeric value of Migration classes
+	 * @param startIndex  Integer first numeric value to look for in Migration class names
+	 * @param versionTable  String name of the version table in the database
+	 */
 	public static void configure(String url, 
 								 String driver, 
 								 String username, 
@@ -136,6 +176,15 @@ public class Configure {
 				
 	}
 
+	/**
+	 * Allows providing specific configuration values programatically.
+	 * 
+	 * @param url String JDBC url connection string
+	 * @param driver String JDBC driver class name
+	 * @param username String name of user to use for connecting to the database
+	 * @param password  String password for the user
+	 * @param packageName String package where Migration classes are located
+	 */
 	public static void configure(String url, 
 			 String driver, 
 			 String username, 
