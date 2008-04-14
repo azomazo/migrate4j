@@ -13,7 +13,7 @@
     	Finally, add the migrate tag.  If you've got a migrate4j.properties file
     	in your classpath, you don't need to add any attributes.  You can add
     	a "version" attribute to control which Migrations are applied or rolledback.
-    	And you can override 
+    	And you can override most configuration settings as well.
     </description>
 
 	<property name="lib.directory" value="lib" />

@@ -7,8 +7,17 @@ import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
 
+/**
+ * Creates new schema element objects that can be 
+ * added to a schema with the Execute class
+ *
+ */
 public class Define {
 
+	/**
+	 * Represents a columns data type
+	 *
+	 */
 	public enum DataTypes {
     	BIT(Types.BIT), 
     	TINYINT(Types.TINYINT), 
@@ -45,6 +54,13 @@ public class Define {
     	
     }
 	
+    /**
+     * Represents a column to be added to a schema
+     * 
+     * @param columnName
+     * @param columnType
+     * @param columnOption optionally pass any number of ColumnOptions
+     */
     public static Column column(String columnName, DataTypes columnType, ColumnOption<?> ... columnOption) {
     	Column column = new Column(columnName, columnType.getTypeValue());
     	
@@ -59,26 +75,70 @@ public class Define {
     	return column;
 	}
 
+    /**
+     * Represents a table to be added to a schema.
+     * 
+     * @param tableName
+     * @param columns
+     * @return
+     */
     public static Table table(String tableName, Column... columns) {    	
     	return new Table(tableName, columns);
     }
     
+    /**
+     * Represents an index to be added to a schema
+     * 
+     * @param indexName
+     * @param tableName
+     * @param columnNames
+     * @return
+     */
     public static Index index(String indexName, String tableName, String... columnNames) {
     	return new Index(indexName, tableName, columnNames, false, false);
     }
     
+    /**
+     * Represents a unique index to be added to a schema
+     * 
+     * @param indexName
+     * @param tableName
+     * @param columnNames
+     * @return
+     */
     public static Index uniqueIndex(String indexName, String tableName, String... columnNames) {
     	return new Index(indexName, tableName, columnNames, true, false);
     }
     
+    /**
+     * Represents a foreign key to be added to a schema.  Parent
+     * table/column are the table which contains the primary key
+     * that the child table/column refer to.
+     * 
+     * @param name
+     * @param parentTable
+     * @param parentColumn
+     * @param childTable
+     * @param childColumn
+     * @return
+     */
     public static ForeignKey foreignKey(String name, String parentTable, String parentColumn, String childTable, String childColumn) {
     	return new ForeignKey(name, parentTable, parentColumn, childTable, childColumn);
     }
     
+	/**
+	 * Represents properties of a column
+	 *
+	 * @param <T>
+	 */
 	public interface ColumnOption<T> {
 		public void decorate(Column column);
 	}
 	
+	/**
+	 * Add to columns to indicate whether column is nullable
+	 *
+	 */
 	public static class NotNull implements ColumnOption<Boolean> {
 		private Boolean notNull;
 		
@@ -95,14 +155,27 @@ public class Define {
 		}
 	}
 	
+	/**
+	 * Allows specifying whether column accepts null
+	 * 
+	 * @param notnull
+	 */
 	public static NotNull notnull(Boolean notnull) {
 		return new NotNull(notnull);
 	}
 	
+	/**
+	 * Indicates column accepts null values;
+	 * 
+	 */
 	public static NotNull notnull() {
 		return notnull(true);
 	}
 	
+	/**
+	 * Indicates the column automatically increments.
+	 *
+	 */
 	public static class AutoIncrement implements ColumnOption<Boolean> {
 		private Boolean autoincrement;
 		
@@ -119,14 +192,30 @@ public class Define {
 		}
 	}
 
+	/**
+	 * Allow specifying whether column is auto incrementing
+	 * 
+	 * @param isAutoincrement
+	 * @return
+	 */
 	public static AutoIncrement autoincrement(Boolean isAutoincrement) {
 		return new AutoIncrement(isAutoincrement);
 	}
 	
+	/**
+	 * Indicates column is auto incrementing
+	 * 
+	 * @return
+	 */
 	public static AutoIncrement autoincrement() {
 		return autoincrement(true);
 	}
 	
+	/**
+	 * Specifys a column as unicode (for example, in many
+	 * database products, turns a VARCHAR into an NVARCHAR)
+	 *
+	 */
 	public static class Unicode implements ColumnOption<Boolean> {
 		private Boolean isUnicode;
 		
@@ -143,14 +232,29 @@ public class Define {
 		}
 	}
 
+	/**
+	 * Indicates whether column should support unicode
+	 * 
+	 * @param isUnicode
+	 * @return
+	 */
 	public static Unicode unicode(Boolean isUnicode) {
 		return new Unicode(isUnicode);
 	}
 	
+	/**
+	 * Indicates column should support unicode
+	 * 
+	 * @return
+	 */
 	public static Unicode unicode() {
 		return unicode(true);
 	}
 	
+	/**
+	 * Indicates column is a primary key
+	 *
+	 */
 	public static class PrimaryKey implements ColumnOption<Boolean> {
 		private Boolean isPrimaryKey;
 		
@@ -167,14 +271,28 @@ public class Define {
 		}
 	}
 
+	/**
+	 * Allows specifying whether column is a primary key
+	 * 
+	 * @param isPrimary
+	 * @return
+	 */
 	public static PrimaryKey primarykey(Boolean isPrimary) {
 		return new PrimaryKey(isPrimary);
 	}
 	
+	/**
+	 * Indicates a column is part of a primary key
+	 */
 	public static PrimaryKey primarykey() {
 		return primarykey(true);
 	}
 	
+	/**
+	 * Allows appending a length to a data type (such as 
+	 * VARCHAR(50))
+	 *
+	 */
 	public static class Length implements ColumnOption<Integer> {
 		private Integer myLength;
 		
@@ -188,10 +306,20 @@ public class Define {
 		
 	}
 
+	/**
+	 * Allow specifying the length of a column
+	 * 
+	 * @param len
+	 * @return
+	 */
 	public static Length length(Integer len) {
 		return new Length(len);
 	}
 	
+	/**
+	 * Allows specifying a default value for a column
+	 *
+	 */
 	public static class DefaultValue implements ColumnOption<Object> {
 		private Object defaultObject;
 		
@@ -204,9 +332,14 @@ public class Define {
 		}
 	}
 	
+	/**
+	 * Allows specifying a default value for a column
+	 * 
+	 * @param obj
+	 * @return
+	 */
 	public static DefaultValue defaultValue(Object obj) {
 		return new DefaultValue(obj);
 	}
 	
-
 }

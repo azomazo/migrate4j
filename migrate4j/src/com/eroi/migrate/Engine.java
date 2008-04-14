@@ -13,14 +13,26 @@ import org.apache.commons.logging.LogFactory;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 
+/**
+ * Applies or rolls back migration classes
+ *
+ */
 public class Engine {
 
 	private static final Log log = LogFactory.getLog(Engine.class);
 	
+	/**
+	 * Applies all migrations that have not been applied.
+	 */
 	public static void migrate() {
 		Engine.migrate(Integer.MAX_VALUE);
 	}
 	
+	/**
+	 * Applies (or rolls back) migrations such that 
+	 * all migrations up and and including <code>version</code>
+	 * are in the schema.
+	 */
 	public static void migrate(int version) {
 		
 		log.debug("Migrating to version " + version);

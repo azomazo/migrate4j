@@ -1,6 +1,6 @@
 <project name="migrate4j" default="run_tests" basedir=".">
 	
-	<property name="version.number" value="0.01" />
+	<property name="version.number" value="0.04" />
 	
 	<property name="main.src.dir" value="${basedir}/src" />
 	<property name="main.test.dir" value="${basedir}/test" />
@@ -21,13 +21,14 @@
 		<path refid="lib.classpath"/>
 	</path>
 	
-	<target name="build.release" depends="build.jar">
+	<target name="build.release" depends="build.jar, javadocs">
 		<zip destfile="migrate4j_v${version.number}.zip">
 			<zipfileset dir="." prefix="migrate4j">
 				<include name="migrate4j.jar" />
 				<include name="src/**" />
 				<include name="test/**" />
 				<include name="web/**" />
+				<include name="docs/**" />
 				<include name="README" />
 				<include name="migrate4j.properties.sample" />
 				<include name="lib/h2.jar" />
@@ -83,4 +84,13 @@
 			</batchtest>
 		</junit>
 	</target>
+	
+	<target name="javadocs">
+		<delete dir="docs" />
+		<javadoc 
+			destdir="docs"
+			sourcepath="src">
+		</javadoc>
+	</target>
+	
 </project>

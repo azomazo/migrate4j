@@ -12,6 +12,11 @@ import org.apache.commons.logging.LogFactory;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.Validator;
 
+/**
+ * Tells migrate4j where migration classes are located
+ * and how to connect to the database.
+ *
+ */
 public class Configure {
 
 	public static final String PROPERTY_CONNECTION_URL = "connection.url";

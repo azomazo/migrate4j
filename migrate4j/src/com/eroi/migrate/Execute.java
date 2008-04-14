@@ -24,12 +24,25 @@ public class Execute {
 	
 	private static Log log = LogFactory.getLog(Execute.class);
 	
+	/**
+	 * Indicates whether an index exists
+	 * 
+	 * @param index
+	 * @return
+	 */
 	public static boolean exists(Index index) {
 		Validator.notNull(index, "Index can not be null");
 		
 		return indexExists(index.getName(), index.getTableName());
 	}
 	
+	/**
+	 * Indicates whether an index exists
+	 * 
+	 * @param indexName
+	 * @param tableName
+	 * @return
+	 */
 	public static boolean indexExists(String indexName, String tableName) {
 		Validator.notNull(indexName, "Index name can not be null");
 		
@@ -47,12 +60,24 @@ public class Execute {
 		} 
 	}
 	
+	/**
+	 * Indicates whether a table exists
+	 * 
+	 * @param table
+	 * @return
+	 */
 	public static boolean exists(Table table) {
 		Validator.notNull(table, "Table can not be null");
 		
 		return tableExists(table.getTableName());
 	}
 	
+	/**
+	 * Indicates whether a table exists
+	 * 
+	 * @param tableName
+	 * @return
+	 */
 	public static boolean tableExists(String tableName) {
 		Validator.notNull(tableName, "Table name can not be null");
 		
@@ -69,6 +94,13 @@ public class Execute {
 		}
 	}
 	
+	/**
+	 * Indicates whether a table contains a column
+	 * 
+	 * @param column
+	 * @param table
+	 * @return
+	 */
 	public static boolean exists(Column column, Table table) {
 		Validator.notNull(table, "Table can not be null");
 		Validator.notNull(column, "Column can not be null");
@@ -77,6 +109,13 @@ public class Execute {
 		
 	}
 	
+	/**
+	 * Indicates whether a table contains a column
+	 * 
+	 * @param column
+	 * @param tableName
+	 * @return
+	 */
 	public static boolean exists(Column column, String tableName) {
 		Validator.notNull(column, "Column can not be null");
 		
@@ -84,6 +123,13 @@ public class Execute {
 		
 	}
 	
+	/**
+	 * Indicates whether a table contains a column
+	 * 
+	 * @param columnName
+	 * @param tableName
+	 * @return
+	 */
 	public static boolean columnExists(String columnName, String tableName) {
 		Validator.notNull(tableName, "Table Name can not be null");
 		Validator.notNull(columnName, "Column Name can not be null");
@@ -100,6 +146,13 @@ public class Execute {
 		} 
 	}
 	
+	/**
+	 * Indicates whether a foreign key exists
+	 * 
+	 * @param foreignKeyName
+	 * @param childTableName
+	 * @return
+	 */
 	public static boolean foreignKeyExists(String foreignKeyName, String childTableName) {
 		Validator.notNull(foreignKeyName, "Foreign key name can not be null");
 		Validator.notNull(childTableName, "Child table name can not be null");
@@ -117,6 +170,12 @@ public class Execute {
 		} 
 	}
 	
+	/**
+	 * Indicates whether a foreign key exists
+	 * 
+	 * @param foreignKey
+	 * @return
+	 */
 	public static boolean exists(ForeignKey foreignKey) {
 		Validator.notNull(foreignKey, "Foreign key can not be null");
 		
@@ -133,10 +192,27 @@ public class Execute {
 		} 
 	}
 	
+	/**
+	 * Create a table
+	 * 
+	 * @param table
+	 */
 	public static void createTable(Table table) {
 		createTable(table, null);
 	}
 	
+	/**
+	 * Create a table with database specific options.
+	 * This allows, for example, passing an engine type
+	 * to MySQL.  While the <code>tableOptions</code>
+	 * may be ignored for database products that do not
+	 * accept such things, be aware that using this 
+	 * argument may make your migrations no longer cross
+	 * product compatible.
+	 * 
+	 * @param table
+	 * @param tableOptions
+	 */
 	public static void createTable(Table table, String tableOptions){
 		Validator.notNull(table, "Table can not be null");
 		
@@ -164,6 +240,11 @@ public class Execute {
 		} 
 	}
 	
+	/**
+	 * Drop a table
+	 * 
+	 * @param tableName
+	 */
 	public static void dropTable(String tableName) {
 		Validator.notNull(tableName, "Table name can not be null");
 		
@@ -185,10 +266,23 @@ public class Execute {
 		} 
 	}
 	
+	/**
+	 * Add a column to a table
+	 * 
+	 * @param column
+	 * @param tableName
+	 */
 	public static void addColumn(Column column, String tableName) {
 		addColumn(column, tableName, null);
 	}
 	
+	/**
+	 * Add a column to a table
+	 * 
+	 * @param column
+	 * @param table
+	 * @param afterColumn
+	 */
 	public static void addColumn(Column column, String table, String afterColumn) {
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(table, "Table can not be null");
@@ -208,6 +302,13 @@ public class Execute {
 		}
 	}
 	
+	/**
+	 * Add a column to a table
+	 * 
+	 * @param column
+	 * @param table
+	 * @param position
+	 */
 	public static void addColumn(Column column, String table, int position) {
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(table, "Table can not be null");
@@ -226,6 +327,13 @@ public class Execute {
 			throw new SchemaMigrationException("Unable to alter table " + table + " and add column " + column.getColumnName(), e);
 		}
 	}
+	
+	/**
+	 * Drop a column from a table
+	 * 
+	 * @param columnName
+	 * @param tableName
+	 */
 	public static void dropColumn(String columnName, String tableName) {
 		Validator.notNull(columnName, "Column can not be null");
 		Validator.notNull(tableName, "Table can not be null");
@@ -250,6 +358,11 @@ public class Execute {
 		
 	}
 	
+	/**
+	 * Add an index
+	 * 
+	 * @param index
+	 */
 	public static void addIndex(Index index) {
 		Validator.notNull(index, "Index can not be null");
 		
@@ -271,6 +384,12 @@ public class Execute {
 		}
 	}
 	
+	/**
+	 * Drop an index
+	 * 
+	 * @param indexName
+	 * @param tableName
+	 */
 	public static void dropIndex(String indexName, String tableName) {
 		Validator.notNull(indexName, "Index can not be null");
 		
@@ -292,6 +411,11 @@ public class Execute {
 		}
 	}
 	
+	/**
+	 * Add a foreign key
+	 * 
+	 * @param foreignKey
+	 */
 	public static void addForeignKey(ForeignKey foreignKey) {
 		Validator.notNull(foreignKey, "ForeignKey can not be null");
 		
@@ -313,6 +437,11 @@ public class Execute {
 		}
 	}
 	
+	/**
+	 * Drop a foreign key
+	 * 
+	 * @param foreignKey
+	 */
 	public static void dropForeignKey(ForeignKey foreignKey) {
 		Validator.notNull(foreignKey, "ForeignKey can not be null");
 		
@@ -334,6 +463,12 @@ public class Execute {
 		}
 	}
 	
+	/**
+	 * Drop a foreign key
+	 * 
+	 * @param foreignKeyName
+	 * @param childTableName
+	 */
 	public static void dropForeignKey(String foreignKeyName, String childTableName) {
 		Validator.notNull(foreignKeyName, "ForeignKey can not be null");
 		
@@ -356,6 +491,13 @@ public class Execute {
 		
 	}
 	
+	/**
+	 * Rename a column
+	 * 
+	 * @param newColumnName
+	 * @param oldColumnName
+	 * @param tableName
+	 */
 	public static void renameColumn(String newColumnName, String oldColumnName, String tableName) {
 		Validator.notNull(newColumnName, "New column name can not be null");
 		Validator.notNull(oldColumnName, "Old column name can not be null");
