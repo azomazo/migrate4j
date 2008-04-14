@@ -3,58 +3,92 @@
 <head>
 
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-  <title>migrate4j Status</title>
+  <title>Welcome to Migrate4j</title>
 
-<style type="text/css" >
-	div {text-align: left;} 
-</style>
+  <style type="text/css">
+	<!--
+	@page { size: 8.5in 11in; margin: 0.79in }
+	P { margin-bottom: 0.08in }
+	H3 { margin-bottom: 0.08in }
+	H3.western { font-family: "Helvetica" }
+	H3.cjk { font-family: "AR PL ShanHeiSun Uni" }
+	H3.ctl { font-family: "Lucidasans" }
+	H1 { margin-bottom: 0.08in }
+	H1.western { font-family: "Helvetica"; font-size: 16pt }
+	H1.cjk { font-family: "AR PL ShanHeiSun Uni"; font-size: 16pt }
+	H1.ctl { font-family: "Lucidasans"; font-size: 16pt }
+	-->
+  </style>
 </head>
 <body>
 
-<div style="text-align: center;"><h2>Welcome to</h2>
-<h1><big><a href="index.html">migrate4j</a></big></h1>
 
-<br>
-<br />
+<h1><a href="index.html">Welcome to migrate4j</a></h1>
+
 
 <h3>Status and Progress</h3>
 <div>
-Currently, migrate4j offers the following functionality:
+The following indicates the status of database support for migrate4j version 0.04:
 <br /><br />
-<h3>Version 0.01</h3>
-<table border="1" width="80%">
-<tr><th>Vendor:</th><th>H2</th><th>MySQL</th><th>Sybase iAnywhere</th></tr>
-<tr><td></td><th colspan="3" />Tables</th></tr>
-<tr><th>Exists</th><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-<tr><th>Add</th><td>Yes</td><td>Yes <a href="#num1"><sup>1</sup></a></td><td>Yes</td></tr>
-<tr><th>Drop</th><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-<tr><td></td><th colspan="3" />Columns</th></tr>
-<tr><th>Exists</th><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-<tr><th>Add <a href="#num2"><sup>2</sup></a></th><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-<tr><th>Drop</th><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-</table>
-<br /><br />
-<h3>New in SVN</h3>
-<table border="1" width="80%">
-<tr><th>Vendor:</th><th>H2</th><th>MySQL</th><th>Sybase iAnywhere</th></tr>
-<tr><td></td><th colspan="3" />Indexes</th></tr>
-<tr><th>Exists</th><td>Yes</td><td>Unknown</td><td>Yes</td></tr>
-<tr><th>Create</th><td>Yes</td><td>Unknown</td><td>Yes</td></tr>
-<tr><th>Create Unique</th><td>Yes</td><td>Unknown</td><td>Yes</td></tr>
-<tr><th>Drop</th><td>Yes</td><td>Unknown</td><td>Yes</td></tr>
-</table>
-</div>
+<h1>H2<span style="font-weight:100; font-size:medium; vertical-align: top">*</span></h1>
+<pre>
+Test results for H2 version 1.0.59 (2007-10-03)
+Using driver H2 JDBC Driver version 1.0.59 (2007-10-03)
+Generator class com.eroi.migrate.generators.GenericGenerator
+
+Create table/table exists:  PASS
+Drop table:  PASS
+Add column/column exists:  PASS
+Drop column:  PASS
+Add index/index exists:  PASS
+Drop index:  PASS
+Add unique index:  PASS
+Drop unique index:  PASS
+Add foreign key/foreign key exists:  PASS
+Drop foreign key:  PASS
+Add column after column:  PASS
+</pre>
 <br />
+<h1>MySql</h1>
+<pre>
+Test results for MySQL version 5.0.45-Debian_1ubuntu3.3-log
+Using driver MySQL-AB JDBC Driver version mysql-connector-java-5.0.8 ( Revision: ${svn.Revision} )
+Generator class com.eroi.migrate.generators.MySQLGenerator
+
+Create table/table exists:  PASS
+Drop table:  PASS
+Add column/column exists:  PASS
+Drop column:  PASS
+Add index/index exists:  PASS
+Drop index:  PASS
+Add unique index:  PASS
+Drop unique index:  PASS
+Add foreign key/foreign key exists:  PASS
+Drop foreign key:  PASS
+Add column after column:  PASS
+</pre>
 <br />
-<div><b>Notes:</b>
-<ul>
-	<li><a name="num1" />1.  New table is created with default Engine and Charset.  
-							 Future versions will allow setting these to specific values.</li>
-	<li><a name="num2" />2.  New column is added last.  Future versions will allow positioning
-							 within the column list.</li>
-</ul>
-</div>
+<h1>Sybase</h1>
+<pre>
+Test results for SQL Anywhere version 10.0.1.3415
+Using driver jConnect (TM) for JDBC (TM) version jConnect (TM) for JDBC(TM)/5.2(Build 20765)/P/EBF9109/JDK12/Fri Jun 16  9:31:01 2000
+Generator class com.eroi.migrate.generators.SybaseGenerator
+
+Create table/table exists:  PASS
+Drop table:  PASS
+Add column/column exists:  PASS
+Drop column:  PASS
+Add index/index exists:  PASS
+Drop index:  PASS
+Add unique index:  PASS
+Drop unique index:  PASS
+Add foreign key/foreign key exists:  PASS
+Drop foreign key:  PASS
+Add column after column:  
+</pre>
 <br />
+<p>* - Databases without specific generators use the same Generator as H2.  Differences in DDL may cause schema changes in other database products to fail.
+</p>
 <br />
 <div>
 <a href="index.html">Back to migrate4j homepage</a>.
