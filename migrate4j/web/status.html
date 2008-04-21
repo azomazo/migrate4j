@@ -23,14 +23,41 @@
 <body>
 
 
-<h1><a href="index.html">Welcome to migrate4j</a></h1>
+<h1>Welcome to <a href="index.html">migrate4j</a> database support status</h1>
 
+<ul>
+<li><a href="#derby">Derby</a></li>
+<li><a href="#h2">H2</a></li>
+<li><a href="#mysql">MySql</a></li>
+<li><a href="#sybase">Sybase</a></li>
+<li><a href="#unsupported">All other databases</a></li>
+</ul>
 
 <h3>Status and Progress</h3>
 <div>
 The following indicates the status of database support for migrate4j version 0.04:
 <br /><br />
-<h1>H2<span style="font-weight:100; font-size:medium; vertical-align: top">*</span></h1>
+<h1><a name="derby" />Derby</h1>
+<pre>
+Test results for Apache Derby version 10.3.2.1 - (599110)
+Using driver Apache Derby Embedded JDBC Driver version 10.3.2.1 - (599110)
+Generator class com.eroi.migrate.generators.DerbyGenerator
+
+Create table/table exists:  PASS
+Drop table:  PASS
+Add column/column exists:  PASS
+Drop column:  PASS
+Add index/index exists:  PASS
+Drop index:  PASS
+Add unique index:  PASS
+Drop unique index:  PASS
+Add foreign key/foreign key exists:  PASS
+Drop foreign key:  PASS
+Add column after column:  
+Rename column:  
+</pre>
+<br />
+<h1><a name="h2" />H2<span style="font-weight:100; font-size:medium; vertical-align: top"><a href="#unsupported" />*</a></span></h1>
 <pre>
 Test results for H2 version 1.0.59 (2007-10-03)
 Using driver H2 JDBC Driver version 1.0.59 (2007-10-03)
@@ -49,7 +76,7 @@ Drop foreign key:  PASS
 Add column after column:  PASS
 </pre>
 <br />
-<h1>MySql</h1>
+<h1><a name="mysql" />MySql</h1>
 <pre>
 Test results for MySQL version 5.0.45-Debian_1ubuntu3.3-log
 Using driver MySQL-AB JDBC Driver version mysql-connector-java-5.0.8 ( Revision: ${svn.Revision} )
@@ -68,7 +95,7 @@ Drop foreign key:  PASS
 Add column after column:  PASS
 </pre>
 <br />
-<h1>Sybase</h1>
+<h1><a name="sybase" />Sybase</h1>
 <pre>
 Test results for SQL Anywhere version 10.0.1.3415
 Using driver jConnect (TM) for JDBC (TM) version jConnect (TM) for JDBC(TM)/5.2(Build 20765)/P/EBF9109/JDK12/Fri Jun 16  9:31:01 2000
@@ -87,15 +114,18 @@ Drop foreign key:  PASS
 Add column after column:  
 </pre>
 <br />
-<p>* - Databases without specific generators use the same Generator as H2.  Differences in DDL may cause schema changes in other database products to fail.
+<h1><a name="unsupported" />All other databases</h1>
+<p>Databases without specific generators use the same Generator as H2.  Differences in DDL may cause schema changes in other database products to fail.
 </p>
 <br />
 <div>
 <a href="index.html">Back to migrate4j homepage</a>.
 </div>
 <br />
-<div style="text-align: center;"><a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=207661&amp;type=4" alt="SourceForge.net Logo" border="0" height="37" width="125">
 
+<!-- sourceforge loge is required - do not remove-->
+<div style="text-align: center;"><a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=207661&amp;type=4" alt="SourceForge.net Logo" border="0" height="37" width="125">
 </a></div>
+
 </body>
 </html>

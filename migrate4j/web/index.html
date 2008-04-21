@@ -41,7 +41,7 @@
 migration tool.
 Suppose you determine that you need a new database table for your
 project. If you develop alone, you could write an SQL script that
-adds the table and manually apply this to your development system.
+adds a table and manually apply this to your development system.
 But if you work with other developers, or need to keep a test system
 in synch with your development system, this become tedious and error
 prone.</p>
@@ -68,7 +68,7 @@ and ability to roll changes up and back effortlessly. The intent (and
 the challenge) of migrate4j is to bring the power and simplicity of
 db:migrate to Java programmers, using familiar type safety and
 syntax. Along the way, we're adding additional functionality that
-make migrate4j more than just another Ruby tool rewritten for Java
+makes migrate4j more than just another Ruby tool rewritten for Java
 &ndash;
 it is a Java project intended to make other Java projects even
 better.</p>
@@ -85,14 +85,19 @@ better.</p>
 following SQL to
 your database:</p>
 
-<pre>create table version (version int primary key);<br>insert into version values (0);</pre>
+<pre>create table version (version int primary key);
+insert into version values (0);</pre>
 
 <p style="margin-bottom: 0in;">Create a file named
-&ldquo;migrate4j.properties&rdquo; and add the following text
+<span class="code">migrate4j.properties</span> and add the following text
 (replacing the
-values in &lt;tags&gt; with actual values for your database.</p>
+values in [brackets] with actual values for your database.</p>
 
-<pre>connection.url=&lt;jdbc connection url such as &ldquo;jdbc:mysql://localhost:3306/mydb &rdquo;&gt;<br>connection.driver=&lt;jdbc driver class name such as &ldquo;com.mysql.jdbc.Driver&rdquo;&gt;<br>connection.username=&lt;username&gt;<br>connection.password=&lt;password&gt;<br>migration.package.name=db.migrations</pre>
+<pre>
+connection.url=[jdbc connection url such as "jdbc:mysql://localhost:3306/mydb"]
+connection.driver=[jdbc driver class name such as "com.mysql.jdbc.Driver"]connection.username=[username]
+connection.password=[password]
+migration.package.name=db.migrations</pre>
 
 <p style="margin-bottom: 0in;">Save this file to the
 source directory
@@ -101,23 +106,32 @@ of your project.</p>
 <h3 class="western">Write a migration</h3>
 
 <p style="margin-bottom: 0in;">Create a new package named
-&ldquo;db.migrations&rdquo; in the source directory of your
+<span class="code">db.migrations</span> in the source directory of your
 project. Create a
-new Java file in the &ldquo;db.migrations&rdquo; package named
-&ldquo;Migration_1&rdquo;.
+new Java file in the <span class="code">db.migrations</span> package named
+<span class="code">Migration_1</span>.
 Add the following code:</p>
 
-<pre>package db.migrations; </pre>
+<pre>package db.migrations; 
 
-<pre>import static com.eroi.migrate.Define.*;<br>import static com.eroi.migrate.Define.DataTypes.*;<br>import static com.eroi.migrate.Execute.*; </pre>
+import static com.eroi.migrate.Define.*;
+import static com.eroi.migrate.Define.DataTypes.*;
+import static com.eroi.migrate.Execute.*;
+import com.eroi.migrate.Migration; 
 
-<pre>import com.eroi.migrate.Migration; </pre>
+public class Migration_1 implements Migration {
 
-<pre>public class Migration_1 implements Migration { </pre>
+  public void up() {
+    createTable(
+      table("simple_table",
+        column("id", INTEGER, primarykey(), notnull()),
+        column("desc", VARCHAR, length(50), defaultValue("NA"))));
+  }
 
-<pre>&nbsp; public void up() {<br>&nbsp; &nbsp; createTable(<br>&nbsp; &nbsp; &nbsp; &nbsp; table("simple_table",<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; column("id", INTEGER, primarykey(), notnull()),<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; column("desc", VARCHAR, length(50), defaultValue("NA"))));<br>&nbsp; } </pre>
-
-<pre>&nbsp; public void down() {<br>&nbsp; &nbsp; dropTable("simple_table");<br>&nbsp; }<br>} </pre>
+  public void down() {
+    dropTable("simple_table");
+  }
+} </pre>
 
 <p style="margin-bottom: 0in;">Copy the migrate4j.jar file
 and
@@ -129,8 +143,7 @@ Compile Migration_1 - the following command should accomplish this:</p>
 <h3 class="western">Apply the migration</h3>
 
 <p style="margin-bottom: 0in;">Locate migrate4j.jar,
-commons-logging.jar and the jar for your JDBC database driver jar
-(the following assumes these are in your projects source directory).
+commons-logging.jar and the jar for your JDBC database driver (the following assumes these are in your projects source directory).
 To apply Migration_1, run the following command from the command
 line:</p>
 
@@ -138,9 +151,9 @@ line:</p>
 
 <p style="margin-bottom: 0in;">Your database should now
 include
-&ldquo;simple_table&rdquo;. To remove the table, rerun the
+<span class="code">simple_table</span>. To remove the table, rerun the
 Engine with a
-target version of &ldquo;0&rdquo;:</p>
+target version of <span class="code">0</span>:</p>
 
 <pre>java -cp .:mysql.jar:migrate4j.jar:lib/commons-logging.jar com.eroi.migrate.Engine 0</pre>
 
@@ -151,88 +164,84 @@ configuration</h3>
 
 <p style="margin-bottom: 0in;">Configuring migrate4j is
 achieved
-through the Configure class. In some cases, by simply providing a
-migrate4j.properties file is all you need to do. For example, the
-Ant task that comes with migrate4j, and calling the Engine class from
-the command line (as shown in the Quick Start section of this
+through the Configure class. In some cases, simply providing a
+migrate4j.properties file is all you need. For example, the
+Ant task that comes with migrate4j, and command line option in the Engine class 
+(as shown in the Quick Start section of this
 manual), handle the call to Configure automatically. However, the
 Configure class offers a lot of flexibility.</p>
 
 <p style="margin-bottom: 0in;">Before any migrations are
 applied (or
-rolled back), one of the &ldquo;configure&rdquo; methods must
+rolled back), one of the <span class="code">configure</span> methods must
 be called on
 the Configure class. These methods include (among others):</p>
 
-<pre>configure()<br>configure(Connection, String)<br>configure(String, String, String, String, String, String, String, String, Integer, String)</pre>
+<pre>configure()
+configure(Connection, String)
+configure(String, String, String, String, String, String, String, String, Integer, String)</pre>
 
-<p style="margin-bottom: 0in;">The no argument option
-loads properties
-from a file named &ldquo;migrate4j.properties&rdquo; that is
+<p style="margin-bottom: 0in;">The no-argument option
+loads properties from a file named <span class="code">migrate4j.properties</span> that is
 found on the
 classpath (a sample of this file comes with the migrate4j
-distribution file). Obviously, being able to call
-Configure.configure() within your code, and modify a single file
-should your connection details change, is extremely convenient. The
-Ant task that comes with migrate4j, and the command line usage shown
-in the Quick Start section of the manual, both use this form of the
-configure method. This form of &ldquo;configure&rdquo; is
-generally good for
-automating migrations within a development environment (if you choose
+distribution file). If your connection details change often, or are unknown
+until deployment, this is a convenient option.  This form of <span class="code">configure</span> is
+generally good for automating migrations within a development environment (if you choose
 not to use the Ant task).</p>
 
-<p style="margin-bottom: 0in;">The method that accepts a
-Connection
-and String accepts an active javax.sql.Connection object and the
-fully qualified package name where you Migration classes reside. This
+<p style="margin-bottom: 0in;">The configure method that accepts a
+<span class="code">Connection</span>
+and <span class="code">String</span> argument takes an active <span class="code">javax.sql.Connection</span> object and the
+fully qualified package name where your Migration classes reside. This
 option works well for situations where a Connection is already
 available. For example, if you're using a connection pool or can
 obtain a connection from a JNDI repository, using this form of the
-configure method allows passing in a existing connection. One thing
+configure method allows passing in an existing connection. One thing
 to remember is that migrate4j will not close the connection &ndash;
 you
 need to do this after running the Engine. This form of
-&ldquo;configure&rdquo;
-is a good choice for ensuring your database schema is at the lastest
+configure is a good choice for ensuring your database schema is at the lastest
 version during application startup (perhaps in an initialization
-servlet or in a main JFrame).</p>
+servlet or construction of a main JFrame).</p>
 
 <p style="margin-bottom: 0in;">There are also methods that
 take
-multiple arguments which allow programatically setting connection
-values. If you'd like to set values in some fashion other than from
+multiple arguments, allowing connection
+values to be set programmatically. If you'd like to set values in some fashion other than from
 a properties file, these methods allow passing in values directly to
-the configure method. This form of &ldquo;configure&rdquo;
+the configure method. This form of configure
 lends itself well
 to form based tools.</p>
 
 <p style="margin-bottom: 0in;">The javadocs provide more
 information
-on the various forms of &ldquo;configure&rdquo;. And again, if
+on the various forms of <span class="code">configure</span>. And again, if
 you choose to
 use the Ant task to run migrations, you won't need to explicitly call
-&ldquo;configure&rdquo;.</p>
+configure in your code.</p>
 
-<h3 class="western">The &ldquo;version&rdquo; table</h3>
+<h3 class="western">The <span class="code">version</span> table</h3>
 
 <p style="margin-bottom: 0in;">The simplest way of
 providing a
-&ldquo;version&rdquo; table is to create a table named
-&ldquo;version&rdquo; with a
-single column, also named &ldquo;version&rdquo;. This table
+<span class="code">version</span> table is to create a table named
+"version" with a
+single column, also named "version". This table
 must be created
 manually. The following SQL will generate the table for most database
 products:</p>
 
-<pre>create table version (version int primary key);<br>insert into version values (0);</pre>
+<pre>create table version (version int primary key);
+insert into version values (0);</pre>
 
 <p style="margin-bottom: 0in;">You may name the table
 something other
-than &ldquo;version&rdquo;, though you will need to tell
+than "version", though you will need to tell
 migrate4j about this
-during configuration. The &ldquo;version&rdquo; column must be
+during configuration. The <span class="code">version</span> column must be
 named
-&ldquo;version&rdquo;.</p>
+"version".</p>
 
 <h1 class="western"><a name="writing" />Writing Migrations</h1>
 
@@ -240,24 +249,24 @@ named
 
 <p style="margin-bottom: 0in;">Database schema changes are
 defined in
-java classes that extend the com.eroi.migrate.Migration interface.
+java classes that extend the <span class="code">com.eroi.migrate.Migration</span> interface.
 Besides implementing this interface, all of your Migration classes
 must reside in a single package and follow a naming convention. This
 allows migrate4j to locate and determine the order in which to apply
 your Migrations.</p>
 
 <p style="margin-bottom: 0in;">The
-com.eroi.migrate.Migration
-interface defines 2 methods: up and down. The &ldquo;up&rdquo;
+<span class="code">com.eroi.migrate.Migration</span>
+interface defines 2 methods: up and down. The <span class="code">up</span>
 method is
 called by migrate4j when Migrations are being applied (for example,
-going from version 0 to 1). The &ldquo;down&rdquo; method is
+going from version 0 to 1). The <span class="code">down</span> method is
 called when
 Migrations are being rolled back (for example, when removing the
 changes made in version 1, returning the database to version 0). As
-you can imagine, any changes applied in the &ldquo;up&rdquo;
+you can imagine, any changes applied in the <span class="code">up</span>
 method should be
-reversed in the &ldquo;down&rdquo; version.</p>
+reversed in the <span class="code">down</span> version.</p>
 
 <h3 class="western">Naming convention</h3>
 
@@ -265,28 +274,27 @@ reversed in the &ldquo;down&rdquo; version.</p>
 for
 Migration classes. The package name must be specified during the
 Configuration step. For example, if using the migrate4j.properties
-file, set the migration.package.name property.</p>
+file, set the <span class="code">migration.package.name</span> property.</p>
 
-<p style="margin-bottom: 0in;">The names of you Migration
-classes are
-important to allow migrate4j to understand the order in which to
+<p style="margin-bottom: 0in;">The names of your Migration
+classes allow migrate4j to understand the order in which to
 apply (or rollback) your schema changes. By default,
-&ldquo;Migration_1&rdquo;
+<span class="code">Migration_1</span>
 is your initial Migration, followed by
-&ldquo;Migration_2&rdquo;, then
-&ldquo;Migration_3&rdquo; and so on. You may substitute both
-the &ldquo;Migration&rdquo;
-and separator (&ldquo;_&rdquo;) with other values by specifying
+<span class="code">Migration_2</span>, then
+<span class="code">Migration_3</span> and so on. You may substitute both
+the <span class="code">Migration</span>
+and separator (<span class="code">_</span>) with other values by specifying
 these changes
 during Configuration (though not all forms of
-&ldquo;configure&rdquo; allow
+<span class="code">configure</span> allow
 this at the current time). </p>
 
 <p style="margin-bottom: 0in;">You define changes to your
 database
-schema with the Execute class. You can make your source code cleaner
-by statically importing this class (including &ldquo;import static
-com.eroi.migrate.Execute.*; in your class file). The Execute class
+schema with the <span class="code">com.eroi.migrate.Execute</span> class. You can make your source code cleaner
+by statically importing this class (including <span class="code">import static
+com.eroi.migrate.Execute.*;</span> in your class file). The Execute class
 includes methods for many schema changes you may require, such as
 adding/dropping tables, columns, indexes and foreign keys. Support
 for stored procedures, triggers, rules, etc., are not yet implemented
@@ -294,11 +302,11 @@ but may be added in the future.</p>
 
 <h3 class="western">Defining database changes</h3>
 
-<p style="margin-bottom: 0in;">The Execute classes methods
+<p style="margin-bottom: 0in;">The <span class="code">com.eroi.migrate.Execute</span> class methods
 take
-objects that can be obtained through the Define class. Again,
-statically importing this class (and it's DataTypes enum) will
-significantly clean up your Migrations source code. The Define class
+objects that can be obtained through the <span class="code">com.eroi.migrate.Define</span> class. Again,
+statically importing this class (and it's <span class="code">DataTypes</span> enum) will
+significantly clean up your source code. The Define class
 provides methods for creating objects that represent tables, columns,
 indexes and foreign keys. Keep in mind, these objects are simply
 intended for schema definitions &ndash; do not expect a table
@@ -310,35 +318,35 @@ intended to
 create database structure, you can also use them to add records to
 your tables (useful for adding static records in lookup tables). It
 is possible to obtain a connection to the database through the
-Configure classes &ldquo;getConnection&rdquo; method. Use this
+<span class="code">com.eroi.migrate.Configure</span> class <span class="code">getConnection</span> method. Use this
 to add,
 remove, modify, etc. records, but do not close the connection when
 you're finished with it (this is difficult for many Java developers
 since we're so accustomed to closing JDBC objects when finished with
-them.</p>
+them).</p>
 
 <h1 class="western"><a name="applying" />Applying Migrations</h1>
 
 <p style="margin-bottom: 0in;">Applying and rolling back
 migrations is
-done with the Engine class. It's &ldquo;migrate&rdquo; method
+done with the <span class="code">com.eroi.migrate.Engine</span> class. It's <span class="code">migrate</span> method
 can be called
 with a specific version number, or without any arguments. For
-example, calling Engine.migrate(0) means rollback (run the
-&ldquo;down&rdquo;
+example, calling <span class="code">Engine.migrate(0)</span> means rollback (run the
+<span class="code">down</span>
 method) on all Migration classes found in the migration package. On
-the other hand, calling Engine.migrate() means apply (run the
-&ldquo;up&rdquo;
+the other hand, calling <span class="code">Engine.migrate()</span> means apply (run the
+<span class="code">up</span>
 method) on all Migrations in the migration package. </p>
 
 <p style="margin-bottom: 0in;">Using a specific version
 number may
-either apply, or roll back, depending on the databases current
-version number. For example, calling Engine.migrate(5) will roll
-back all migration named higher than Migration_6 in the migration
+either apply, or roll back, depending on the database's current
+version number. For example, calling <span class="code">Engine.migrate(5)</span> will roll
+back all Migrations named higher than <span class="code">Migration_6</span> in the migration
 package if the current database version is higher than 5. On the
 other hand, if the current database version is below 5, the Engine
-will apply all migrations up to and including Migration_5 in the
+will apply all migrations up to and including <span class="code">Migration_5</span> in the
 migration package. If the database is currently at version 5, the
 call has no effect.</p>
 
@@ -351,14 +359,14 @@ suite. This ensures that changes to Migration classes are applied
 prior to running unit tests. When checking in code from your source
 control versioning system, rollback your database schema (perhaps
 with the Ant task) to a known stable version (such as
-&ldquo;0&rdquo;),
+<span class="code">0</span>),
 compile all new files, and then apply all Migration classes. Experiment
 to see what works best in your development environment.</p>
 
 <p style="margin-bottom: 0in;">Deploying to your
 production systems is
 different. Obviously, rolling back a production database is not wise
-since any drop statements will result in lose of data. If you find
+since any drop statements will result in data loss. If you find
 that a schema change needs to be rolled back on your production
 systems, create a new Migration class that makes the change. In
 general, you never want to use anything other than Engine.migrate()
@@ -371,16 +379,16 @@ you create a column with the wrong data type, or you decide a name
 you've used isn't descriptive enough. It's wise to keep Migrations
 that are being developed separate from Migrations that have been
 deployed to production. To make this easier, create two separate
-packages, one for developing and one for production ready classes. For
+packages, one for developing and one for production-ready classes. For
 example, create new Migration classes in a
-&ldquo;dev.migrations&rdquo;
+<span class="code">dev.migrations</span>
 package. When you're confident they are ready to deploy to
-production, copy them to &ldquo;db.migrations&rdquo;. Your
+production, copy them to <span class="code">db.migrations</span>. Your
 development
-system can pass &ldquo;dev.migrations&rdquo; as it's migration
+system can pass <span class="code">dev.migrations</span> as it's migration
 package name
 during configuration while your production system can use
-&ldquo;db.migrations&rdquo;.</p>
+<span class="code">db.migrations</span>.</p>
 
 <h1 class="western"><a name="ant" />The Ant Task and command line Engine</h1>
 <p style="margin-bottom: 0in">While your production application will
@@ -388,8 +396,8 @@ probably be limited to loading new Migration classes at startup,
 you'll likely want more flexibility while developing. Migrate4j comes
 with a couple of basic tools to help.</p>
 
-<p style="margin-bottom: 0in">The com.eroi.migrate.Engine class has a
-main method, allow it to be launched as a standalone application. 
+<p style="margin-bottom: 0in">The <span class="code">com.eroi.migrate.Engine</span> class has a
+main method, allowing it to be launched as a standalone application. 
 You can call this from the command line, but will need to ensure your
 classpath is passed (using the -cp switch) and that you have a
 migrate4j.properties file.</p>
@@ -397,7 +405,7 @@ migrate4j.properties file.</p>
 <p style="margin-bottom: 0in">Automating schema changes to coincide
 with Migration class changes is made easier with an include Ant task.
  The migrate4j distribution file contains a file named
-“build.sample.xml” that shows how to include the migrate4j Ant
+<span class="code">build.sample.xml</span> that shows how to include the migrate4j Ant
 task into your build files.</p>
 
 <h1 class="western"><a name="help" />Getting Help</h1>
@@ -409,13 +417,13 @@ possible that reapplying will fail and you are stuck. This is not a
 flaw of migrate4j, but rather a reality of programming (for migration
 tools, this situation is analogous to an endless loop). The easiest
 remedy is to manually drop all the tables in your database, manually
-set the &ldquo;version&rdquo; column on your version table back
-to &ldquo;0&rdquo;,
-and then reapply your Migration classes (hopefully after you fixed
+set the <span class="code">version</span> column on your <span class="code">version</span> table back
+to <span class="code">0</span>,
+and then reapply your Migration classes (after you've fixed
 the problem that caused the error). Of course, there's no need to
-roll all the way back to &ldquo;0&rdquo; - if you can identify
+roll all the way back to <span class="code">0</span> - if you can identify
 a known state
-prior to that, by all means manually reset the database back to that
+prior to that, manually reset the database back to that
 point.</p>
 
 <p style="margin-bottom: 0in;">If you find other issues,
@@ -425,27 +433,25 @@ additional help, by all means email the migrate4j mailing list at
 Someone will get back to you to try to assist you.</p>
 
 <p style="margin-bottom: 0in;">Currently, migrate4j
-supports a very
-small number of databases. Unfortunately, DDL (data definition
+<a href="status.html">supports a very
+small number of databases</a>. Unfortunately, DDL (data definition
 language) is much less consistent between database vendors than DML
 (data manipulation language). Therefore, it's quite possible that
-migrate4j will not work with your database. Again, email the mailing
+migrate4j will not work with your database - <a href="status.html">our status page contains more details</a>. 
+Again, email the mailing
 list and indicate which database product you are using. There may be
 work being done on your product that just hasn't made it into a
-release yet &ndash; your email may be the trigger to get it
+release yet - your email may be the trigger to get it
 finalized.</p>
 
 <p style="margin-bottom: 0in;">We hope you enjoy using
 migrate4j and
 find it useful. Comments, suggestions and questions are encouraged,
-so don't be shy &ndash; send us an email and let us know what you
+so don't be shy - send us an email and let us know what you
 think!</p>
 
-<p style="margin-bottom: 0in;"><br>
-
-</p>
+<!-- sourceforge loge is required - do not remove-->
 <div style="text-align: center;"><a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=207661&amp;type=4" alt="SourceForge.net Logo" border="0" height="37" width="125">
-
 </a></div>
 
 </body>
