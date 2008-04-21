@@ -134,6 +134,10 @@ public class Execute {
 		Validator.notNull(tableName, "Table Name can not be null");
 		Validator.notNull(columnName, "Column Name can not be null");
 		
+		if (!tableExists(tableName)) {
+			return false;
+		}
+		
 		try {
 			Connection connection = Configure.getConnection();
 		
