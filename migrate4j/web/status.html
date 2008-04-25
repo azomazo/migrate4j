@@ -1,29 +1,27 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 
-  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="Content-Type" />
   <title>Welcome to Migrate4j</title>
+  
+<link rel="stylesheet" type="text/css" href="styles/global.css" />
 
   <style type="text/css">
 	<!--
 	@page { size: 8.5in 11in; margin: 0.79in }
-	P { margin-bottom: 0.08in }
-	H3 { margin-bottom: 0.08in }
-	H3.western { font-family: "Helvetica" }
-	H3.cjk { font-family: "AR PL ShanHeiSun Uni" }
-	H3.ctl { font-family: "Lucidasans" }
-	H1 { margin-bottom: 0.08in }
-	H1.western { font-family: "Helvetica"; font-size: 16pt }
-	H1.cjk { font-family: "AR PL ShanHeiSun Uni"; font-size: 16pt }
-	H1.ctl { font-family: "Lucidasans"; font-size: 16pt }
+	h3.cjk { font-family: "AR PL ShanHeiSun Uni" }
+	h3.ctl { font-family: "Lucidasans" }
+	h1.cjk { font-family: "AR PL ShanHeiSun Uni"; font-size: 16pt }
+	h1.ctl { font-family: "Lucidasans"; font-size: 16pt }
 	-->
   </style>
 </head>
 <body>
 
+<div id="base">
 
-<h1>Welcome to <a href="index.html">migrate4j</a> database support status</h1>
+<h1 id="header">Welcome to <a href="index.html">migrate4j</a> database support status</h1>
 
 <ul>
 <li><a href="#derby">Derby</a></li>
@@ -34,10 +32,8 @@
 </ul>
 
 <h3>Status and Progress</h3>
-<div>
-The following indicates the status of database support for migrate4j version 0.04:
-<br /><br />
-<h1><a name="derby" />Derby</h1>
+<p>The following indicates the status of database support for migrate4j version 0.04:</p>
+<h1 id="derby">Derby</h1>
 <pre>
 Test results for Apache Derby version 10.3.2.1 - (599110)
 Using driver Apache Derby Embedded JDBC Driver version 10.3.2.1 - (599110)
@@ -56,8 +52,8 @@ Drop foreign key:  PASS
 Add column after column:  
 Rename column:  
 </pre>
-<br />
-<h1><a name="h2" />H2<span style="font-weight:100; font-size:medium; vertical-align: top"><a href="#unsupported" />*</a></span></h1>
+<p><a href="#base">back to top</a></p>
+<h1 id="h2">H2<a href="#unsupported" />*</a></span></h1>
 <pre>
 Test results for H2 version 1.0.59 (2007-10-03)
 Using driver H2 JDBC Driver version 1.0.59 (2007-10-03)
@@ -75,8 +71,8 @@ Add foreign key/foreign key exists:  PASS
 Drop foreign key:  PASS
 Add column after column:  PASS
 </pre>
-<br />
-<h1><a name="mysql" />MySql</h1>
+<p><a href="#base">back to top</a></p>
+<h1 id="mysql">MySql</h1>
 <pre>
 Test results for MySQL version 5.0.45-Debian_1ubuntu3.3-log
 Using driver MySQL-AB JDBC Driver version mysql-connector-java-5.0.8 ( Revision: ${svn.Revision} )
@@ -94,8 +90,8 @@ Add foreign key/foreign key exists:  PASS
 Drop foreign key:  PASS
 Add column after column:  PASS
 </pre>
-<br />
-<h1><a name="sybase" />Sybase</h1>
+<p><a href="#base">back to top</a></p>
+<h1 id="sybase">Sybase</h1>
 <pre>
 Test results for SQL Anywhere version 10.0.1.3415
 Using driver jConnect (TM) for JDBC (TM) version jConnect (TM) for JDBC(TM)/5.2(Build 20765)/P/EBF9109/JDK12/Fri Jun 16  9:31:01 2000
@@ -113,19 +109,16 @@ Add foreign key/foreign key exists:  PASS
 Drop foreign key:  PASS
 Add column after column:  
 </pre>
-<br />
-<h1><a name="unsupported" />All other databases</h1>
-<p>Databases without specific generators use the same Generator as H2.  Differences in DDL may cause schema changes in other database products to fail.
-</p>
-<br />
-<div>
-<a href="index.html">Back to migrate4j homepage</a>.
-</div>
-<br />
+<p><a href="#base">back to top</a></p>
+<h1 id="unsupported">All other databases</h1>
+<p>Databases without specific generators use the same Generator as H2.  Differences in DDL may cause schema changes in other database products to fail.</p>
+<p><a href="index.html">Back to migrate4j homepage</a>.</p>
+
 
 <!-- sourceforge loge is required - do not remove-->
-<div style="text-align: center;"><a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=207661&amp;type=4" alt="SourceForge.net Logo" border="0" height="37" width="125">
-</a></div>
+<div style="text-align: center;"><a href="http://sourceforge.net"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=207661&amp;type=4" alt="SourceForge.net Logo" height="37" width="125" /></a></div>
+
+</div>
 
 </body>
 </html>
