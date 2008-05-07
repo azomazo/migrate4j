@@ -33,6 +33,7 @@
 				<include name="migrate4j.properties.sample" />
 				<include name="lib/h2.jar" />
 				<include name="lib/commons-logging.jar" />
+				<include name="build.sample.xml" />
 				<exclude name="**/*Sybase*/**" />
 			</zipfileset>
 		</zip>

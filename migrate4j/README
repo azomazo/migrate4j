@@ -20,8 +20,8 @@ the migration.  For example, you would create Migration_1.java,
 Migration_2.java, and so on.  Most (or all) of the convention can be 
 overwritten by modifying the migrate4j.properties file.
 
-Prerequisites:  Java 1.4 or higher, a JDBC driver for your database 
-and JUnit 3 or higher.  If your database is not currently supported, 
+Prerequisites:  Java 1.5 or higher, commons-logging, and a JDBC driver 
+for your database .  If your database is not currently supported, 
 you are free to add support (or request support by emailing 
 migrate4j-users@lists.sourceforge.net).  
 
