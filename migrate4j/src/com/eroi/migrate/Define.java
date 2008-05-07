@@ -6,6 +6,7 @@ import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
+import com.sun.org.apache.regexp.internal.recompile;
 
 /**
  * Creates new schema element objects that can be 
@@ -305,7 +306,7 @@ public class Define {
 		}
 		
 	}
-
+	
 	/**
 	 * Allow specifying the length of a column
 	 * 
@@ -315,7 +316,39 @@ public class Define {
 	public static Length length(Integer len) {
 		return new Length(len);
 	}
+
+	public static class Precision implements ColumnOption<Integer> {
+		private Integer precision;
+		
+		public Precision(Integer precision) {
+			this.precision = precision;
+		}
+		
+		public void decorate(Column column) {
+			column.setPrecision(precision);
+		}
+	}
 	
+	public static Precision precision(Integer precision) {
+		return new Precision(precision);
+	}
+	
+	public static class Scale implements ColumnOption<Integer> {
+		private Integer scale;
+		
+		public Scale(Integer scale) {
+			this.scale = scale;
+		}
+		
+		public void decorate(Column column) {
+			column.setScale(scale);
+		}
+	}
+	
+	public static Scale scale(Integer scale) {
+		return new Scale(scale);
+	}
+		
 	/**
 	 * Allows specifying a default value for a column
 	 *

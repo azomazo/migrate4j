@@ -1,18 +1,17 @@
 package com.eroi.migrate.schema;
 
-
-
 public class Column {
 
 	private String columnName;
 	private int columnType;
 	private int length;
+	private Integer precision;
+	private Integer scale;
 	private boolean primaryKey;
 	private boolean nullable;
 	private Object defaultValue;
 	private boolean autoincrement;
-	private boolean unicode; 
-	
+	private boolean unicode; 	
 	
 	public Column(String columnName, int columnType) {
 		this(columnName, columnType, -1, false, true, null, false);
@@ -90,6 +89,22 @@ public class Column {
 	
 	public void setUnicode(boolean unicode) {
 		this.unicode = unicode;
+	}
+	
+	public Integer getPrecision() {
+		return precision;
+	}
+	
+	public void setPrecision(Integer precision) {
+		this.precision = precision;
+	}
+	
+	public Integer getScale() {
+		return scale;
+	}
+	
+	public void setScale(Integer scale) {
+		this.scale = scale;
 	}
 	
 }
