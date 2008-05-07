@@ -18,6 +18,7 @@ public class GeneratorHelper {
 	private static final List<Integer> needsLength;
 	private static final List<Integer> needsQuotes;
 	private static final List<Integer> stringTypes;
+	private static final List<Integer> acceptsScale;
 	
 	static {
 		types = new HashMap<Integer, String>();
@@ -31,6 +32,7 @@ public class GeneratorHelper {
 		types.put(new Integer(Types.INTEGER), "INT");
 		types.put(new Integer(Types.LONGVARCHAR), "TEXT");
 		types.put(new Integer(Types.NUMERIC), "NUMERIC");
+		types.put(new Integer(Types.REAL), "REAL");
 		types.put(new Integer(Types.SMALLINT), "SMALLINT");
 		types.put(new Integer(Types.TIME), "TIME");
 		types.put(new Integer(Types.TIMESTAMP), "TIMESTAMP");
@@ -50,6 +52,12 @@ public class GeneratorHelper {
 		stringTypes.add(new Integer(Types.CHAR));
 		stringTypes.add(new Integer(Types.LONGVARCHAR));
 		stringTypes.add(new Integer(Types.VARCHAR));
+		
+		acceptsScale = new ArrayList<Integer>();
+		acceptsScale.add(new Integer(Types.DECIMAL));
+		acceptsScale.add(new Integer(Types.REAL));
+		acceptsScale.add(new Integer(Types.FLOAT));
+		acceptsScale.add(new Integer(Types.DOUBLE));
 	}
 	
 	public static String getSqlName(int type) {
@@ -66,6 +74,10 @@ public class GeneratorHelper {
 	
 	public static boolean isStringType(int type) {
 		return stringTypes.contains(new Integer(type));
+	}
+	
+	public static boolean acceptsScale(int type) {
+		return acceptsScale.contains(new Integer(type));
 	}
 	
 	public static Column[] getPrimaryKeyColumns(Column[] columns) {
