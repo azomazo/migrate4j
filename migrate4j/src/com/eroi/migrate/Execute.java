@@ -341,8 +341,7 @@ public class Execute {
 	public static void dropColumn(String columnName, String tableName) {
 		Validator.notNull(columnName, "Column can not be null");
 		Validator.notNull(tableName, "Table can not be null");
-		Validator.isTrue(tableExists(tableName), "Table does not exist");
-		
+				
 		if (!columnExists(columnName, tableName)) {
 			return;
 		}
@@ -423,7 +422,7 @@ public class Execute {
 	public static void addForeignKey(ForeignKey foreignKey) {
 		Validator.notNull(foreignKey, "ForeignKey can not be null");
 		
-		if (exists(foreignKey)) {
+		if (exists(foreignKey) || !tableExists(foreignKey.getChildTable()) || !tableExists(foreignKey.getParentTable())) {
 			return;
 		}
 		
@@ -507,13 +506,8 @@ public class Execute {
 		Validator.notNull(oldColumnName, "Old column name can not be null");
 		Validator.notNull(tableName, "Table name can not be null");
 		
-		if (!columnExists(oldColumnName, tableName)) {
-			
-			//Is this already done?
-			if (!columnExists(newColumnName, tableName)) {
-				throw new SchemaMigrationException("Column " + oldColumnName + " does not exist in table " + tableName);
-			}
-			
+		if (!columnExists(oldColumnName, tableName) || columnExists(newColumnName, tableName)) {
+				
 			//We must have already done this
 			return;
 		}
