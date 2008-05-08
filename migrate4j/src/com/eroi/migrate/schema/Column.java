@@ -33,6 +33,8 @@ public class Column {
 		this.autoincrement = autoincrement;
 		
 		unicode = false;
+		precision = null;
+		scale = null;
 	}
 	
 	public String getColumnName() {
