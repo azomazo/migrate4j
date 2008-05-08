@@ -1,5 +1,7 @@
 package com.eroi.migrate.generators;
 
+import java.sql.Types;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -153,11 +155,30 @@ public class MySQLGenerator extends GenericGenerator {
     	int type = column.getColumnType();
 
     	retVal.append(GeneratorHelper.getSqlName(type));
+    	
     	if (GeneratorHelper.needsLength(type)) {
     	    retVal.append("(")
     		  .append(column.getLength())
     		  .append(")");
     	}
+    	
+    	if (GeneratorHelper.acceptsScale(type) || type == Types.NUMERIC) {
+    		String end = "";
+    		
+    		if (column.getPrecision() != null) {
+    			retVal.append("(")
+    				.append(column.getPrecision());
+    			end = ")";
+    		}
+    		
+    		if (column.getScale() != null) {
+    			retVal.append(",")
+    				.append(column.getScale());
+    		}
+    		
+    		retVal.append(end);
+    	}
+    	
     	retVal.append(" ");
 
     	if (!column.isNullable()) {
