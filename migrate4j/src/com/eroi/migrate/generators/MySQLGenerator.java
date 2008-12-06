@@ -7,6 +7,7 @@ import org.apache.commons.logging.LogFactory;
 
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.misc.Validator;
+import com.eroi.migrate.schema.CascadeRule;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
@@ -65,7 +66,19 @@ public class MySQLGenerator extends GenericGenerator {
 		  .append(wrapName(foreignKey.getParentTable()))
 		  .append(" (")
 		  .append(GeneratorHelper.makeStringList(parentColumns))
-		  .append(");");
+		  .append(")");
+	    
+	    if (!CascadeRule.none.equals(foreignKey.getCascadeDeleteRule())) {
+	    	retVal.append(" on delete ")
+	    		  .append(foreignKey.getCascadeDeleteRule().name());
+	    }
+	    
+	    if (!CascadeRule.none.equals(foreignKey.getCascadeUpdateRule())) {
+	    	retVal.append(" on update ")
+  		  		  .append(foreignKey.getCascadeUpdateRule().name());
+	    }
+
+		retVal .append(";");
 
 	    return retVal.toString();
 	}

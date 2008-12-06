@@ -2,11 +2,11 @@ package com.eroi.migrate;
 
 import java.sql.Types;
 
+import com.eroi.migrate.schema.CascadeRule;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
-import com.sun.org.apache.regexp.internal.recompile;
 
 /**
  * Creates new schema element objects that can be 
@@ -125,6 +125,23 @@ public class Define {
      */
     public static ForeignKey foreignKey(String name, String parentTable, String parentColumn, String childTable, String childColumn) {
     	return new ForeignKey(name, parentTable, parentColumn, childTable, childColumn);
+    }
+    
+    /**
+     * Represents a foreign key to be added to a schema with delete
+     * and update cascade rules
+     * 
+     * @param name
+     * @param parentTable
+     * @param parentColumn
+     * @param childTable
+     * @param childColumn
+     * @param deleteRule
+     * @param updateRule
+     * @return
+     */
+    public static ForeignKey foreignKey(String name, String parentTable, String parentColumn, String childTable, String childColumn, CascadeRule deleteRule, CascadeRule updateRule) {
+    	return new ForeignKey(name, parentTable, parentColumn, childTable, childColumn, deleteRule, updateRule);
     }
     
 	/**

@@ -9,18 +9,30 @@ public class ForeignKey {
     private String[] parentColumns;
     private String childTable;
     private String[] childColumns;
+    private CascadeRule cascadeDeleteRule;
+    private CascadeRule cascadeUpdateRule;
     
     public ForeignKey(String name, String parentTable, String parentColumn, String childTable, String childColumn) {
-    	this(name, parentTable, new String[] { parentColumn }, childTable, new String[] { childColumn });
+    	this(name, parentTable, parentColumn, childTable, childColumn, CascadeRule.none,  CascadeRule.none);
     }
     
+    public ForeignKey(String name, String parentTable, String parentColumn, String childTable, String childColumn, CascadeRule deleteRule, CascadeRule updateRule) {
+    	this(name, parentTable, new String[] { parentColumn }, childTable, new String[] { childColumn }, deleteRule, updateRule);
+    }
+
     public ForeignKey(String name, String parentTable, String[] parentColumns, String childTable, String[] childColumns) {
+    	this(name, parentTable, parentColumns, childTable, childColumns, CascadeRule.none, CascadeRule.none);
+    }
+
+    public ForeignKey(String name, String parentTable, String[] parentColumns, String childTable, String[] childColumns, CascadeRule cascadeDeleteRule, CascadeRule cascadeUpdateRule) {
         
     	this.name = name;
     	this.parentTable = parentTable;
         this.childTable = childTable;
         this.parentColumns = parentColumns;
         this.childColumns = childColumns;
+        this.cascadeDeleteRule = cascadeDeleteRule;
+        this.cascadeUpdateRule = cascadeUpdateRule;
         
         init();
     }
@@ -58,6 +70,14 @@ public class ForeignKey {
 
     public String[] getChildColumns() {
         return childColumns;
+    }
+    
+    public CascadeRule getCascadeDeleteRule() {
+    	return cascadeDeleteRule;
+    }
+
+    public CascadeRule getCascadeUpdateRule() {
+    	return cascadeUpdateRule;
     }
     
     public static String createName(String parentTableName, String childTableName, String[] parentColumnNames) {
