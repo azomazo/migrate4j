@@ -64,40 +64,11 @@ public class GenericGeneratorTest extends TestCase {
 		assertEquals(expected, tableString);
 	}
 	
-	
-	/*public void testGetCreateTableStatement() {
+	public void testAlterColumnStatement() {
+		Column column = new Column("id",  Types.VARCHAR, 50, false, false, "NA", false);
 		
-		String expected = "create table \"sample\" (\"id\" INT NOT NULL PRIMARY KEY,\"desc\" VARCHAR(50) NOT NULL);";
+		String output = generator.alterColumnStatement(column, "table");
 		
-		List columns = new ArrayList();
-		columns.add(Define.createPrimaryKeyColumn("id", Types.INTEGER, false));
-		columns.add(Define.createColumn("desc", Types.VARCHAR, 50, false, null, null));
-		
-		SchemaElement.Column[] columnArray = 
-			(SchemaElement.Column[])columns.toArray(new SchemaElement.Column[columns.size()]);
-		
-		SchemaElement.Table table = 
-			(com.eroi.migrate.schema.Table)Define.createTable("sample", columnArray);
-
-		String statement = generator.getTableStatement(table);
-		assertEquals(statement, expected);
+		assertEquals(output, "ALTER TABLE \"table\" MODIFY COLUMN \"id\" VARCHAR(50) NOT NULL DEFAULT 'NA'");
 	}
-	
-	public void testGetCreateTableStatement_AutoIncrementingPrimaryKey() {
-		
-		String expected = "create table \"sample\" (\"id\" INT NOT NULL AUTO_INCREMENT PRIMARY KEY,\"desc\" VARCHAR(50) NOT NULL);";
-		
-		List columns = new ArrayList();
-		columns.add(Define.createPrimaryKeyColumn("id", Types.INTEGER, true));
-		columns.add(Define.createColumn("desc", Types.VARCHAR, 50, false, null, null));
-		
-		SchemaElement.Column[] columnArray = 
-			(SchemaElement.Column[])columns.toArray(new SchemaElement.Column[columns.size()]);
-		
-		SchemaElement.Table table = 
-			(com.eroi.migrate.schema.Table)Define.createTable("sample", columnArray);
-
-		String statement = generator.getTableStatement(table);
-		assertEquals(statement, expected);
-	}*/
 }

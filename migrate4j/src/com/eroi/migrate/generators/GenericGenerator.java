@@ -94,6 +94,23 @@ public class GenericGenerator implements Generator {
 	}
 	
 	/**
+	 * ALTER TABLE <tableName> MODIFY COLUMN <existingDefinition.name> 
+	 * 		<newDefintion.type> [newDefinition.nullable] [...]
+	 */
+	public String alterColumnStatement(Column definition, String tableName) {
+		
+		Validator.notNull(definition, "Column definition can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		StringBuffer retVal = new StringBuffer("ALTER TABLE ");
+		retVal.append(wrapName(tableName))
+			  .append(" MODIFY COLUMN ")
+			  .append(makeColumnString(definition));
+		
+		return retVal.toString();
+	}
+	
+	/**
 	 * ALTER TABLE <foreignKey.childTable> ADD CONSTRAINT <foreignKey.name>
 	 * 		FOREIGN KEY (foreignKey.childColumn[,...]) REFERENCES 
 	 * 		<foreignKey.parentTable> (foreignKey.parentColumn[,...])

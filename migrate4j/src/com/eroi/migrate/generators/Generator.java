@@ -40,6 +40,8 @@ public interface Generator {
 	
 	public String addColumnStatement(Column column, String tableName, int position);
 	
+	public String alterColumnStatement(Column definition, String tableName);
+	
 	public String dropColumnStatement(String columnName, String tableName);
 	
 	public String addIndex(Index index);

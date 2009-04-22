@@ -306,6 +306,24 @@ public class Execute {
 		}
 	}
 	
+	public static void alterColumn(Column column, String tableName) {
+		Validator.notNull(column, "Column can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		try {
+			Connection connection = Configure.getConnection();
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.alterColumnStatement(column, tableName);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			log.error("Unable to alter table " + tableName + " and alter column " + column.getColumnName(), e);
+			throw new SchemaMigrationException("Unable to alter table " + tableName + " and alter column " + column.getColumnName(), e);
+		}
+	}
+	
 	/**
 	 * Add a column to a table
 	 * 
