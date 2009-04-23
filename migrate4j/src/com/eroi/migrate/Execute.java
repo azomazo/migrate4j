@@ -525,7 +525,6 @@ public class Execute {
 		Validator.notNull(tableName, "Table name can not be null");
 		
 		if (!columnExists(oldColumnName, tableName) || columnExists(newColumnName, tableName)) {
-				
 			//We must have already done this
 			return;
 		}

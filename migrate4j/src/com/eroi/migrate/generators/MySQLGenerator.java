@@ -83,13 +83,21 @@ public class MySQLGenerator extends GenericGenerator {
 	    return retVal.toString();
 	}
 
+	
+	
 	@Override
-	public String addColumnStatement(Column column, String tableName,
-			String afterColumn) {
+	public String addColumnStatement(Column column, String tableName, String afterColumn) {
+		
+		Validator.notNull(column, "Column can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
 		
 		StringBuffer alter = new StringBuffer();
-		alter.append(super.addColumnStatement(column, tableName, null));
-		
+	    
+	    alter.append("ALTER TABLE ")
+	         .append(wrapName(tableName))
+	         .append(" ADD ")
+	         .append(makeColumnString(column, false));
+	    
 		if (afterColumn != null) {
 			alter.append(" after ")
 				.append(wrapName(afterColumn));
@@ -231,8 +239,21 @@ public class MySQLGenerator extends GenericGenerator {
 	}
 	
 	@Override
-	public String renameColumn(String newColumnName, String oldColumnName,
-			String tableName) {
+	public String alterColumnStatement(Column definition, String tableName) {
+	
+		Validator.notNull(definition, "Column definition can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		StringBuffer retVal = new StringBuffer("ALTER TABLE ");
+		retVal.append(wrapName(tableName))
+			  .append(" MODIFY COLUMN ")
+			  .append(makeColumnString(definition, false));
+		
+		return retVal.toString();
+	}
+
+	@Override
+	public String renameColumn(String newColumnName, String oldColumnName, String tableName) {
 
 		Validator.notNull(newColumnName, "New column name can not be null");
 		Validator.notNull(oldColumnName, "Old column name can not be null");
@@ -240,7 +261,7 @@ public class MySQLGenerator extends GenericGenerator {
 		
 		Column column = getExistingColumn(oldColumnName, tableName);
 		Column newColumn = new Column(newColumnName, column.getColumnType(), column.getLength(), column.isPrimaryKey(), column.isNullable(), column.getDefaultValue(), column.isAutoincrement());
-				
+		
 		StringBuffer query = new StringBuffer();
 		
 		query.append("ALTER TABLE ")
@@ -248,7 +269,7 @@ public class MySQLGenerator extends GenericGenerator {
 			.append(" CHANGE COLUMN ")
 			.append(wrapName(oldColumnName))
 			.append(" ")
-			.append(makeColumnString(newColumn));
+			.append(makeColumnString(newColumn, false));
 		
 		return query.toString();
 	}
