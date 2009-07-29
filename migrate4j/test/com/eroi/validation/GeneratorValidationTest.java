@@ -18,6 +18,7 @@ import com.eroi.migrate.Execute;
 import com.eroi.migrate.generators.Generator;
 import com.eroi.migrate.generators.GenericGenerator;
 import com.eroi.migrate.generators.GeneratorFactory;
+import com.eroi.migrate.generators.PostgreSQLGenerator;
 import com.eroi.migrate.misc.Closer;
 
 import db.migrations.Migration_1;
@@ -301,7 +302,11 @@ public class GeneratorValidationTest extends TestCase {
 		assertTrue(Execute.columnExists(Migration_6.COLUMN_NAME, Migration_1.TABLE_NAME));
 		assertEquals(6, Engine.getCurrentVersion(connection));
 
-		assertTrue(checkPlacementOfRandomTextColumn());
+		// Postgres does not support adding columns using BEFORE or AFTER so let's skip it only for Postges 
+		if (GeneratorFactory.getGenerator(connection).getClass() != PostgreSQLGenerator.class) {
+			assertTrue(checkPlacementOfRandomTextColumn());
+		}
+			
 		
 		writeTestPass();
 	}

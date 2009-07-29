@@ -18,6 +18,8 @@ public class GeneratorFactory {
             return new MySQLGenerator();
         } else if ("Apache Derby".equalsIgnoreCase(dbName)) {
         	return new DerbyGenerator();
+        } else if ("PostgreSQL".equalsIgnoreCase(dbName)) {
+        	return new PostgreSQLGenerator();
         } else {
         	if (!dbName.equals("H2")) {
         		log.warn("No DDLGenerator found for \"" + dbName + "\".  You may need to write your own!  Defaulting to GenericGenerator.");
