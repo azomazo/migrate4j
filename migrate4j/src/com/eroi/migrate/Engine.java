@@ -1,5 +1,13 @@
 package com.eroi.migrate;
 
+
+import static com.eroi.migrate.Define.column;
+import static com.eroi.migrate.Define.primarykey;
+import static com.eroi.migrate.Define.table;
+import static com.eroi.migrate.Define.DataTypes.INTEGER;
+import static com.eroi.migrate.Execute.createTable;
+import static com.eroi.migrate.Execute.tableExists;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -127,6 +135,9 @@ public class Engine {
 	
 	public static int getCurrentVersion(Connection connection) throws SQLException {
 		
+        // Create Version table with version=0 on demand
+	    createVersionTableOnDemand(connection);
+
 		//This should run on every JDBC compliant DB . . . I hope
 		String query= "select " + Configure.VERSION_FIELD_NAME + " from " + Configure.getVersionTable();
 		
@@ -148,6 +159,31 @@ public class Engine {
 		
 		throw new RuntimeException("Couldn't determine current version");
 	}
+	
+    private static void createVersionTableOnDemand(Connection connection) throws SQLException {
+        String versionTableName = Configure.getVersionTable();
+
+        if (! tableExists(versionTableName)) {
+          createTable(
+              table(versionTableName,
+                  column(Configure.VERSION_FIELD_NAME, INTEGER, primarykey())
+              )
+          );
+
+          //This should run on every JDBC compliant DB . . . I hope
+          String query = "INSERT INTO " + versionTableName + " (version) VALUES (0)";
+
+          Statement statement = null;
+          try {
+            statement = connection.createStatement();
+            statement.executeUpdate(query);
+            
+          } finally {
+            Closer.close(statement);
+          }
+        }
+      }
+   	
 
 	protected static void updateCurrentVersion(Connection connection, int lastVersion) throws SQLException {
 		
