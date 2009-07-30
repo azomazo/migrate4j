@@ -28,6 +28,7 @@ import db.migrations.Migration_4;
 import db.migrations.Migration_5;
 import db.migrations.Migration_6;
 import db.migrations.Migration_7;
+import db.migrations.Migration_8;
 
 /**
  * Validates a Generators ability to perform DDL tasks.
@@ -331,6 +332,24 @@ public class GeneratorValidationTest extends TestCase {
 		assertFalse(Execute.columnExists(Migration_7.NEW_COLUMN_NAME, Migration_1.TABLE_NAME));
 		
 		writeTestPass();
+	}
+	
+	public void testPrimaryKeyWithoutNotNull_Version7To8() throws Exception {
+		writeTestStart("Define Primary Key w/o 'NOT NULL'");
+		
+		Engine.migrate(7);
+		
+		assertFalse(Execute.tableExists(Migration_8.TABLE_NAME));
+		
+		Engine.migrate(8);
+		
+		
+		assertTrue(Execute.tableExists(Migration_8.TABLE_NAME));
+		assertTrue(Execute.columnExists("id", Migration_8.TABLE_NAME));
+		
+		Engine.migrate(7);
+		
+		assertFalse(Execute.tableExists(Migration_8.TABLE_NAME));
 	}
 	
 	/** ------------- Helper Methods ---------------- **/

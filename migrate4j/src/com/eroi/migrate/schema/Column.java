@@ -28,7 +28,7 @@ public class Column {
 		this.columnType = columnType;
 		this.length = length;
 		this.primaryKey = primaryKey;
-		this.nullable = nullable;
+		this.nullable = ! primaryKey && nullable;
 		this.defaultValue = defaultValue;
 		this.autoincrement = autoincrement;
 		
@@ -59,6 +59,7 @@ public class Column {
 	
 	public void setPrimaryKey(boolean primaryKey) {
 		this.primaryKey = primaryKey;
+		setNullable(false);
 	}
 	
 	public boolean isNullable() {
