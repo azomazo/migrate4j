@@ -34,7 +34,7 @@ public class PostgreSQLGenerator extends GenericGenerator {
 			retVal.append("DEFAULT '").append(column.getDefaultValue()).append("' ");
 		}
 		
-		if (!column.isNullable()) {
+		if (!column.isNullable() || column.isPrimaryKey()) {
 			retVal.append("NOT ");
 		}
 		retVal.append("NULL ");
