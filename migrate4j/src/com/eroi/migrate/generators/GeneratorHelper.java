@@ -38,6 +38,7 @@ public class GeneratorHelper {
 		types.put(new Integer(Types.TIME), "TIME");
 		types.put(new Integer(Types.TIMESTAMP), "TIMESTAMP");
 		types.put(new Integer(Types.TINYINT), "TINYINT");
+		types.put(new Integer(Types.BIT), "BIT");
 		types.put(new Integer(Types.VARCHAR), "VARCHAR");
 		
 		needsLength = new ArrayList<Integer>();

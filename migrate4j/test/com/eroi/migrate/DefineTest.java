@@ -40,7 +40,7 @@ public class DefineTest extends TestCase {
 		assertEquals(Types.INTEGER, column.getColumnType());
 		assertTrue(column.isPrimaryKey());
 		assertFalse(column.isUnicode());
-		assertTrue(column.isNullable());
+		assertFalse(column.isNullable());
 				
 	}
 	
@@ -52,7 +52,7 @@ public class DefineTest extends TestCase {
 		assertEquals(Types.INTEGER, column.getColumnType());
 		assertTrue(column.isAutoincrement());
 		assertTrue(column.isPrimaryKey());
-		assertTrue(column.isNullable());
+		assertFalse(column.isNullable());
 		assertFalse(column.isUnicode());
 				
 	}
