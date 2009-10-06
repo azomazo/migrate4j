@@ -111,6 +111,7 @@ public class GeneratorValidationTest extends TestCase {
 	protected void tearDown() throws Exception {
 		super.tearDown();
 		
+		Engine.migrate(0);
 		writeToFile("\n");
 	}
 	

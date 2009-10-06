@@ -7,5 +7,6 @@
 	<classpathentry kind="lib" path="lib/ant.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging-1.0.4.jar"/>
 	<classpathentry kind="lib" path="lib/h2.jar"/>
+	<classpathentry kind="lib" path="/home/udoo/dev/drivers/jdbc/mysql-connector-java-5.1.10/mysql-connector-java-5.1.10-bin.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

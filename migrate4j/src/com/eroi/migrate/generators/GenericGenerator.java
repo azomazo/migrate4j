@@ -7,11 +7,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.eroi.migrate.Configure;
+import com.eroi.migrate.Execute;
 import com.eroi.migrate.misc.Closer;
+import com.eroi.migrate.misc.Log;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
@@ -26,8 +24,18 @@ import com.eroi.migrate.schema.Table;
  */
 public class GenericGenerator implements Generator {
 
-	private static Log log = LogFactory.getLog(GenericGenerator.class);
+	private static Log log = Log.getLog(GenericGenerator.class);
+	
+	private final Connection connection;
+	
+	public GenericGenerator(Connection aConnection) {
+		this.connection = aConnection;
+	}
 
+	public Connection getConnection() {
+		return this.connection;
+	}
+	
 	public String addColumnStatement(Column column, String tableName,
 			int position) {
 		// TODO Implement this!
@@ -111,6 +119,20 @@ public class GenericGenerator implements Generator {
 	}
 	
 	/**
+	 * Some DBs need more than one statement to implement a column change. Therefore we let the 
+	 * generator do it.
+	 * This implementation follow the single statement approach by calling the 
+	 * {@link #alterColumn(Connection, Column, String)} method. So that DBs that only need onw statement
+	 * can simply implement that method.
+	 * 
+	 * @param connection
+	 */
+	public void alterColumn(Column column, String tableName) throws SQLException {
+		String query = alterColumnStatement(column, tableName);
+		Execute.executeStatement(this.connection, query);
+	}
+	
+	/**
 	 * ALTER TABLE <foreignKey.childTable> ADD CONSTRAINT <foreignKey.name>
 	 * 		FOREIGN KEY (foreignKey.childColumn[,...]) REFERENCES 
 	 * 		<foreignKey.parentTable> (foreignKey.parentColumn[,...])
@@ -187,13 +209,11 @@ public class GenericGenerator implements Generator {
 		Validator.notNull(tableName, "Table name can not be null");
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			ResultSet resultSet = null;
 			
 			try {
 			
-				DatabaseMetaData databaseMetaData = connection.getMetaData();
+				DatabaseMetaData databaseMetaData = this.connection.getMetaData();
 			
 				resultSet = databaseMetaData.getColumns(null, null, tableName, columnName);
 				
@@ -332,12 +352,11 @@ public class GenericGenerator implements Generator {
 		Validator.notNull(childTableName, "Child table name can not be null");
 		
 		try {
-			Connection connection = Configure.getConnection();
 			ResultSet resultSet = null;
 			
 			try {
 			
-				DatabaseMetaData databaseMetaData = connection.getMetaData();
+				DatabaseMetaData databaseMetaData = this.connection.getMetaData();
 			
 				resultSet = databaseMetaData.getImportedKeys(null, null, childTableName);
 				
@@ -363,6 +382,79 @@ public class GenericGenerator implements Generator {
 	}
 	
 	/**
+	 * Uses JDBC meta data to determine foreignKey existence	 
+	 */
+	public boolean hasPrimaryKey(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
+
+		try {
+			ResultSet resultSet = null;
+			
+			try {
+				DatabaseMetaData databaseMetaData = this.connection.getMetaData();
+			
+				resultSet = databaseMetaData.getPrimaryKeys(null, null, tableName);
+				
+				return resultSet != null && resultSet.first();
+			} finally {
+				Closer.close(resultSet);
+			}
+		} catch (SQLException exception) {
+			log.error("Exception occoured in AbstractGenerator.hasPrimaryKey(tableName)!!",exception);
+			throw new SchemaMigrationException(exception);
+		}
+	}
+	
+	/**
+	 * Uses JDBC meta data to determine index existence	 
+	 */
+	public boolean isPrimaryKey(String columnName, String tableName) {
+		Validator.notNull(columnName, "Column name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		try {
+			ResultSet resultSet = null;
+			
+			try {
+			
+				DatabaseMetaData databaseMetaData = this.connection.getMetaData();
+			
+				resultSet = databaseMetaData.getPrimaryKeys(null, null, tableName);
+				
+				if (resultSet != null) {
+					while (resultSet.next()) {
+						String name = resultSet.getString("COLUMN_NAME");
+						if (name != null & name.equals(columnName)) {
+							return true;
+						}
+					}
+				}
+			} finally {
+				Closer.close(resultSet);
+			}
+		} catch (SQLException exception) {
+			log.error("Exception occoured in AbstractGenerator.isPrimaryKey(tableName, columnName)!!",exception);
+			throw new SchemaMigrationException(exception);
+		}
+		
+		return false;
+	}
+	
+	public String dropPrimaryKey(Table table) {
+		Validator.notNull(table, "Table can not be null");
+
+		return dropPrimaryKey(table.getTableName());
+	}
+	
+	public String dropPrimaryKey(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
+
+		String result = String.format("ALTER TABLE %s DROP PRIMARY KEY", wrapName(tableName));
+		return result;
+	}
+	
+	
+	/**
 	 * Uses JDBC meta data to determine index existence	 
 	 */
 	public boolean indexExists(String indexName, String tableName) {
@@ -370,13 +462,11 @@ public class GenericGenerator implements Generator {
 		Validator.notNull(tableName, "Table name can not be null");
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			ResultSet resultSet = null;
 			
 			try {
 			
-				DatabaseMetaData databaseMetaData = connection.getMetaData();
+				DatabaseMetaData databaseMetaData = this.connection.getMetaData();
 			
 				resultSet = databaseMetaData.getIndexInfo(null, null, tableName, false, false);
 				
@@ -416,14 +506,13 @@ public class GenericGenerator implements Generator {
 	 */
 	public boolean tableExists(String tableName) {
 		try {
-			Connection connection = Configure.getConnection();
 			ResultSet resultSet = null;
 			
 			try {
 			
-				DatabaseMetaData databaseMetaData = connection.getMetaData();
+				DatabaseMetaData databaseMetaData = this.connection.getMetaData();
 			
-				resultSet = databaseMetaData.getTables(connection.getCatalog(), "", tableName, null);
+				resultSet = databaseMetaData.getTables(this.connection.getCatalog(), "", tableName, null);
 				
 				if (resultSet != null) {
 					while (resultSet.next()) {
@@ -558,13 +647,11 @@ public class GenericGenerator implements Generator {
 		List<String> columnNames = new ArrayList<String>();
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			ResultSet resultSet = null;
 			
 			try {
 			
-				DatabaseMetaData databaseMetaData = connection.getMetaData();
+				DatabaseMetaData databaseMetaData = this.connection.getMetaData();
 			
 				resultSet = databaseMetaData.getColumns(null, null, tableName, "%");
 				
@@ -595,13 +682,11 @@ public class GenericGenerator implements Generator {
 		boolean isAutoIncrement = false;
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			ResultSet resultSet = null;
 			
 			try {
 			
-				DatabaseMetaData databaseMetaData = connection.getMetaData();
+				DatabaseMetaData databaseMetaData = this.connection.getMetaData();
 			
 				resultSet = databaseMetaData.getColumns(null, null, tableName, "%");
 				

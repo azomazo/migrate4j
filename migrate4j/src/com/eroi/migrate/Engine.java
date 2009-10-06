@@ -1,25 +1,14 @@
 package com.eroi.migrate;
 
-
-import static com.eroi.migrate.Define.column;
-import static com.eroi.migrate.Define.primarykey;
-import static com.eroi.migrate.Define.table;
-import static com.eroi.migrate.Define.DataTypes.INTEGER;
-import static com.eroi.migrate.Execute.createTable;
-import static com.eroi.migrate.Execute.tableExists;
-
 import java.sql.Connection;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.eroi.migrate.misc.Closer;
+import com.eroi.migrate.misc.Log;
 import com.eroi.migrate.misc.SchemaMigrationException;
+import com.eroi.migrate.version.VersionMigrator;
+import com.eroi.migrate.version.VersionQuery;
 
 /**
  * Applies or rolls back migration classes
@@ -27,13 +16,56 @@ import com.eroi.migrate.misc.SchemaMigrationException;
  */
 public class Engine {
 
-	private static final Log log = LogFactory.getLog(Engine.class);
+	private static final Log log = Log.getLog(Engine.class);
+	
+	private final ConfigStore config;
+
+	private ConfigStore saveDefaultConfiguration;
+	
+	private Engine(ConfigStore cfg) {
+		this.config = cfg;
+	}
 	
 	/**
 	 * Applies all migrations that have not been applied.
+	 * This method uses the default configuration define in {@link Configure}
 	 */
 	public static void migrate() {
-		Engine.migrate(Integer.MAX_VALUE);
+		migrate(Integer.MAX_VALUE);
+	}
+	
+	/**
+	 * Applies (or rolls back) migrations such that 
+	 * all migrations up and and including <code>version</code>
+	 * are in the schema.
+	 * This method uses the default configuration define in {@link Configure}
+	 */
+	public static void migrate(int version) {
+		new Engine(Configure.getDefaultConfiguration())._migrateTo(version);
+	}
+
+	/**
+	 * Applies all migrations that have not been applied using the given configuration
+	 */
+	public static void migrate(ConfigStore cfg) {
+		migrate(cfg, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * Applies (or rolls back) migrations using the given configuration such that 
+	 * all migrations up and and including <code>version</code>
+	 * are in the schema.
+	 */
+	public static void migrate(ConfigStore cfg, int version) {
+		Engine engine = new Engine(cfg);
+		try {
+			// during this migration holds: cfg == Configure.getDefaultConfiguration()
+			engine.saveDefaultConfiguration = Configure.getDefaultConfiguration();
+			Configure.setDefaultConfiguration(cfg);
+			engine._migrateTo(version);
+		} finally {
+			Configure.setDefaultConfiguration(engine.saveDefaultConfiguration);
+		}
 	}
 	
 	/**
@@ -41,21 +73,21 @@ public class Engine {
 	 * all migrations up and and including <code>version</code>
 	 * are in the schema.
 	 */
-	public static void migrate(int version) {
+	private void _migrateTo(int version) {
 		
 		log.debug("Migrating to version " + version);
 		
-		List<Class<? extends Migration>> migrationClasses = classesToMigrate();
-		if (migrationClasses == null || migrationClasses.size() <= 0) {
-			log.debug("No migration classes match " + Configure.getBaseClassName());
+		List<Class<? extends Migration>> classesToMigrate = _classesToMigrate();
+		if (classesToMigrate == null || classesToMigrate.size() <= 0) {
+			log.debug("No migration classes match " + this.config.getBaseClassName());
 			return;
 		}
 		
 		int currentVersion = -1;
 		
 		try {
-			Connection connection = Configure.getConnection();
-			currentVersion = getCurrentVersion(connection);
+			Connection connection = this.config.getConnection();
+			currentVersion = _getCurrentVersion(connection);
 			
 			log.debug("Current version is " + currentVersion);
 		} catch (SQLException e) {
@@ -63,9 +95,9 @@ public class Engine {
 			throw new SchemaMigrationException("Failed to get current version from the database", e);
 		}
 
-		boolean isUp = isUpMigration(currentVersion, version);
-		List<Class<? extends Migration>> classesToMigrate = classesToMigrate();
-		classesToMigrate = orderMigrations(classesToMigrate, currentVersion, version);
+		boolean isUp = _isUpMigration(currentVersion, version);
+//		List<Class<? extends Migration>> classesToMigrate = classesToMigrate();
+		classesToMigrate = _orderMigrations(classesToMigrate, currentVersion, version);
 		
 		int lastVersion = currentVersion;
 		Exception exception = null;
@@ -81,7 +113,7 @@ public class Engine {
 					log.debug(direction + " migration " + migrationClass.getName());
 				}
 				
-				lastVersion = runMigration(migrationClass, isUp);
+				lastVersion = _runMigration(migrationClass, isUp);
 			} catch (Exception e) {
 				exception = e;
 				break;
@@ -90,10 +122,11 @@ public class Engine {
 		
 		if (lastVersion != currentVersion) {
 			try {
-				updateCurrentVersion(Configure.getConnection(), lastVersion);
+				_updateCurrentVersion(lastVersion);
+				
 			} catch (SQLException e) {
-				log.error("Failed to update " + Configure.getVersionTable() + " with versin " + lastVersion,e );
-				throw new SchemaMigrationException("Failed to update " + Configure.getVersionTable() + " with versin " + lastVersion);
+				log.error("Failed to update " + this.config.getVersionTable() + " with version " + lastVersion,e );
+				throw new SchemaMigrationException("Failed to update " + this.config.getVersionTable() + " with version " + lastVersion,e);
 			}
 		}
 		
@@ -105,8 +138,8 @@ public class Engine {
 		log.debug("Migration complete");
 	}
 
-	private static int runMigration(Class<? extends Migration> classToMigrate, boolean isUp) {
-		int retVal = getVersionNumber(classToMigrate.getName());
+	private int _runMigration(Class<? extends Migration> classToMigrate, boolean isUp) {
+		int retVal = _getVersionNumber(classToMigrate.getName());
 		
 		if (retVal < 0) {
 			//Theoretically, this can't happen
@@ -114,7 +147,11 @@ public class Engine {
 		}
 		
 		try {
-			Migration migration = (Migration)classToMigrate.newInstance();
+			Migration migration = (Migration) classToMigrate.newInstance();
+			if (migration instanceof AbstractMigration) {
+				((AbstractMigration) migration).setConfigStore(this.config);
+				((AbstractMigration) migration).init();
+			}
 		
 			if (isUp) {
 				migration.up();
@@ -133,83 +170,49 @@ public class Engine {
 		}
 	}
 	
-	public static int getCurrentVersion(Connection connection) throws SQLException {
+	private int _getCurrentVersion(Connection connection) throws SQLException {
 		
-        // Create Version table with version=0 on demand
-	    createVersionTableOnDemand(connection);
+		int result;
+		
+        // migrate Version table 
+	    _migrateVersionTable(connection);
 
-		//This should run on every JDBC compliant DB . . . I hope
-		String query= "select " + Configure.VERSION_FIELD_NAME + " from " + Configure.getVersionTable();
-		
-		Statement statement = null;
-		ResultSet resultSet = null;
-		
-		try {
-			statement = connection.createStatement();
-			resultSet = statement.executeQuery(query);
-			
-			if (resultSet != null && resultSet.next()) {
-				return resultSet.getInt(Configure.VERSION_FIELD_NAME);
-			} 
-			
-		} finally {
-			Closer.close(resultSet);
-			Closer.close(statement);
-		}
-		
-		throw new RuntimeException("Couldn't determine current version");
+    	result = VersionQuery.getVersion(this.config);
+	    
+	    return result;
 	}
 	
-    private static void createVersionTableOnDemand(Connection connection) throws SQLException {
-        String versionTableName = Configure.getVersionTable();
-
-        if (! tableExists(versionTableName)) {
-          createTable(
-              table(versionTableName,
-                  column(Configure.VERSION_FIELD_NAME, INTEGER, primarykey())
-              )
-          );
-
-          //This should run on every JDBC compliant DB . . . I hope
-          String query = "INSERT INTO " + versionTableName + " (version) VALUES (0)";
-
-          Statement statement = null;
-          try {
-            statement = connection.createStatement();
-            statement.executeUpdate(query);
-            
-          } finally {
-            Closer.close(statement);
-          }
-        }
-      }
-   	
-
-	protected static void updateCurrentVersion(Connection connection, int lastVersion) throws SQLException {
-		
-		//This should run on every JDBC compliant DB . . . I hope
-		String query= "update " + Configure.getVersionTable() + " set " + Configure.VERSION_FIELD_NAME + " = " + lastVersion;
-		
-		Statement statement = null;
-		
-		try {
-			statement = connection.createStatement();
-			statement.executeUpdate(query);
+    private void _migrateVersionTable(Connection connection) throws SQLException {
+    	
+    	synchronized (VersionMigrator.INSTANCE) {
+			if (VersionMigrator.INSTANCE.isRunning()) return;
 			
-			return;
-			
-		} finally {
-			Closer.close(statement);
+			try {
+				VersionMigrator.INSTANCE.runMigration(this.config);
+			} finally {
+				VersionMigrator.INSTANCE.endMigration();
+			}
 		}
+    }
+    
+	private void _updateCurrentVersion(int lastVersion) throws SQLException {
+		
+		VersionQuery.updateVersion(this.config, lastVersion);
 	}
 
 	@SuppressWarnings("unchecked")
-	protected static List<Class<? extends Migration>> classesToMigrate() {
+	private List<Class<? extends Migration>> _classesToMigrate() {
 		
 		List<Class<? extends Migration>> retVal = new ArrayList<Class<? extends Migration>>();
-		String baseName = Configure.getBaseClassName();
+		String baseName = this.config.getBaseClassName();
 		
-		int item = Configure.getStartIndex().intValue();
+		int item = this.config.getStartIndex().intValue();
+		
+		// help migrate4j to load foreign classes
+		ClassLoader loader = Thread.currentThread().getContextClassLoader();
+		if (loader==null) {
+			loader = Engine.class.getClassLoader();
+		}
 		
 		while (true) {
 			String classname = baseName + item;
@@ -217,7 +220,8 @@ public class Engine {
 			log.debug("Looking for classname " + classname);
 			
 			try {
-				Class clazz = Class.forName(classname);
+				
+				Class clazz = Class.forName(classname,false,loader);
 				retVal.add(clazz);
 				
 				log.debug("Found classname " + classname);
@@ -231,16 +235,16 @@ public class Engine {
 		return retVal;
 	}
 	
-	protected static List<Class<? extends Migration>> orderMigrations(List<Class<? extends Migration>> migrationClasses, int currentVersion, int targetVersion) {
+	private List<Class<? extends Migration>> _orderMigrations(List<Class<? extends Migration>> migrationClasses, int currentVersion, int targetVersion) {
 		
 		List<Class<? extends Migration>> retVal = new ArrayList<Class<? extends Migration>>();
-		String baseName = Configure.getBaseClassName();
+		String baseName = this.config.getBaseClassName();
 		boolean goUp = true;
 		
 		String startClass = baseName + (currentVersion + 1);
 		String endClass = baseName + targetVersion;
 		
-		if (!isUpMigration(currentVersion, targetVersion)) {
+		if (!_isUpMigration(currentVersion, targetVersion)) {
 
 			//Going down
 			startClass = baseName + (targetVersion + 1);
@@ -277,11 +281,11 @@ public class Engine {
 		
 		return retVal;
 	}
-	
-	protected static int getVersionNumber(String classname) {
+
+	private int _getVersionNumber(String classname) {
 		int retVal = -1;
 		
-		String baseName = Configure.getBaseClassName();
+		String baseName = this.config.getBaseClassName();
 		
 		if (classname.startsWith(baseName)) {
 			String id = classname.substring(baseName.length());
@@ -296,8 +300,33 @@ public class Engine {
 		return retVal;
 	}
 	
-	private static boolean isUpMigration(int currentVersion, int targetVersion) {
+	private boolean _isUpMigration(int currentVersion, int targetVersion) {
 		return currentVersion < targetVersion;
+	}
+
+	// ----------------------------------------------------------------------------------------------------
+	// for access from junit test cases
+	// ----------------------------------------------------------------------------------------------------
+	
+	private static Engine getDefaultEngine() {
+		return new Engine(Configure.getDefaultConfiguration());
+	}
+	
+
+	public static int getCurrentVersion(Connection connection) throws SQLException {
+		return getDefaultEngine()._getCurrentVersion(connection);
+	}
+
+	protected static List<Class<? extends Migration>> classesToMigrate() {
+		return getDefaultEngine()._classesToMigrate();
+	}
+
+	protected static List<Class<? extends Migration>> orderMigrations(List<Class<? extends Migration>> migrationClasses, int currentVersion, int targetVersion) {
+		return getDefaultEngine()._orderMigrations(migrationClasses, currentVersion, targetVersion);
+	}
+	
+	protected static int getVersionNumber(String classname) {
+		return getDefaultEngine()._getVersionNumber(classname);
 	}
 	
 	public static void main(String[] args) {

@@ -7,22 +7,21 @@ import java.sql.Statement;
 import com.eroi.migrate.generators.Generator;
 import com.eroi.migrate.generators.GeneratorFactory;
 import com.eroi.migrate.misc.Closer;
+import com.eroi.migrate.misc.Log;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
 import com.eroi.migrate.schema.Table;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 
 /**
  * Contains commands that can be called from within Migration classes.
  *
  */
 public class Execute {
-	
-	private static Log log = LogFactory.getLog(Execute.class);
+
+	private static Log log = Log.getLog(Execute.class);
 	
 	/**
 	 * Indicates whether an index exists
@@ -35,6 +34,17 @@ public class Execute {
 		
 		return indexExists(index.getName(), index.getTableName());
 	}
+
+	/**
+	 * Indicates whether an index exists
+	 * 
+	 * @param connection
+	 * @param index
+	 * @return
+	 */
+	public static boolean exists(Connection connection, Index index) {
+		return indexExists(connection, index.getName(), index.getTableName());
+	}
 	
 	/**
 	 * Indicates whether an index exists
@@ -44,11 +54,22 @@ public class Execute {
 	 * @return
 	 */
 	public static boolean indexExists(String indexName, String tableName) {
+		return indexExists(Configure.getConnection(), indexName, tableName);
+	}
+	
+	/**
+	 * Indicates whether an index exists
+	 *
+	 * @param connection
+	 * @param indexName
+	 * @param tableName
+	 * @return
+	 */
+	public static boolean indexExists(Connection connection, String indexName, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(indexName, "Index name can not be null");
 		
 		try {
-			Connection connection = Configure.getConnection();
-		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			return generator.indexExists(indexName, tableName);
@@ -59,7 +80,7 @@ public class Execute {
 			throw new SchemaMigrationException(message, e);
 		} 
 	}
-	
+
 	/**
 	 * Indicates whether a table exists
 	 * 
@@ -71,6 +92,20 @@ public class Execute {
 		
 		return tableExists(table.getTableName());
 	}
+
+	/**
+	 * Indicates whether a table exists
+	 * 
+	 * @param connection
+	 * @param table
+	 * @return
+	 */
+	public static boolean exists(Connection connection, Table table) {
+		Validator.notNull(connection, "Connection can not be null");
+		Validator.notNull(table, "Table can not be null");
+		
+		return tableExists(connection, table.getTableName());
+	}
 	
 	/**
 	 * Indicates whether a table exists
@@ -79,11 +114,21 @@ public class Execute {
 	 * @return
 	 */
 	public static boolean tableExists(String tableName) {
+		return tableExists(Configure.getConnection(), tableName);
+	}
+
+	/**
+	 * Indicates whether a table exists
+	 *
+	 * @param connection
+	 * @param tableName
+	 * @return
+	 */
+	public static boolean tableExists(Connection connection, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(tableName, "Table name can not be null");
 		
 		try {
-			Connection connection = Configure.getConnection();
-		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			return generator.tableExists(tableName);
@@ -108,6 +153,23 @@ public class Execute {
 		return columnExists(column.getColumnName(), table.getTableName());
 		
 	}
+
+	/**
+	 * Indicates whether a table contains a column
+	 * 
+	 * @param connection
+	 * @param column
+	 * @param table
+	 * @return
+	 */
+	public static boolean exists(Connection connection, Column column, Table table) {
+		Validator.notNull(connection, "Connection can not be null");
+		Validator.notNull(table, "Table can not be null");
+		Validator.notNull(column, "Column can not be null");
+		
+		return columnExists(connection, column.getColumnName(), table.getTableName());
+		
+	}
 	
 	/**
 	 * Indicates whether a table contains a column
@@ -126,21 +188,48 @@ public class Execute {
 	/**
 	 * Indicates whether a table contains a column
 	 * 
+	 * @param conenction
+	 * @param column
+	 * @param tableName
+	 * @return
+	 */
+	public static boolean exists(Connection connection, Column column, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
+		Validator.notNull(column, "Column can not be null");
+		
+		return columnExists(connection, column.getColumnName(), tableName);
+		
+	}
+
+	/**
+	 * Indicates whether a table contains a column
+	 * 
 	 * @param columnName
 	 * @param tableName
 	 * @return
 	 */
 	public static boolean columnExists(String columnName, String tableName) {
+		return columnExists(Configure.getConnection(), columnName, tableName);
+	}
+
+	/**
+	 * Indicates whether a table contains a column
+	 * 
+	 * @param connection
+	 * @param columnName
+	 * @param tableName
+	 * @return
+	 */
+	public static boolean columnExists(Connection connection, String columnName, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(tableName, "Table Name can not be null");
 		Validator.notNull(columnName, "Column Name can not be null");
 		
-		if (!tableExists(tableName)) {
+		if (! tableExists(connection, tableName)) {
 			return false;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			return generator.columnExists(columnName, tableName);
@@ -149,7 +238,7 @@ public class Execute {
 			throw new SchemaMigrationException("Unable to check column " + columnName + " on table " + tableName, e);
 		} 
 	}
-	
+
 	/**
 	 * Indicates whether a foreign key exists
 	 * 
@@ -158,12 +247,23 @@ public class Execute {
 	 * @return
 	 */
 	public static boolean foreignKeyExists(String foreignKeyName, String childTableName) {
+		return foreignKeyExists(Configure.getConnection(), foreignKeyName, childTableName);
+	}
+	
+	/**
+	 * Indicates whether a foreign key exists
+	 *
+	 * @param connection
+	 * @param foreignKeyName
+	 * @param childTableName
+	 * @return
+	 */
+	public static boolean foreignKeyExists(Connection connection, String foreignKeyName, String childTableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(foreignKeyName, "Foreign key name can not be null");
 		Validator.notNull(childTableName, "Child table name can not be null");
 		
 		try {
-			Connection connection = Configure.getConnection();
-		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			return generator.foreignKeyExists(foreignKeyName, childTableName);
@@ -173,7 +273,7 @@ public class Execute {
 			throw new SchemaMigrationException("Unable to check foreign key " + foreignKeyName + " on table " + childTableName, e);
 		} 
 	}
-	
+
 	/**
 	 * Indicates whether a foreign key exists
 	 * 
@@ -181,11 +281,21 @@ public class Execute {
 	 * @return
 	 */
 	public static boolean exists(ForeignKey foreignKey) {
+		return exists(Configure.getConnection(), foreignKey);
+	}
+
+	/**
+	 * Indicates whether a foreign key exists
+	 * 
+	 * @param connection
+	 * @param foreignKey
+	 * @return
+	 */
+	public static boolean exists(Connection connection, ForeignKey foreignKey) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(foreignKey, "Foreign key can not be null");
 		
 		try {
-			Connection connection = Configure.getConnection();
-		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			return generator.exists(foreignKey);
@@ -197,12 +307,209 @@ public class Execute {
 	}
 	
 	/**
+	 * Returns true iff the given table contains a primary key
+	 * 
+	 * @param table
+	 * @return
+	 */
+	public static boolean hasPrimaryKey(Table table) {
+		Validator.notNull(table, "Table can not be null");
+		return hasPrimaryKey(table.getTableName());
+	}
+
+	/**
+	 * Returns true iff the given table (defined by its name) contains a primary key
+	 * 
+	 * @param tableName
+	 * @return
+	 */
+	public static boolean hasPrimaryKey(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
+
+		return hasPrimaryKey(Configure.getConnection(), tableName);
+	}
+	
+	/**
+	 * Returns true iff the given table (defined by its name) contains a primary key
+	 * 
+	 * @param connection
+	 * @param table
+	 * @return
+	 */
+	public static boolean hasPrimaryKey(Connection connection, Table table) {
+		Validator.notNull(table, "Table can not be null");
+		return hasPrimaryKey(connection, table.getTableName());
+	}
+
+	/**
+	 * Returns true iff the given table (defined by its name) contains a primary key
+	 * 
+	 * @param connection
+	 * @param tableName
+	 * @return
+	 */
+	public static boolean hasPrimaryKey(Connection connection, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		try {
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			return generator.hasPrimaryKey(tableName);
+			
+		} catch (SQLException e) {
+			String errMsg = String.format("Unable to check table %s for primary key", tableName);
+			log.error(errMsg, e);
+			throw new SchemaMigrationException(errMsg, e);
+		} 
+
+	}
+
+	/**
+	 * Returns true iff the given column is a primary key in the given table
+	 * 
+	 * @param table
+	 * @param column
+	 * @return
+	 */
+	public static boolean isPrimaryKey(Column column, Table table) {
+		Validator.notNull(column, "Column can not be null");
+		Validator.notNull(table, "Table can not be null");
+		
+		return isPrimaryKey(column.getColumnName(), table.getTableName());
+	}
+
+	/**
+	 * Returns true iff the given column is a primary key in the given table
+	 * 
+	 * @param columnName
+	 * @param tableName
+	 * @return
+	 */
+	public static boolean isPrimaryKey(String columnName, String tableName) {
+		Validator.notNull(columnName, "Column name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		return isPrimaryKey(Configure.getConnection(), columnName, tableName);
+	}
+
+	/**
+	 * Returns true iff the given column is a primary key in the given table
+	 * 
+	 * @param connection
+	 * @param column
+	 * @param table
+	 * @return
+	 */
+	public static boolean isPrimaryKey(Connection connection, Column column, Table table) {
+		Validator.notNull(column, "Column can not be null");
+		Validator.notNull(table, "Table can not be null");
+		
+		return isPrimaryKey(connection, column.getColumnName(), table.getTableName());
+	}
+
+	/**
+	 * Returns true iff the given column is a primary key in the given table
+	 * 
+	 * @param connection
+	 * @param columnName
+	 * @param tableName
+	 * @return
+	 */
+	public static boolean isPrimaryKey(Connection connection, String columnName, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");		
+		Validator.notNull(columnName, "Column name can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		
+		try {
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			return generator.isPrimaryKey(tableName, columnName);
+			
+		} catch (SQLException e) {
+			String errMsg = String.format("Unable to check column %s for for primary key constraint in table %s", columnName, tableName);
+			log.error(errMsg, e);
+			throw new SchemaMigrationException(errMsg, e);
+		} 
+	}
+
+	/**	 
+	 * Drop a primary Key
+	 * 
+	 * @param table
+	 */
+	public static void dropPrimaryKey(Table table) {
+		Validator.notNull(table, "Table can not be null");
+
+		dropPrimaryKey(Configure.getConnection(), table.getTableName());
+	}
+
+	/**
+	 * Drop a primary Key
+	 * 
+	 * @param tableName
+	 */
+	public static void dropPrimaryKey(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
+
+		dropPrimaryKey(Configure.getConnection(), tableName);
+	}
+
+	/**	 
+	 * Drop a primary Key
+	 * 
+	 * @param connection
+	 * @param table
+	 */
+	public static void dropPrimaryKey(Connection connection, Table table) {
+		Validator.notNull(table, "Table can not be null");
+
+		dropPrimaryKey(connection, table.getTableName());
+	}
+
+	/**
+	 * Drop a primary Key
+	 * 
+	 * @param connection
+	 * @param tableName
+	 */
+	public static void dropPrimaryKey(Connection connection, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");		
+		Validator.notNull(tableName, "Table name can not be null");
+	
+		try {
+			if (! hasPrimaryKey(connection, tableName)) {
+				return;
+			}
+			
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.dropPrimaryKey(tableName);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			String errMsg = String.format("Unable to drop primary key constraint from table %s", tableName);
+			log.error(errMsg, e);
+			throw new SchemaMigrationException(errMsg, e);
+		} 
+	}
+
+	/**
 	 * Create a table
 	 * 
 	 * @param table
 	 */
 	public static void createTable(Table table) {
 		createTable(table, null);
+	}
+	
+	/**
+	 * 
+	 * @param connection
+	 * @param table
+	 */
+	public static void createTable(Connection connection, Table table) {
+		createTable(connection, table, null);
 	}
 	
 	/**
@@ -218,15 +525,31 @@ public class Execute {
 	 * @param tableOptions
 	 */
 	public static void createTable(Table table, String tableOptions){
+		createTable(Configure.getConnection(), table, tableOptions);
+	}
+	
+	/**
+	 * Create a table with database specific options.
+	 * This allows, for example, passing an engine type
+	 * to MySQL.  While the <code>tableOptions</code>
+	 * may be ignored for database products that do not
+	 * accept such things, be aware that using this 
+	 * argument may make your migrations no longer cross
+	 * product compatible.
+	 *
+	 * @param connection
+	 * @param table
+	 * @param tableOptions
+	 */
+	public static void createTable(Connection connection, Table table, String tableOptions){
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(table, "Table can not be null");
 		
-		if (exists(table)) {
+		if (exists(connection, table)) {
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-		
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query;
@@ -250,15 +573,24 @@ public class Execute {
 	 * @param tableName
 	 */
 	public static void dropTable(String tableName) {
+		dropTable(Configure.getConnection(), tableName);
+	}
+	
+	/**
+	 * Drop a table
+	 * 
+	 * @param connection
+	 * @param tableName
+	 */
+	public static void dropTable(Connection connection, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(tableName, "Table name can not be null");
 		
-		if (!tableExists(tableName)) {
+		if (! tableExists(connection, tableName)) {
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.dropTableStatement(tableName);
@@ -279,6 +611,17 @@ public class Execute {
 	public static void addColumn(Column column, String tableName) {
 		addColumn(column, tableName, null);
 	}
+
+	/**
+	 * Add a column to a table
+	 * 
+	 * @param connection
+	 * @param column
+	 * @param tableName
+	 */
+	public static void addColumn(Connection connection, Column column, String tableName) {
+		addColumn(connection, column, tableName, null);
+	}
 	
 	/**
 	 * Add a column to a table
@@ -288,13 +631,24 @@ public class Execute {
 	 * @param afterColumn
 	 */
 	public static void addColumn(Column column, String table, String afterColumn) {
+		addColumn(Configure.getConnection(), column, table, afterColumn);
+	}
+
+	/**
+	 * Add a column to a table
+	 * 
+	 * @param connection
+	 * @param column
+	 * @param table
+	 * @param afterColumn
+	 */
+	public static void addColumn(Connection connection, Column column, String table, String afterColumn) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(table, "Table can not be null");
-		Validator.isTrue(tableExists(table), "Table does not exist");
+		Validator.isTrue(tableExists(connection, table), "Table does not exist");
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.addColumnStatement(column, table, afterColumn);
@@ -306,24 +660,40 @@ public class Execute {
 		}
 	}
 	
+	/**
+	 * Alter Column
+	 * 
+	 * @param column
+	 * @param tableName
+	 */
 	public static void alterColumn(Column column, String tableName) {
+		alterColumn(Configure.getConnection(), column, tableName);
+	}
+	
+	/**
+	 * Alter Column
+	 * 
+	 * @param connection
+	 * @param column
+	 * @param tableName
+	 */
+	public static void alterColumn(Connection connection, Column column, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(tableName, "Table name can not be null");
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
-			String query = generator.alterColumnStatement(column, tableName);
-			
-			executeStatement(connection, query);
+			// HB: We let the generator do the work. 
+			generator.alterColumn(column,tableName);
+
 		} catch (SQLException e) {
 			log.error("Unable to alter table " + tableName + " and alter column " + column.getColumnName(), e);
 			throw new SchemaMigrationException("Unable to alter table " + tableName + " and alter column " + column.getColumnName(), e);
 		}
 	}
-	
+
 	/**
 	 * Add a column to a table
 	 * 
@@ -332,13 +702,24 @@ public class Execute {
 	 * @param position
 	 */
 	public static void addColumn(Column column, String table, int position) {
+		addColumn(Configure.getConnection(), column, table, position);
+	}
+	
+	/**
+	 * Add a column to a table
+	 * 
+	 * @param connection
+	 * @param column
+	 * @param table
+	 * @param position
+	 */
+	public static void addColumn(Connection connection, Column column, String table, int position) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(column, "Column can not be null");
 		Validator.notNull(table, "Table can not be null");
-		Validator.isTrue(tableExists(table), "Table does not exist");
+		Validator.isTrue(tableExists(connection, table), "Table does not exist");
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.addColumnStatement(column, table, position);
@@ -357,16 +738,26 @@ public class Execute {
 	 * @param tableName
 	 */
 	public static void dropColumn(String columnName, String tableName) {
+		dropColumn(Configure.getConnection(), columnName, tableName);
+	}
+	
+	/**
+	 * Drop a column from a table
+	 * 
+	 * @param connection
+	 * @param columnName
+	 * @param tableName
+	 */
+	public static void dropColumn(Connection connection, String columnName, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(columnName, "Column can not be null");
 		Validator.notNull(tableName, "Table can not be null");
 				
-		if (!columnExists(columnName, tableName)) {
+		if (! columnExists(connection, columnName, tableName)) {
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.dropColumnStatement(columnName, tableName);
@@ -378,22 +769,31 @@ public class Execute {
 		}
 		
 	}
-	
+
 	/**
 	 * Add an index
 	 * 
 	 * @param index
 	 */
 	public static void addIndex(Index index) {
+		addIndex(Configure.getConnection(), index);
+	}
+	
+	/**
+	 * Add an index
+	 *
+	 * @param connection
+	 * @param index
+	 */
+	public static void addIndex(Connection connection, Index index) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(index, "Index can not be null");
 		
-		if (exists(index)) {
+		if (exists(connection, index)) {
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.addIndex(index);
@@ -412,15 +812,25 @@ public class Execute {
 	 * @param tableName
 	 */
 	public static void dropIndex(String indexName, String tableName) {
+		dropIndex(Configure.getConnection(), indexName, tableName);
+	}
+
+	/**
+	 * Drop an index
+	 * 
+	 * @param connection
+	 * @param indexName
+	 * @param tableName
+	 */
+	public static void dropIndex(Connection connection, String indexName, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(indexName, "Index can not be null");
 		
-		if (!indexExists(indexName, tableName)) {
+		if (! indexExists(connection, indexName, tableName)) {
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.dropIndex(indexName, tableName);
@@ -438,15 +848,24 @@ public class Execute {
 	 * @param foreignKey
 	 */
 	public static void addForeignKey(ForeignKey foreignKey) {
+		addForeignKey(Configure.getConnection(), foreignKey);
+	}
+
+	/**
+	 * Add a foreign key
+	 * 
+	 * @param connection
+	 * @param foreignKey
+	 */
+	public static void addForeignKey(Connection connection, ForeignKey foreignKey) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(foreignKey, "ForeignKey can not be null");
 		
-		if (exists(foreignKey) || !tableExists(foreignKey.getChildTable()) || !tableExists(foreignKey.getParentTable())) {
+		if (exists(connection, foreignKey) || ! tableExists(connection, foreignKey.getChildTable()) || ! tableExists(connection, foreignKey.getParentTable())) {
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.addForeignKey(foreignKey);
@@ -464,15 +883,24 @@ public class Execute {
 	 * @param foreignKey
 	 */
 	public static void dropForeignKey(ForeignKey foreignKey) {
+		dropForeignKey(Configure.getConnection(), foreignKey);
+	}
+
+	/**
+	 * Drop a foreign key
+	 * 
+	 * @param connection
+	 * @param foreignKey
+	 */
+	public static void dropForeignKey(Connection connection, ForeignKey foreignKey) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(foreignKey, "ForeignKey can not be null");
 		
-		if (!exists(foreignKey)) {
+		if (! exists(connection, foreignKey)) {
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.dropForeignKey(foreignKey);
@@ -491,15 +919,25 @@ public class Execute {
 	 * @param childTableName
 	 */
 	public static void dropForeignKey(String foreignKeyName, String childTableName) {
+		dropForeignKey(Configure.getConnection(), foreignKeyName, childTableName);
+	}
+
+	/**
+	 * Drop a foreign key
+	 * 
+	 * @param connection
+	 * @param foreignKeyName
+	 * @param childTableName
+	 */
+	public static void dropForeignKey(Connection connection, String foreignKeyName, String childTableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(foreignKeyName, "ForeignKey can not be null");
 		
-		if (!foreignKeyExists(foreignKeyName, childTableName)) {
+		if (! foreignKeyExists(connection,  foreignKeyName, childTableName)) {
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.dropForeignKey(foreignKeyName, childTableName);
@@ -520,18 +958,29 @@ public class Execute {
 	 * @param tableName
 	 */
 	public static void renameColumn(String newColumnName, String oldColumnName, String tableName) {
+		renameColumn(Configure.getConnection(), newColumnName, oldColumnName, tableName);
+	}
+
+	/**
+	 * Rename a column
+	 * 
+	 * @param connection
+	 * @param newColumnName
+	 * @param oldColumnName
+	 * @param tableName
+	 */
+	public static void renameColumn(Connection connection, String newColumnName, String oldColumnName, String tableName) {
+		Validator.notNull(connection, "Connection can not be null");
 		Validator.notNull(newColumnName, "New column name can not be null");
 		Validator.notNull(oldColumnName, "Old column name can not be null");
 		Validator.notNull(tableName, "Table name can not be null");
 		
-		if (!columnExists(oldColumnName, tableName) || columnExists(newColumnName, tableName)) {
+		if (! columnExists(connection, oldColumnName, tableName) || columnExists(connection, newColumnName, tableName)) {
 			//We must have already done this
 			return;
 		}
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			Generator generator = GeneratorFactory.getGenerator(connection);
 			
 			String query = generator.renameColumn(newColumnName, oldColumnName, tableName);
@@ -543,17 +992,18 @@ public class Execute {
 			throw new SchemaMigrationException(message, e);
 		}
 	}
-		
-	private static void executeStatement(Connection connection, String query) throws SQLException {
+	
+	public static int executeStatement(Connection connection, String query) throws SQLException {
 		
 		Statement statement = null;
 		
 		try {
 			statement = connection.createStatement();
-			statement.executeUpdate(query);
+			return statement.executeUpdate(query);
 		} finally {
 			Closer.close(statement);
 		}
 		
 	}
+
 }

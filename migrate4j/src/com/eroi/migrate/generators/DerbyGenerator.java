@@ -5,7 +5,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.Closer;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.misc.Validator;
@@ -14,6 +13,10 @@ import com.eroi.migrate.schema.Table;
 
 public class DerbyGenerator extends GenericGenerator {
 	
+	public DerbyGenerator(Connection aConnection) {
+		super(aConnection);
+	}
+
 	@Override
 	public String createTableStatement(Table table) {
 		StringBuffer retVal = new StringBuffer();
@@ -119,15 +122,13 @@ public class DerbyGenerator extends GenericGenerator {
 	@Override
 	public boolean tableExists(String tableName) {
 		
-		Connection conn = null;
 		Statement statement = null;
 		ResultSet resultSet = null;
 		
 		String query = "select * from SYS.SYSTABLES";
 		
 		try {
-			conn = Configure.getConnection();
-			statement = conn.createStatement();
+			statement = getConnection().createStatement();
 			resultSet = statement.executeQuery(query);
 			
 			if (resultSet != null) {

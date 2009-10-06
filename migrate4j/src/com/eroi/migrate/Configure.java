@@ -7,9 +7,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.eroi.migrate.misc.Closer;
+import com.eroi.migrate.misc.Log;
+import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.misc.Validator;
 
 /**
@@ -37,25 +37,7 @@ public class Configure {
 	public static final String DEFAULT_VERSION_TABLE = "version";
 	
 	public static final String VERSION_FIELD_NAME = "version";
-	private static Log log = LogFactory.getLog(Configure.class);
-	
-	/* Configure with variables */
-	private static String url = null;
-	private static String driver = null;
-	private static String username = null;
-	private static String password = null;
-	private static String connectionArguments = null;
-	private static String packageName = null;
-	
-	/* Configure with preconstructed Connection */
-	private static Connection connection = null;
-	private static boolean ownConnection = false;
-	
-	/* Optional configuaration parameters */
-	private static String classprefix = DEFAULT_CLASSNAME_PREFIX;
-	private static String separator = DEFAULT_SEPARATOR;
-	private static Integer startIndex = DEFAULT_START_INDEX;
-	private static String versionTable = DEFAULT_VERSION_TABLE;
+	private static Log log = Log.getLog(Configure.class);
 	
 	/**
 	 * Default method to load properties from the
@@ -90,30 +72,11 @@ public class Configure {
 			InputStream in = Configure.class.getClassLoader().getResourceAsStream(propertyFileName);
 			
 			if (in != null) {
+				
 				properties = new Properties();
 				properties.load(in);
+				configure(properties);
 				
-				//These should be null if not found
-				url = properties.getProperty(PROPERTY_CONNECTION_URL);
-				driver = properties.getProperty(PROPERTY_CONNECTION_DRIVER);
-				username = properties.getProperty(PROPERTY_CONNECTION_USERNAME);
-				password = properties.getProperty(PROPERTY_CONNECTION_PASSWORD);
-				packageName = properties.getProperty(PROPERTY_MIGRATION_PACKAGE_NAME);
-				
-				//These should be defaults if not found
-				setConnectionArguments(properties.getProperty(PROPERTY_CONNECTION_ARGUMENTS));
-				setClassprefix(properties.getProperty(PROPERTY_MIGRATION_CLASSNAME_PREFIX));
-				setSeparator(properties.getProperty(PROPERTY_MIGRATION_SEPARATOR));
-				setVersionTable(properties.getProperty(PROPERTY_DATABASE_VERSION_TABLE));
-				
-				Integer startIndex = new Integer(-1);
-				
-				try {
-					int i = Integer.parseInt(properties.getProperty(PROPERTY_MIGRATION_START_INDEX));
-					startIndex = new Integer(i);
-				} catch (Exception ignored) {}
-				
-				setStartIndex(startIndex);
 			} else {
 				throw new RuntimeException ("Could not open an input stream on " + propertyFileName +".  Check that it is in the path " + System.getProperty("java.class.path"));
 			}
@@ -122,6 +85,38 @@ public class Configure {
 			log.error("Couldn not locate and load property file \"" + propertyFileName + "\"", new IOException());
 			throw new RuntimeException("Couldn't locate and load property file \"" + propertyFileName + "\"");
 		}
+	}
+	
+	/**
+	 * Allows providing specific configuration values programatically via a {@link Properties} object.
+	 * 
+	 * @param properties a <code>Properties</code> object containing the configuration parameters as name-value pairs. 
+	 * Use the <code>PROPERTY_CONNECTION_*</code> or <code>PROPERTY_MIGRATION_*</code> constants defined by this class to fill your property object
+	 */
+	public static void configure(Properties properties) {
+		ConfigStore cfg = getDefaultConfiguration();
+		
+		// These should be null if not found
+		cfg.url = properties.getProperty(PROPERTY_CONNECTION_URL);
+		cfg.driver = properties.getProperty(PROPERTY_CONNECTION_DRIVER);
+		cfg.username = properties.getProperty(PROPERTY_CONNECTION_USERNAME);
+		cfg.password = properties.getProperty(PROPERTY_CONNECTION_PASSWORD);
+		cfg.packageName = properties.getProperty(PROPERTY_MIGRATION_PACKAGE_NAME);
+		
+		// These should be defaults if not found
+		setConnectionArguments(properties.getProperty(PROPERTY_CONNECTION_ARGUMENTS));
+		setClassprefix(properties.getProperty(PROPERTY_MIGRATION_CLASSNAME_PREFIX));
+		setSeparator(properties.getProperty(PROPERTY_MIGRATION_SEPARATOR));
+		setVersionTable(properties.getProperty(PROPERTY_DATABASE_VERSION_TABLE));
+		
+		Integer startIndex = new Integer(-1);
+		
+		try {
+			int i = Integer.parseInt(properties.getProperty(PROPERTY_MIGRATION_START_INDEX));
+			startIndex = new Integer(i);
+		} catch (Exception ignored) {}
+		
+		setStartIndex(startIndex);
 	}
 	
 	/**
@@ -135,11 +130,13 @@ public class Configure {
 	 * 		Migration classes are located
 	 */
 	public static void configure(Connection connection, String packageName) {
-		Configure.connection = connection;
-		Configure.packageName = packageName;
-		Configure.ownConnection = false;
+		ConfigStore cfg = getDefaultConfiguration();
+		
+		cfg.connection = connection;
+		cfg.packageName = packageName;
+		cfg.ownConnection = false;
 	}
-	
+
 	/**
 	 * Allows providing specific configuration values programatically.
 	 * 
@@ -166,11 +163,13 @@ public class Configure {
 								 String versionTable) {
 
 		//Required
-		Configure.url = url;
-		Configure.driver = driver;
-		Configure.username = username;
-		Configure.password = password;
-		Configure.packageName = packageName;
+		ConfigStore cfg = getDefaultConfiguration();
+		
+		cfg.url = url;
+		cfg.driver = driver;
+		cfg.username = username;
+		cfg.password = password;
+		cfg.packageName = packageName;
 		
 		//These should be defaults if not found
 		setConnectionArguments(connectionArguments);
@@ -206,12 +205,14 @@ public class Configure {
 				  null, 
 				  null, 
 				  null);
-		
 	}
-	public static Connection getConnection() throws SQLException {
+	
+	
+	public static Connection getConnection() {
 		checkConnection();
 		
-		return connection;
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.connection;
 	}
 	
 	protected static void close() {
@@ -223,15 +224,17 @@ public class Configure {
 			connectionArguments = null;
 		}
 		
-		Configure.connectionArguments = connectionArguments;
+		ConfigStore cfg = getDefaultConfiguration();
+		cfg.connectionArguments = connectionArguments;
 	}
 
 	private static void setClassprefix(String classprefix) {
 		if (classprefix == null || classprefix.trim().length() == 0) {
 			classprefix = DEFAULT_CLASSNAME_PREFIX;
 		} 
-			
-		Configure.classprefix = classprefix;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		cfg.classprefix = classprefix;
 	}
 
 	private static void setSeparator(String separator) {
@@ -239,7 +242,8 @@ public class Configure {
 			separator = DEFAULT_SEPARATOR;
 		} 
 		
-		Configure.separator = separator;
+		ConfigStore cfg = getDefaultConfiguration();
+		cfg.separator = separator;
 	}
 
 	protected static void setStartIndex(Integer startIndex) {
@@ -247,7 +251,8 @@ public class Configure {
 			startIndex = DEFAULT_START_INDEX;
 		}
 		
-		Configure.startIndex = startIndex;
+		ConfigStore cfg = getDefaultConfiguration();
+		cfg.startIndex = startIndex;
 	}
 
 	private static void setVersionTable(String versionTable) {
@@ -255,76 +260,131 @@ public class Configure {
 			versionTable = DEFAULT_VERSION_TABLE;
 		}
 		
-		Configure.versionTable = versionTable;
+		ConfigStore cfg = getDefaultConfiguration();
+		cfg.versionTable = versionTable;
 	}
 
 	protected static String getUrl() {
-		return url;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.url;
 	}
 
 	protected static String getDriver() {
-		return driver;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.driver;
 	}
 
 	protected static String getUsername() {
-		return username;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.username;
 	}
 
 	protected static String getConnectionArguments() {
-		return connectionArguments;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.connectionArguments;
 	}
 
-	protected static String getPackageName() {
-		return packageName;
+	public static void setPackageName(String packageName) {
+	
+		ConfigStore cfg = getDefaultConfiguration();
+		cfg.packageName = packageName;
+	}
+	
+	public static String getPackageName() {
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.packageName;
 	}
 
 	protected boolean isOwnConnection() {
-		return ownConnection;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.ownConnection;
 	}
 
 	protected static String getClassprefix() {
-		return classprefix;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.classprefix;
 	}
 
 	protected static String getSeparator() {
-		return separator;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.separator;
 	}
 
 	public static Integer getStartIndex() {
-		return startIndex;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.startIndex;
 	}
 
 	public static String getVersionTable() {
-		return versionTable;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		return cfg.versionTable;
 	}
 	
 	public static String getBaseClassName() {
-		String baseName = packageName + "." + classprefix + separator;
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		String baseName = cfg.packageName + "." + cfg.classprefix + cfg.separator;
 		return baseName;
 	}
 	
-	private static void checkConnection() throws SQLException {
-		if (connection == null || connection.isClosed()) {
-			
-			Validator.notNull(driver, "No driver name found!  Make sure you call Configure.configure()");
-			
-			ownConnection = true;
-			log.debug("JDBC Driver  "+ driver);
-			try {
-				Class.forName(driver);
-				connection = DriverManager.getConnection(url, username, password);
-			} catch (ClassNotFoundException e) {
-				log.error("Class"+ driver +"not found ",new ClassNotFoundException() );
-				throw new RuntimeException(e);
+	private static void checkConnection() throws SchemaMigrationException {
+
+		ConfigStore cfg = getDefaultConfiguration();
+
+		try {
+			if (cfg.connection == null || cfg.connection.isClosed()) {
+
+				Validator.notNull(cfg.driver, "No driver name found!  Make sure you call Configure.configure()");
+
+				cfg.ownConnection = true;
+				log.debug("JDBC Driver  "+ cfg.driver);
+				Class.forName(cfg.driver);
+				cfg.connection = DriverManager.getConnection(cfg.url, cfg.username, cfg.password);
+				log.debug("Connection done successfully for "+ cfg.url );
 			}
-			log.debug("Connection done successfully for "+ url );
+		} catch (ClassNotFoundException e) {
+			log.error("Class " + cfg.driver + " not found ", e);
+			throw new RuntimeException(e);
+			
+		} catch (SQLException e) {
+			log.error("Unable to check connection " + String.valueOf(cfg.connection));
+			throw new SchemaMigrationException(e);
 		}
 	}
 	
 	private static void cleanConnection() {
-		if (ownConnection) {
-			Closer.close(connection);
+		
+		ConfigStore cfg = getDefaultConfiguration();
+		if (cfg.ownConnection) {
+			Closer.close(cfg.connection);
 		}
+	}
+	
+	private final static ThreadLocal<ConfigStore> CFG = new ThreadLocal<ConfigStore>() {
+		
+		protected ConfigStore initialValue() {
+			
+			return new ConfigStore();
+		}
+		
+	};
+
+	public synchronized static ConfigStore getDefaultConfiguration() {
+		return CFG.get();
+	}
+	
+	protected synchronized static void setDefaultConfiguration(ConfigStore cfg) {
+		CFG.set(cfg);
 	}
 	
 }

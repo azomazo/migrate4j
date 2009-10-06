@@ -15,7 +15,7 @@ public class GenericGeneratorTest extends TestCase {
 	protected void setUp() throws Exception {
 		super.setUp();
 		
-		generator = new GenericGenerator();
+		generator = new GenericGenerator(null);
 	}
 	
 	public void testMakeColumnString_SimpleColumn() {

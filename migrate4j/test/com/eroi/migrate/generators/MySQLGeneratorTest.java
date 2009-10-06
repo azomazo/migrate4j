@@ -20,7 +20,7 @@ public class MySQLGeneratorTest extends TestCase {
     
     protected void setUp() throws Exception {
         super.setUp();
-        generator = new MySQLGenerator();
+        generator = new MySQLGenerator(null);
     }
 
     protected void tearDown() throws Exception {
@@ -30,7 +30,7 @@ public class MySQLGeneratorTest extends TestCase {
     public void testMakeColumnString_SimpleColumn() {
         Column column = new Column("basic", Types.INTEGER);
         String columnString = generator.makeColumnString(column, false);
-        assertEquals("`basic` INT NULL", columnString);
+        assertEquals("`basic` INT", columnString);
     }
 
     public void testMakeColumnString_PrimaryKeyNonIncrementing() {

@@ -1,5 +1,8 @@
 package com.eroi.migrate.generators;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import com.eroi.migrate.schema.Column;
 import com.eroi.migrate.schema.ForeignKey;
 import com.eroi.migrate.schema.Index;
@@ -30,6 +33,14 @@ public interface Generator {
 	
 	public boolean exists(ForeignKey foreignKey);
 	
+	public boolean hasPrimaryKey(String tableName);
+
+	public boolean isPrimaryKey(String columnName, String tableName);
+
+	public String dropPrimaryKey(String tableName);
+
+	public String dropPrimaryKey(Table tableName);
+
 	public String createTableStatement(Table table);
 	
 	public String createTableStatement(Table table, String options);
@@ -59,4 +70,16 @@ public interface Generator {
 	public String renameColumn(String newColumnName, String oldColumnName, String tableName);
 	
 	public String wrapName(String name);
+
+	/**
+	 * Some DBs need more than one statement to implement a column change. Therefore we let the 
+	 * generator do it.
+	 * The Generic Generator will however implement the single statement approach by calling the 
+	 * {@link #alterColumn(Connection, Column, String)} method. So that DBs that only need onw statement
+	 * can simply implement that method.
+	 * 
+	 * @param connection
+	 */
+	public void alterColumn(Column column, String tableName) throws SQLException ;
+
 }

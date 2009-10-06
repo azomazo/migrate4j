@@ -10,12 +10,14 @@ import com.sample.migrations.Migration_1;
 
 public class TestHelper {
 
-	public static void configureSampleDb() {
-		Configure.configure("jdbc:h2:~/migrate4j",
-				   			"org.h2.Driver",
-							"sa",
-							"",
-							"com.sample.migrations");
+	public static void configureSampleDb() throws SQLException {
+		Configure.configure("migrate4j.test.properties");
+		Configure.configure(Configure.getConnection(), "com.sample.migrations");
+//		Configure.configure("jdbc:h2:~/migrate4j",
+//				   			"org.h2.Driver",
+//							"sa",
+//							"",
+//							"com.sample.migrations");
 	}
 	
 	public static void ensureH2DatabaseIsInstalled() throws SQLException {
@@ -48,7 +50,7 @@ public class TestHelper {
 		
 		String tableName = Configure.getVersionTable();
 		String fieldName = Configure.VERSION_FIELD_NAME;
-		String sampleTableName = "\"" + Migration_1.TABLE_NAME + "\"";
+		String sampleTableName = quote(Migration_1.TABLE_NAME);
 		
 		
 		StringBuffer testQuery = new StringBuffer();
@@ -110,5 +112,9 @@ public class TestHelper {
 			Closer.close(statement);
 			Closer.close(connection);
 		}
+	}
+	
+	private static String quote(String s) {
+		return "\"" + s + "\""; 
 	}
 }

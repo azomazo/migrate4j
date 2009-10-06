@@ -1,10 +1,9 @@
 package com.eroi.migrate.generators;
 
+import java.sql.Connection;
 import java.sql.Types;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
+import com.eroi.migrate.misc.Log;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.CascadeRule;
@@ -19,8 +18,12 @@ import com.eroi.migrate.schema.Table;
   */
 public class MySQLGenerator extends GenericGenerator {
 	
-	private static Log log = LogFactory.getLog(MySQLGenerator.class);
+	private static Log log = Log.getLog(MySQLGenerator.class);
 	
+	public MySQLGenerator(Connection aConnection) {
+		super(aConnection);
+	}
+
 	public String getIdentifier() {
     	return "`";
     }
@@ -174,8 +177,21 @@ public class MySQLGenerator extends GenericGenerator {
     	      .append(" ");
 
     	int type = column.getColumnType();
+    	
+    	String sqlType;
+		// HB 09/09: MySQL specific type mapping
+		switch (type) {
+			case Types.CLOB:
+				sqlType = "TEXT";
+				break;
+			default:
+				sqlType=GeneratorHelper.getSqlName(type);
+		} 
+		if (sqlType==null) {
+			throw new IllegalStateException("Unsupported field type "+type);
+		}
 
-    	retVal.append(GeneratorHelper.getSqlName(type));
+		retVal.append(sqlType);
     	
     	if (GeneratorHelper.needsLength(type)) {
     	    retVal.append("(")
@@ -203,9 +219,8 @@ public class MySQLGenerator extends GenericGenerator {
     	retVal.append(" ");
 
     	if (!column.isNullable()) {
-    	    retVal.append("NOT ");
+    	    retVal.append("NOT NULL ");
     	}
-    	retVal.append("NULL ");
 
     	if (column.isAutoincrement()) {
     	    retVal.append("AUTO_INCREMENT ");

@@ -11,10 +11,6 @@ To set up your test MySQL database, please complete the following steps:
 		mysql>  create database testMysql;
 		mysql>  grant all on testMysql.* to sa@localhost;
 		mysql>  exit
-		$>  mysql -u sa
-		mysql> \u testMysql
-		mysql> create table version (version int not null primary key);
-		mysql> insert into version values (0);
 		
 Note:  The "$>" represents an shell prompt while "mysql>" represents
 		a mysql prompt

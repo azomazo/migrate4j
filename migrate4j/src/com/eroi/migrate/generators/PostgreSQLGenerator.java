@@ -1,10 +1,19 @@
 package com.eroi.migrate.generators;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Types;
+
+import com.eroi.migrate.Execute;
 import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
 
 public class PostgreSQLGenerator extends GenericGenerator {
 
+
+	public PostgreSQLGenerator(Connection aConnection) {
+		super(aConnection);
+	}
 
 	/**
 	 * <column.name> <column.type>[(<column.length>)]  
@@ -13,38 +22,117 @@ public class PostgreSQLGenerator extends GenericGenerator {
 	 */
 	@Override
 	protected String makeColumnString(Column column) {
-		StringBuffer retVal = new StringBuffer();
-
-		retVal.append(wrapName(column.getColumnName())).append(" ");
-
+		StringBuilder retVal = new StringBuilder();
+		retVal.append(wrapName(column.getColumnName()));
+		makeTypeString(retVal,column);
+		makeDefaultString(retVal,column);
+		makeNotNullString(retVal,column);
+		makePrimaryKeyString(retVal,column);
+		return retVal.toString();
+	}
+	
+	private String makeTypeString(StringBuilder retVal,Column column) {
 		int type = column.getColumnType();
+		String sqlType = null;
+		// HB 09/09: PSQL specific type mapping
+		switch (type) {
+			case Types.CLOB:
+				sqlType = "TEXT";
+				break;
+			case Types.BLOB:
+				sqlType = "BYTEA";
+				break;
+			default:
+				sqlType=GeneratorHelper.getSqlName(type);
+		} 
+	
+		if (sqlType==null) {
+			throw new IllegalStateException("Unsupported field type "+type);
+		}
 
+		retVal.append(" ");
 		if (column.isAutoincrement()) {
 			retVal.append("SERIAL ");
 		} else {
-			retVal.append(GeneratorHelper.getSqlName(type));
+			retVal.append(sqlType);
 		}
 
 		if (GeneratorHelper.needsLength(type)) {
 			retVal.append("(").append(column.getLength()).append(")");
 		}
-		retVal.append(" ");
+		return retVal.toString();
+	}
 
+	
+	private void makeDefaultString(StringBuilder retVal, Column column) {
 		if (column.getDefaultValue() != null) {
-			retVal.append("DEFAULT '").append(column.getDefaultValue()).append("' ");
+			retVal.append(" DEFAULT '").append(column.getDefaultValue()).append("' ");
+		}
+	}
+
+	private void makeNotNullString(StringBuilder retVal, Column column) {
+		if (!column.isNullable()) {
+			retVal.append(" NOT NULL");
+		}
+	}
+
+	private void makePrimaryKeyString(StringBuilder retVal, Column column) {
+		if (column.isPrimaryKey()) {
+			retVal.append(" PRIMARY KEY");
+		}
+	}
+
+	/**
+	 * HB 09/09
+	 * 
+	 * Postgres doesn't use 
+	 * ALTER TABLE <tableName> MODIFY COLUMN <existingDefinition.name> 
+	 * 		<newDefintion.type> [newDefinition.nullable] [...]
+	 * 
+	 * but instead we need several statements:
+	 * 
+	 * ALTER TABLE [ ONLY ] name [ * ] ALTER [ COLUMN ] column TYPE type [ USING expression ]
+	 * ALTER TABLE [ ONLY ] name [ * ] ALTER [ COLUMN ] column SET NOT NULL
+	 * ALTER TABLE [ ONLY ] name [ * ] ALTER [ COLUMN ] column SET DEFAULT expression
+	 */
+	@Override
+	public void alterColumn(Column column, String tableName) throws SQLException {
+		Connection conn = getConnection();
+		
+		Validator.notNull(column, "Column definition can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+
+		// type
+		StringBuilder query = new StringBuilder("ALTER TABLE ");
+		query.append(wrapName(tableName))
+			  .append(" ALTER COLUMN ")
+			  .append(wrapName(column.getColumnName())).append(" TYPE");
+		makeTypeString(query, column);
+		Execute.executeStatement(conn, query.toString());
+		
+		// NULLable?
+		if (!column.isNullable()) {
+			query.setLength(0);
+			query.append("ALTER TABLE ")
+				 .append(wrapName(tableName))
+				 .append(" ALTER COLUMN ")
+				 .append(wrapName(column.getColumnName())).append(" SET NOT NULL");
+			Execute.executeStatement(conn, query.toString());
 		}
 		
-		if (!column.isNullable()) {
-			retVal.append("NOT ");
+		// DEFAULT?
+		if (column.getDefaultValue()!=null) {
+			query.setLength(0);
+			query.append("ALTER TABLE ")
+				 .append(wrapName(tableName))
+				 .append(" ALTER COLUMN ")
+				 .append(wrapName(column.getColumnName())).append(" SET");
+			makeDefaultString(query, column);
+			Execute.executeStatement(conn, query.toString());
 		}
-		retVal.append("NULL ");
-
-		if (column.isPrimaryKey()) {
-			retVal.append("PRIMARY KEY ");
-		}
-
-		return retVal.toString().trim();
 	}
+	
+
 
 	/**
 	 * ALTER TABLE <tableName> ADD <column.name> <column.type>[(<column.length>)] 
@@ -88,4 +176,17 @@ public class PostgreSQLGenerator extends GenericGenerator {
 		
 		return query.toString();
 	}	
+	
+	/**
+	 * ALTER TABLE <tableName> DROP CONSTRAINT <tableName>_pkey CASCADE;
+	 */
+	public String dropPrimaryKey(String tableName) {
+		Validator.notNull(tableName, "Table name can not be null");
+
+		String wrappedTabName = wrapName(tableName);
+		String wrappedConstr = wrapName(tableName + "_pkey");
+		
+		String result = String.format("ALTER TABLE %s DROP CONSTRAINT %s CASCADE", wrappedTabName, wrappedConstr);
+		return result;
+	}
 }

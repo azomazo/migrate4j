@@ -9,11 +9,9 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 import com.eroi.migrate.Migration;
 import com.eroi.migrate.misc.Closer;
+import com.eroi.migrate.misc.Log;
 
 /**
  * Applies generic SQL scripts.  Script paths
@@ -27,7 +25,7 @@ import com.eroi.migrate.misc.Closer;
  */
 public abstract class AbstractFileBasedMigration implements Migration {
 
-	private static Log log = LogFactory.getLog(AbstractFileBasedMigration.class);
+	private static Log log = Log.getLog(AbstractFileBasedMigration.class);
 	
 	private String upScriptPath;
 	private String downScriptPath;

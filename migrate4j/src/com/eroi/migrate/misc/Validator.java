@@ -1,6 +1,5 @@
 package com.eroi.migrate.misc;
 
-import org.apache.commons.logging.Log;
 
 
 public class Validator {

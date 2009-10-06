@@ -6,11 +6,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
-import com.eroi.migrate.Configure;
 import com.eroi.migrate.misc.Closer;
+import com.eroi.migrate.misc.Log;
 import com.eroi.migrate.misc.SchemaMigrationException;
 import com.eroi.migrate.misc.Validator;
 import com.eroi.migrate.schema.Column;
@@ -20,8 +17,12 @@ import com.eroi.migrate.schema.Table;
 
 public class SybaseGenerator extends GenericGenerator {
 
-	private static final Log log = LogFactory.getLog(SybaseGenerator.class);
-	
+	private static final Log log = Log.getLog(SybaseGenerator.class);
+
+	public SybaseGenerator(Connection aConnection) {
+		super(aConnection);
+	}
+
 	public boolean indexExists(String indexName, String tableName) {
 		
 		Validator.notNull(indexName, "Index name can not be null");
@@ -31,14 +32,12 @@ public class SybaseGenerator extends GenericGenerator {
 		ResultSet resultSet = null;
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			String query = "select index_name from systable t " 
 				+ " inner join sysidx x on "
 				+ "t.table_id = x.table_id "
 				+ "where t.table_name = ? ";
 			
-			statement = connection.prepareStatement(query);
+			statement = getConnection().prepareStatement(query);
 			statement.setString(1, tableName);
 			
 			resultSet = statement.executeQuery();
@@ -104,9 +103,7 @@ public class SybaseGenerator extends GenericGenerator {
 		ResultSet resultSet = null;
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
-			statement = connection.prepareStatement("select * from sysobjects where name = ?");
+			statement = getConnection().prepareStatement("select * from sysobjects where name = ?");
 			statement.setString(1, tableName);
 			
 			resultSet = statement.executeQuery();
@@ -146,13 +143,11 @@ public class SybaseGenerator extends GenericGenerator {
 		ResultSet resultSet = null;
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			String query = "select * from systable t inner join systabcol c "
 				+ "on t.table_id = c.table_id where table_name = ? and "
 				+ "column_name = ? ";
 			
-			statement = connection.prepareStatement(query);
+			statement = getConnection().prepareStatement(query);
 			statement.setString(1, tableName);
 			statement.setString(2, columnName);
 			
@@ -196,11 +191,9 @@ public class SybaseGenerator extends GenericGenerator {
 		ResultSet resultSet = null;
 		
 		try {
-			Connection connection = Configure.getConnection();
-			
 			String query = "select * from sysforeignkeys where role = ? ";
 			
-			statement = connection.prepareStatement(query);
+			statement = getConnection().prepareStatement(query);
 			statement.setString(1, foreignKeyName);
 			
 			resultSet = statement.executeQuery();
