@@ -30,9 +30,9 @@ public class Migration_2 extends AbstractMigration {
 			// insert existing version entry with project = config.getEstablishedProjectID();
 			String query = String.format(
 					"INSERT INTO %s (%s, %s) VALUES ('%s', %d)", 
-						_q(this.versionTableNew),				// INSERT INTO %s
-						_q(ConfigStore.PROJECT_FIELD_NAME), 	// (%s, 
-						_q(ConfigStore.VERSION_FIELD_NAME), 	// %s)
+						wrapName(this.versionTableNew),				// INSERT INTO %s
+						wrapName(ConfigStore.PROJECT_FIELD_NAME), 	// (%s, 
+						wrapName(ConfigStore.VERSION_FIELD_NAME), 	// %s)
 						config.getEstablishedProjectID(),		// VALUES ('%s', 
 						existingVersion							// %s);
 			);
@@ -79,9 +79,5 @@ public class Migration_2 extends AbstractMigration {
 			tableExists(tableName) ||
 			tableExists(tableName.toLowerCase()) ||
 			tableExists(tableName.toUpperCase());
-	}
-
-	private String _q(String s) {
-		return "\"" + s + "\"";
 	}
 }

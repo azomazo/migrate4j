@@ -184,6 +184,17 @@ public class MySQLGenerator extends GenericGenerator {
 			case Types.CLOB:
 				sqlType = "TEXT";
 				break;
+			case Types.BLOB:
+				// make a decision based on some length data
+				if (column.getLength()<=16) {
+					sqlType = "BLOB";
+				} else 
+				if (column.getLength()<=32) {
+					sqlType = "MEDIUMBLOB";
+				} else {
+					sqlType = "LONGBLOB";
+				}
+				break;
 			default:
 				sqlType=GeneratorHelper.getSqlName(type);
 		} 
@@ -288,4 +299,21 @@ public class MySQLGenerator extends GenericGenerator {
 		
 		return query.toString();
 	}
+	
+	/**
+	 * RENAME TABLE
+	 */
+	public String renameTableStatement(String tableName, String newName) {
+		Validator.notNull(tableName, "Table name must not be null");
+		Validator.notNull(newName, "new Table name must not be null");
+		
+		StringBuffer retVal = new StringBuffer();
+		retVal.append("RENAME TABLE ")
+			.append(wrapName(tableName))
+			.append(" TO ")
+			.append(wrapName(newName));
+	
+		return retVal.toString();
+	}
+	
 }

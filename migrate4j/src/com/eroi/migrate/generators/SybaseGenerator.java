@@ -393,4 +393,20 @@ public class SybaseGenerator extends GenericGenerator {
 		
 	}
 
+	/**
+	 * RENAME TABLE
+	 */
+	public String renameTableStatement(String tableName, String newName) {
+		Validator.notNull(tableName, "Table name must not be null");
+		Validator.notNull(newName, "new Table name must not be null");
+		
+		StringBuffer retVal = new StringBuffer();
+		retVal.append("ALTER TABLE ")
+			.append(wrapName(tableName))
+			.append(" RENAME ")
+			.append(wrapName(newName));
+	
+		return retVal.toString();
+	}
+	
 }

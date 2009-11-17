@@ -270,14 +270,18 @@ public class GenericGenerator implements Generator {
 				retVal.append(makeColumnString(column));
 				
 			}
+			retVal.append(makeConstraintString(table.getTableName(), columns));
 		} catch (ClassCastException e) {
 			log.error("A table column couldn't be cast to a column: " + e.getMessage());
 			throw new SchemaMigrationException("A table column couldn't be cast to a column: " + e.getMessage());
 		}
-		
 		return retVal.toString().trim() + ");";
 	}
 	
+	public String makeConstraintString(String tableName, Column[] columns) {
+		return "";
+	}
+
 	/**
 	 * ALTER TABLE <tableName> drop <columnName>
 	 */
@@ -642,6 +646,22 @@ public class GenericGenerator implements Generator {
 		return query.toString();
 	}
 	
+	/**
+	 * RENAME TABLE
+	 */
+	public String renameTableStatement(String tableName, String newName) {
+		Validator.notNull(tableName, "Table name must not be null");
+		Validator.notNull(newName, "new Table name must not be null");
+		
+		StringBuffer retVal = new StringBuffer();
+		retVal.append("ALTER TABLE ")
+			.append(wrapName(tableName))
+			.append(" RENAME TO ")
+			.append(wrapName(newName));
+	
+		return retVal.toString();
+	}
+
 	protected List<String> getExistingColumnNames(String tableName) {
 		
 		List<String> columnNames = new ArrayList<String>();

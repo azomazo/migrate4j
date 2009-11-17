@@ -601,7 +601,7 @@ public class Execute {
 			throw new SchemaMigrationException("Unable to drop table " + tableName, e);
 		} 
 	}
-	
+
 	/**
 	 * Add a column to a table
 	 * 
@@ -993,6 +993,44 @@ public class Execute {
 		}
 	}
 	
+	/**
+	 * Rename a table
+	 * 
+	 * @param tableName
+	 * @param newName
+	 */
+	public static void renameTable(String tableName,	String newName) {
+		renameTable(Configure.getConnection(), tableName, newName);
+	}
+
+	/**
+	 * Rename a table
+	 * 
+	 * @param connection
+	 * @param tableName
+	 * @param newName
+	 */
+	public static void renameTable(Connection connection, String tableName,	String newName) {
+		Validator.notNull(connection, "Connection can not be null");
+		Validator.notNull(tableName, "Table name can not be null");
+		Validator.notNull(newName, "new Table name can not be null");
+		
+		if (! tableExists(connection, tableName) || tableName.equals(newName)) {
+			return;
+		}
+		
+		try {
+			Generator generator = GeneratorFactory.getGenerator(connection);
+			
+			String query = generator.renameTableStatement(tableName, newName);
+			
+			executeStatement(connection, query);
+		} catch (SQLException e) {
+			log.error("Unable to drop table " + tableName, e);
+			throw new SchemaMigrationException("Unable to drop table " + tableName, e);
+		} 
+	}
+	
 	public static int executeStatement(Connection connection, String query) throws SQLException {
 		
 		Statement statement = null;
@@ -1005,5 +1043,14 @@ public class Execute {
 		}
 		
 	}
-
+	
+	public static String wrapName(Connection connection, String name) {
+		try {
+			Generator g = GeneratorFactory.getGenerator(connection);
+			return g.wrapName(name);
+		} catch (SQLException e) {
+			log.error("Unable to wrap name");
+			throw new SchemaMigrationException("Unable to wrap name", e);
+		}
+	}
 }

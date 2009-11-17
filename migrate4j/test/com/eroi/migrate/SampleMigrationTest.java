@@ -7,6 +7,8 @@ import java.sql.Statement;
 
 import junit.framework.TestCase;
 
+import com.eroi.migrate.generators.Generator;
+import com.eroi.migrate.generators.GeneratorFactory;
 import com.eroi.migrate.misc.Closer;
 import com.sample.migrations.Migration_1;
 
@@ -55,10 +57,12 @@ public class SampleMigrationTest extends TestCase {
 		
 		boolean retVal = false;
 		
+		Generator g = GeneratorFactory.getGenerator(connection);
+		
 		StringBuffer query = new StringBuffer();
-		query.append("select * from \"")
-			 .append(Migration_1.TABLE_NAME)
-			 .append("\"");
+		query.append("select * from ")
+			 .append(g.wrapName(Migration_1.TABLE_NAME))
+			 .append("");
 		
 		Statement statement = null;
 		ResultSet resultSet = null;

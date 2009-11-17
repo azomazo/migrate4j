@@ -27,8 +27,28 @@ public class PostgreSQLGenerator extends GenericGenerator {
 		makeTypeString(retVal,column);
 		makeDefaultString(retVal,column);
 		makeNotNullString(retVal,column);
-		makePrimaryKeyString(retVal,column);
+		// primary key is defined via makeConstraintString()
 		return retVal.toString();
+	}
+	
+	@Override
+	// define primary keys as separate constraint, so that primary key can span over multiple fields
+	public String makeConstraintString(String tableName, Column[] columns) {
+		StringBuffer result = new StringBuffer();
+		for (Column col : columns) {
+			if (col.isPrimaryKey()) {
+				if (result.length() == 0) {
+					result.append(", CONSTRAINT \"").append(tableName).append("_pkey\" PRIMARY KEY (\"").append(col.getColumnName()).append('"');
+				} else {
+					result.append(", \"").append(col.getColumnName()).append('"');
+				}
+			}
+		}
+		if (result.length() > 0) {
+			result.append(')');
+		}
+		
+		return result.toString();
 	}
 	
 	private String makeTypeString(StringBuilder retVal,Column column) {
@@ -73,12 +93,6 @@ public class PostgreSQLGenerator extends GenericGenerator {
 	private void makeNotNullString(StringBuilder retVal, Column column) {
 		if (!column.isNullable()) {
 			retVal.append(" NOT NULL");
-		}
-	}
-
-	private void makePrimaryKeyString(StringBuilder retVal, Column column) {
-		if (column.isPrimaryKey()) {
-			retVal.append(" PRIMARY KEY");
 		}
 	}
 

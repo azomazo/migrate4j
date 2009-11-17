@@ -149,6 +149,35 @@ public class DerbyGenerator extends GenericGenerator {
 		}
 		
 		return false;
+	}
+	
+	/**
+	 * RENAME TABLE
+	 */
+	public String renameTableStatement(String tableName, String newName) {
+		Validator.notNull(tableName, "Table name must not be null");
+		Validator.notNull(newName, "new Table name must not be null");
 		
+		StringBuffer retVal = new StringBuffer();
+		retVal.append("RENAME TABLE ")
+			.append(wrapName(tableName))
+			.append(" TO ")
+			.append(wrapName(newName));
+	
+		return retVal.toString();
+	}
+	
+	/**
+	 * DERBY doesn't support 'BEFORE'
+	 */
+	public String addColumnStatement(Column column, String tableName, String afterColumn) {
+		return super.addColumnStatement(column, tableName, null);
+	}
+	
+	/**
+	 * DERBY doesn't support renanming columns :-(
+     */
+	public String renameColumn(String newColumnName, String oldColumnName, String tableName) {
+		throw new UnsupportedOperationException("Derby does not support Column renaming");
 	}
 }

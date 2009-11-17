@@ -14,6 +14,8 @@ import com.eroi.migrate.ConfigStore;
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.Engine;
 import com.eroi.migrate.Execute;
+import com.eroi.migrate.generators.Generator;
+import com.eroi.migrate.generators.GeneratorFactory;
 import com.eroi.migrate.misc.Closer;
 
 import db.migrations.Migration_1;
@@ -673,7 +675,9 @@ public class TestVersionMigration extends TestCase {
 		
 		tableName = _getTrueTableName(tableName);
 		
-		String query = String.format("SELECT count(*) FROM \"%s\"", tableName); 
+		Generator g = GeneratorFactory.getGenerator(config.getConnection());
+		
+		String query = String.format("SELECT count(*) FROM %s", g.wrapName(tableName)); 
 	
 		Statement statement = null;
 		ResultSet resultSet = null;

@@ -7,6 +7,8 @@ import java.sql.Statement;
 
 import com.eroi.migrate.ConfigStore;
 import com.eroi.migrate.Execute;
+import com.eroi.migrate.generators.Generator;
+import com.eroi.migrate.generators.GeneratorFactory;
 import com.eroi.migrate.misc.Closer;
 
 public class VersionQuery {
@@ -14,15 +16,16 @@ public class VersionQuery {
 	public static void insertVersion(ConfigStore cfg, int version) throws SQLException {
 		
 		Connection conn = cfg.getConnection();
+		Generator g = GeneratorFactory.getGenerator(conn);
 		
 		String query;
 
 		String versionTableNew = cfg.getFullQualifiedVersionTable();
 		if (Execute.tableExists(conn, versionTableNew)) {
 
-	    	String qVersionTab = _q(versionTableNew);
-	    	String qVersionCol = _q(ConfigStore.VERSION_FIELD_NAME);
-	    	String qProjectCol = _q(ConfigStore.PROJECT_FIELD_NAME);
+	    	String qVersionTab = g.wrapName(versionTableNew);
+	    	String qVersionCol = g.wrapName(ConfigStore.VERSION_FIELD_NAME);
+	    	String qProjectCol = g.wrapName(ConfigStore.PROJECT_FIELD_NAME);
 	    	String projectID = cfg.getProjectID(); 
 
 			// This should run on every JDBC complaint DB . . . I hope
@@ -46,15 +49,16 @@ public class VersionQuery {
 	public static void updateVersion(ConfigStore cfg, int version) throws SQLException {
 
 		Connection conn = cfg.getConnection();
+		Generator g = GeneratorFactory.getGenerator(conn);
 		
 		String query;
 		
 		String versionTableNew = cfg.getFullQualifiedVersionTable();
 		if (Execute.tableExists(conn, versionTableNew)) {
 
-	    	String qVersionTab = _q(versionTableNew);
-	    	String qVersionCol = _q(ConfigStore.VERSION_FIELD_NAME);
-	    	String qProjectCol = _q(ConfigStore.PROJECT_FIELD_NAME);
+	    	String qVersionTab = g.wrapName(versionTableNew);
+	    	String qVersionCol = g.wrapName(ConfigStore.VERSION_FIELD_NAME);
+	    	String qProjectCol = g.wrapName(ConfigStore.PROJECT_FIELD_NAME);
 	    	String projectID = cfg.getProjectID(); 
 	    	
 			// This should run on every JDBC complaint DB . . . I hope
@@ -84,15 +88,16 @@ public class VersionQuery {
 	protected static int getVersion(ConfigStore cfg, String projectID) throws SQLException {
 
 		Connection conn = cfg.getConnection();
+		Generator g = GeneratorFactory.getGenerator(conn);
 		
 		String query;
 		
 		String versionTableNew = cfg.getFullQualifiedVersionTable();
 		if (Execute.tableExists(conn, versionTableNew)) {
 
-	    	String qVersionTab = _q(versionTableNew);
-	    	String qVersionCol = _q(ConfigStore.VERSION_FIELD_NAME);
-	    	String qProjectCol = _q(ConfigStore.PROJECT_FIELD_NAME);
+	    	String qVersionTab = g.wrapName(versionTableNew);
+	    	String qVersionCol = g.wrapName(ConfigStore.VERSION_FIELD_NAME);
+	    	String qProjectCol = g.wrapName(ConfigStore.PROJECT_FIELD_NAME);
 	    	
 			//This should run on every JDBC complaint DB . . . I hope
 		    query = String.format(
@@ -131,9 +136,5 @@ public class VersionQuery {
 			Closer.close(statement);
 		}
 
-	}
-	
-	private static String _q(String s) {
-		return "\"" + s + "\"";
 	}
 }

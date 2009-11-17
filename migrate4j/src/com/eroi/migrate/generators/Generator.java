@@ -81,5 +81,6 @@ public interface Generator {
 	 * @param connection
 	 */
 	public void alterColumn(Column column, String tableName) throws SQLException ;
-
+	
+	public String renameTableStatement(String tableName, String newName);
 }

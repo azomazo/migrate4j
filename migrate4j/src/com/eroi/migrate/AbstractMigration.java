@@ -354,6 +354,19 @@ public abstract class AbstractMigration implements Migration {
 		}
 	}
 	
+	/**
+	 * Rename a table
+	 * @param tableName
+	 * @param newName
+	 */
+	protected final void renameTable(final String tableName, final String newName) {
+		Execute.renameTable(this.config.getConnection(), tableName, newName);
+	}
+	
+	protected final String wrapName(final String name) {
+		return Execute.wrapName(this.config.getConnection(), name);
+	}
+	
 	// =============================================================================
 	//   D E F I N E 
 	// =============================================================================

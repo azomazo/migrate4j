@@ -15,6 +15,7 @@ import junit.textui.TestRunner;
 import com.eroi.migrate.Configure;
 import com.eroi.migrate.Engine;
 import com.eroi.migrate.Execute;
+import com.eroi.migrate.generators.DerbyGenerator;
 import com.eroi.migrate.generators.Generator;
 import com.eroi.migrate.generators.GenericGenerator;
 import com.eroi.migrate.generators.GeneratorFactory;
@@ -29,6 +30,7 @@ import db.migrations.Migration_5;
 import db.migrations.Migration_6;
 import db.migrations.Migration_7;
 import db.migrations.Migration_8;
+import db.migrations.Migration_9;
 
 /**
  * Validates a Generators ability to perform DDL tasks.
@@ -289,7 +291,7 @@ public class GeneratorValidationTest extends TestCase {
 
 		writeTestPass();
 	}
-	
+
 	public void testAddColumnAfterColumn_Version5To6() throws Exception {
 		
 		writeTestStart("Add column after column");
@@ -304,8 +306,10 @@ public class GeneratorValidationTest extends TestCase {
 		assertTrue(Execute.columnExists(Migration_6.COLUMN_NAME, Migration_1.TABLE_NAME));
 		assertEquals(6, Engine.getCurrentVersion(connection));
 
-		// Postgres does not support adding columns using BEFORE or AFTER so let's skip it only for Postges 
-		if (GeneratorFactory.getGenerator(connection).getClass() != PostgreSQLGenerator.class) {
+		// Postgres & Derby does not support adding columns using BEFORE or AFTER so let's skip this test
+		Class<? extends Generator> genClass = GeneratorFactory.getGenerator(connection).getClass(); 
+		if (genClass != PostgreSQLGenerator.class &&
+			genClass != DerbyGenerator.class) {
 			assertTrue(checkPlacementOfRandomTextColumn());
 		}
 			
@@ -324,13 +328,18 @@ public class GeneratorValidationTest extends TestCase {
 		
 		Engine.migrate(7);
 		
-		assertFalse(Execute.columnExists(Migration_7.OLD_COLUMN_NAME, Migration_1.TABLE_NAME));
-		assertTrue(Execute.columnExists(Migration_7.NEW_COLUMN_NAME, Migration_1.TABLE_NAME));
+		Class<? extends Generator> genClass = GeneratorFactory.getGenerator(connection).getClass(); 
+		if (genClass != DerbyGenerator.class) {
+			assertFalse(Execute.columnExists(Migration_7.OLD_COLUMN_NAME, Migration_1.TABLE_NAME));
+			assertTrue(Execute.columnExists(Migration_7.NEW_COLUMN_NAME, Migration_1.TABLE_NAME));
+		}
 		
 		Engine.migrate(6);
 		
-		assertTrue(Execute.columnExists(Migration_7.OLD_COLUMN_NAME, Migration_1.TABLE_NAME));
-		assertFalse(Execute.columnExists(Migration_7.NEW_COLUMN_NAME, Migration_1.TABLE_NAME));
+		if (genClass != DerbyGenerator.class) {
+			assertTrue(Execute.columnExists(Migration_7.OLD_COLUMN_NAME, Migration_1.TABLE_NAME));
+			assertFalse(Execute.columnExists(Migration_7.NEW_COLUMN_NAME, Migration_1.TABLE_NAME));
+		}
 		
 		writeTestPass();
 	}
@@ -351,6 +360,25 @@ public class GeneratorValidationTest extends TestCase {
 		Engine.migrate(7);
 		
 		assertFalse(Execute.tableExists(Migration_8.TABLE_NAME));
+	}
+
+	public void testRenameTable_Version8To9() throws Exception {
+		writeTestStart("Define Primary Key w/o 'NOT NULL'");
+		
+		Engine.migrate(8);
+		
+		assertTrue(Execute.tableExists(Migration_8.TABLE_NAME));
+		assertFalse(Execute.tableExists(Migration_9.NEW_TABLE_NAME));
+		
+		Engine.migrate(9);
+		
+		assertFalse(Execute.tableExists(Migration_8.TABLE_NAME));
+		assertTrue(Execute.tableExists(Migration_9.NEW_TABLE_NAME));
+		
+		Engine.migrate(8);
+		
+		assertTrue(Execute.tableExists(Migration_8.TABLE_NAME));
+		assertFalse(Execute.tableExists(Migration_9.NEW_TABLE_NAME));
 	}
 	
 	/** ------------- Helper Methods ---------------- **/

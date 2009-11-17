@@ -95,6 +95,11 @@ public class Engine {
 			throw new SchemaMigrationException("Failed to get current version from the database", e);
 		}
 
+		if (currentVersion == version) {
+			// nothing to do
+			return;
+		}
+		
 		boolean isUp = _isUpMigration(currentVersion, version);
 //		List<Class<? extends Migration>> classesToMigrate = classesToMigrate();
 		classesToMigrate = _orderMigrations(classesToMigrate, currentVersion, version);
