@@ -1,0 +1,5 @@
+This folder contains a migrate4j.properties file that allows
+testing migrate4j against a Derby database.  Copy this file
+into the test directory to make migrate4j use your test Derby database.
+
+There are no further steps required to set up your test H2 database.
